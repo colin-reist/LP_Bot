@@ -19,13 +19,12 @@ const sequelize = new Sequelize('database', 'user', 'password', {
 });
 
 const Tags = sequelize.define('tags', {
-	name: {
+	messageID: {
 		type: Sequelize.STRING,
 		unique: true,
 	},
-	description: Sequelize.TEXT,
-	username: Sequelize.STRING,
-	usage_count: {
+	messageURL: Sequelize.TEXT,
+	reactCount: {
 		type: Sequelize.INTEGER,
 		defaultValue: 0,
 		allowNull: false,
@@ -54,7 +53,7 @@ for (const folder of commandFolders) {
 }
 
 client.once(Events.ClientReady, () => {
-	Tags.sync();
+	Tags.sync({ force: true }); // force: true will drop the table if it already exists
 	client.user.setActivity({
 		name: 'les méchants pas beaux',
 		type: ActivityType.Watching,
@@ -68,22 +67,34 @@ client.once(Events.ClientReady, () => {
  */
 client.on(Events.MessageReactionAdd, async (reaction) => {
 	// When a reaction is received, check if the structure is partial
-	if (reaction.partial) {
-		// If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
-		try {
-			await reaction.fetch();
-		}
-		catch (error) {
-			console.error('Something went wrong when fetching the message:', error);
-			// Return as `reaction.message.author` may be undefined/null
-			return;
+	// If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
+	try {
+		await reaction.fetch();
+		const messageID = reaction.message.id;
+		const messageURL = reaction.message.url;
+		const reactionCount = reaction.count;
+
+
+		const existingTag = await Tags.findOne({ where: { messageID: messageID } });
+		if (existingTag === null) {
+			console.log('---------Création du tag---------\n' + 'messageID: ' + messageID + ' \n'	+ 'messageURL: ' + messageURL + ' \n' + 'reactCount: ' + reactionCount + ' \n----------------------------------');
+			// If a tag doesn't already exist, create one
+			// eslint-disable-next-line no-unused-vars
+			const tag = await Tags.create({
+				messageID: messageID,
+				messageURL: messageURL,
+				reactCount: reactionCount,
+			});
+		} else {
+			console.log('Le tag existe \nmessageID: ' + messageID + ' \n messageURL: ' + messageURL + ' \n reactCount: ' + reactionCount + ' \n----------------------------------');
+			// If a tag already exists, increment the reactCount property
+			existingTag.reactCount = reactionCount;
 		}
 	}
+	catch (error) {
+		console.error('Une erreur est survenue lors d\'un rajout d\'émoji: ', error);
+	}
 
-	// Now the message has been cached and is fully available
-	console.log(`${reaction.message.author}'s message on the channel ${reaction.message.channel.name} gained a reaction!`);
-	// The reaction is now also fully available and the properties will be reflected accurately:
-	console.log(`${reaction.count} user(s) have given the same reaction to this message!`);
 });
 
 /**
@@ -96,15 +107,22 @@ client.on(Events.MessageReactionRemove, async (reaction) => {
 		// If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
 		try {
 			await reaction.fetch();
+			const messagelink = reaction.message.url;
+			const reactionCount = reaction.count;
+
+			// Check if a tag already exists for this message
+			const existingTag = await Tags.findOne({ where: { messageURL: messagelink } });
+			if (existingTag) {
+				// If a tag already exists, decrement the reactCount property
+				existingTag.set('reactCount', reactionCount);
+			}
+
 		}
 		catch (error) {
 			console.error('Something went wrong when fetching the message:', error);
 			// Return as `reaction.message.author` may be undefined/null
-			return;
 		}
 	}
-	console.log(`${reaction.message.author}'s message on the channel ${reaction.message.channel.name} lost a reaction!`);
-
 });
 
 client.on(Events.InteractionCreate, async interaction => {
@@ -183,7 +201,7 @@ client.on(Events.InteractionCreate, async interaction => {
 	else if (commandName === 'showtags') {
 		// equivalent to: SELECT name FROM tags;
 		console.log('showtags');
-		const tagList = await Tags.findAll({ attributes: ['name'] });
+		const tagList = await Tags.findAll({ attributes: ['messageID'] });
 		const tagString = tagList.map(t => t.name).join(', ') || 'No tags set.';
 
 		return interaction.reply(`List of tags: ${tagString}`);
