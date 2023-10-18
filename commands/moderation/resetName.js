@@ -1,11 +1,12 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('resetname')
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 		.setDescription('Rename all members of the server'),
 async execute(interaction) {
-    await interaction.reply('Renaming all members of the server...');
+    await interaction.reply({ content : 'Réinitialisation des noms des membres du serveur...', ephemeral: true});
     try {
         const guild = interaction.guild;
         const members = await guild.members.fetch();
@@ -17,6 +18,6 @@ async execute(interaction) {
     } catch (error) {
         console.error(error);
     }
-    console.log('Finished renaming all members of the server.');
+    await interaction.editReply({ content : 'Tout les noms des membres du serveur on été réinitialiser', ephemeral: true});
 }
 };
