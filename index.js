@@ -1,5 +1,6 @@
 /* eslint-disable no-inline-comments */
 const fs = require('node:fs');
+const Sequelize = require('sequelize');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType } = require('discord.js');
 const { token } = require('./config.json');
@@ -7,6 +8,28 @@ const { token } = require('./config.json');
 const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers],
 	partials: [Partials.Message, Partials.Channel, Partials.Reaction],
+});
+
+const sequelize = new Sequelize('database', 'user', 'password', {
+	host: 'localhost',
+	dialect: 'sqlite',
+	logging: false,
+	// SQLite only
+	storage: 'database.sqlite',
+});
+
+const Tags = sequelize.define('tags', {
+	name: {
+		type: Sequelize.STRING,
+		unique: true,
+	},
+	description: Sequelize.TEXT,
+	username: Sequelize.STRING,
+	usage_count: {
+		type: Sequelize.INTEGER,
+		defaultValue: 0,
+		allowNull: false,
+	},
 });
 
 client.commands = new Collection();
@@ -31,8 +54,9 @@ for (const folder of commandFolders) {
 }
 
 client.once(Events.ClientReady, () => {
+	Tags.sync();
 	client.user.setActivity({
-		name: 'ton futur',
+		name: 'les méchants pas beaux',
 		type: ActivityType.Watching,
 	});
 	console.log('Le bot à démarré sans erreur');
@@ -41,8 +65,6 @@ client.once(Events.ClientReady, () => {
 /**
  * Capte le rajout d'une réaction sur un message
  * @param {MessageReaction} reaction La réaction ajoutée
- * @param {User} user L'utilisateur qui a ajouté la réaction
- * @returns {void}
  */
 client.on(Events.MessageReactionAdd, async (reaction) => {
 	// When a reaction is received, check if the structure is partial
@@ -64,7 +86,10 @@ client.on(Events.MessageReactionAdd, async (reaction) => {
 	console.log(`${reaction.count} user(s) have given the same reaction to this message!`);
 });
 
-// Capture du retrait d'un emoji sur un message
+/**
+ * Capte le retrait d'une réaction sur un message
+ * @param {MessageReaction} reaction La réaction retirée
+ */
 client.on(Events.MessageReactionRemove, async (reaction) => {
 	// When a reaction is received, check if the structure is partial
 	if (reaction.partial) {
@@ -84,9 +109,95 @@ client.on(Events.MessageReactionRemove, async (reaction) => {
 
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
-
 	const { cooldowns } = client;
 	const command = client.commands.get(interaction.commandName);
+
+	const { commandName } = interaction;
+
+	if (commandName === 'addtag') {
+		console.log('addtag');
+		const tagName = interaction.options.getString('name');
+		const tagDescription = interaction.options.getString('description');
+
+		try {
+			// equivalent to: INSERT INTO tags (name, description, username) values (?, ?, ?);
+			const tag = await Tags.create({
+				name: tagName,
+				description: tagDescription,
+				username: interaction.user.username,
+			});
+
+			return interaction.reply(`Tag ${tag.name} added.`);
+		}
+		catch (error) {
+			if (error.name === 'SequelizeUniqueConstraintError') {
+				return interaction.reply('That tag already exists.');
+			}
+
+			return interaction.reply('Something went wrong with adding a tag.');
+		}
+	}
+	else if (commandName === 'tag') {
+		console.log('tag');
+		const tagName = interaction.options.getString('name');
+
+		// equivalent to: SELECT * FROM tags WHERE name = 'tagName' LIMIT 1;
+		const tag = await Tags.findOne({ where: { name: tagName } });
+
+		if (tag) {
+			// equivalent to: UPDATE tags SET usage_count = usage_count + 1 WHERE name = 'tagName';
+			tag.increment('usage_count');
+
+			return interaction.reply(tag.get('description'));
+		}
+
+		return interaction.reply(`Could not find tag: ${tagName}`);
+	}
+	else if (commandName === 'edittag') {
+		console.log('edittag');
+		const tagName = interaction.options.getString('name');
+		const tagDescription = interaction.options.getString('description');
+
+		// equivalent to: UPDATE tags (description) values (?) WHERE name='?';
+		const affectedRows = await Tags.update({ description: tagDescription }, { where: { name: tagName } });
+
+		if (affectedRows > 0) {
+			return interaction.reply(`Tag ${tagName} was edited.`);
+		}
+
+		return interaction.reply(`Could not find a tag with name ${tagName}.`);
+	}
+	else if (commandName == 'taginfo') {
+		console.log('taginfo');
+		const tagName = interaction.options.getString('name');
+
+		// equivalent to: SELECT * FROM tags WHERE name = 'tagName' LIMIT 1;
+		const tag = await Tags.findOne({ where: { name: tagName } });
+
+		if (tag) {
+			return interaction.reply(`${tagName} was created by ${tag.username} at ${tag.createdAt} and has been used ${tag.usage_count} times.`);
+		}
+
+		return interaction.reply(`Could not find tag: ${tagName}`);
+	}
+	else if (commandName === 'showtags') {
+		// equivalent to: SELECT name FROM tags;
+		console.log('showtags');
+		const tagList = await Tags.findAll({ attributes: ['name'] });
+		const tagString = tagList.map(t => t.name).join(', ') || 'No tags set.';
+
+		return interaction.reply(`List of tags: ${tagString}`);
+	}
+	else if (commandName === 'deletetag') {
+		console.log('deletetag');
+		const tagName = interaction.options.getString('name');
+		// equivalent to: DELETE from tags WHERE name = ?;
+		const rowCount = await Tags.destroy({ where: { name: tagName } });
+
+		if (!rowCount) return interaction.reply('That tag doesn\'t exist.');
+
+		return interaction.reply('Tag deleted.');
+	}
 
 	if (!command) return;
 
