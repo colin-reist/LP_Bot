@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const Sequelize = require('sequelize');
 const path = require('node:path');
-const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType } = require('discord.js');
+const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType, EmbedBuilder, TextChannel } = require('discord.js');
 const { token } = require('./config.json');
 
 const client = new Client({
@@ -29,6 +29,7 @@ const Tags = sequelize.define('tags', {
 		defaultValue: 0,
 		allowNull: false,
 	},
+	posted: Sequelize.BOOLEAN,
 });
 
 client.commands = new Collection();
@@ -79,7 +80,7 @@ client.on(Events.MessageReactionAdd, async (reaction) => {
 		const messageID = reaction.message.id;
 		const messageURL = reaction.message.url;
 		const reactionCount = reaction.count;
-
+		let messageAttachment = message.attachments.size > 0 ? message.attachments.array()[0].url : null
 
 		const existingTag = await Tags.findOne({ where: { messageID: messageID } });
 		if (existingTag === null) {
@@ -90,11 +91,20 @@ client.on(Events.MessageReactionAdd, async (reaction) => {
 				messageID: messageID,
 				messageURL: messageURL,
 				reactCount: reactionCount,
+				posted: false,
 			});
 		} else {
 			console.log('Le tag existe \nmessageID: ' + messageID + ' \nmessageURL: ' + messageURL + ' \nreactCount: ' + reactionCount + ' \n----------------------------------');
 			// If a tag already exists, increment the reactCount property
 			existingTag.reactCount = reactionCount;
+		}
+
+		if (existingTag !== null && existingTag.posted === false && reactionCount > 1) {
+			const exampleEmbed = new EmbedBuilder()
+				.setTitle('Some title')
+				if (messageAttachment !== null) {
+				.setImage(messageAttachment);
+			client.channels.cache.get('1118627219372249228').send({ embeds: [exampleEmbed] });
 		}
 	} catch (error) {
 		console.error('Une erreur est survenue lors d\'un rajout d\'émoji: ', error);
@@ -123,6 +133,7 @@ client.on(Events.MessageReactionRemove, async (reaction) => {
 
 		// Check if a tag already exists for this message
 		const existingTag = await Tags.findOne({ where: { messageID: messageID } });
+		if (existingTag === null) return;
 		existingTag.reactCount = reactionCount;
 		console.log('MessageID: ' + messageID + ' à perdu un vote \nReactCount: ' + reactionCount);
 	} catch (error) {
