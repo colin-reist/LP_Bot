@@ -70,6 +70,12 @@ client.on(Events.MessageReactionAdd, async (reaction) => {
 	// If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
 	try {
 		await reaction.fetch();
+	}
+	catch (error) {
+		console.error('Une erreur est survenue lors d\'un rajout d\'émoji: ', error);
+	}
+
+	try {
 		const messageID = reaction.message.id;
 		const messageURL = reaction.message.url;
 		const reactionCount = reaction.count;
@@ -86,12 +92,11 @@ client.on(Events.MessageReactionAdd, async (reaction) => {
 				reactCount: reactionCount,
 			});
 		} else {
-			console.log('Le tag existe \nmessageID: ' + messageID + ' \n messageURL: ' + messageURL + ' \n reactCount: ' + reactionCount + ' \n----------------------------------');
+			console.log('Le tag existe \nmessageID: ' + messageID + ' \nmessageURL: ' + messageURL + ' \nreactCount: ' + reactionCount + ' \n----------------------------------');
 			// If a tag already exists, increment the reactCount property
 			existingTag.reactCount = reactionCount;
 		}
-	}
-	catch (error) {
+	} catch (error) {
 		console.error('Une erreur est survenue lors d\'un rajout d\'émoji: ', error);
 	}
 
@@ -103,26 +108,27 @@ client.on(Events.MessageReactionAdd, async (reaction) => {
  */
 client.on(Events.MessageReactionRemove, async (reaction) => {
 	// When a reaction is received, check if the structure is partial
-	if (reaction.partial) {
-		// If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
-		try {
-			await reaction.fetch();
-			const messagelink = reaction.message.url;
-			const reactionCount = reaction.count;
-
-			// Check if a tag already exists for this message
-			const existingTag = await Tags.findOne({ where: { messageURL: messagelink } });
-			if (existingTag) {
-				// If a tag already exists, decrement the reactCount property
-				existingTag.set('reactCount', reactionCount);
-			}
-
-		}
-		catch (error) {
-			console.error('Something went wrong when fetching the message:', error);
-			// Return as `reaction.message.author` may be undefined/null
-		}
+	// If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
+	try {
+		await reaction.fetch();
 	}
+	catch (error) {
+		console.error('Something went wrong when fetching the message:', error);
+		// Return as `reaction.message.author` may be undefined/null
+	}
+
+	try {
+		const messageID = reaction.message.id;
+		const reactionCount = reaction.count;
+
+		// Check if a tag already exists for this message
+		const existingTag = await Tags.findOne({ where: { messageID: messageID } });
+		existingTag.reactCount = reactionCount;
+		console.log('MessageID: ' + messageID + ' à perdu un vote \nReactCount: ' + reactionCount);
+	} catch (error) {
+		console.error('Une erreur est survenue lors d\'un retrait d\'émoji: ', error);
+	}
+
 });
 
 client.on(Events.InteractionCreate, async interaction => {
