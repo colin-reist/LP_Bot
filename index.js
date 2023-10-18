@@ -1,10 +1,11 @@
+/* eslint-disable no-inline-comments */
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType } = require('discord.js');
 const { token } = require('./config.json');
 
 const client = new Client({
-	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers], 
+	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers],
 	partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
@@ -22,7 +23,8 @@ for (const folder of commandFolders) {
 		const command = require(filePath);
 		if ('data' in command && 'execute' in command) {
 			client.commands.set(command.data.name, command);
-		} else {
+		}
+		else {
 			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
 		}
 	}
@@ -30,7 +32,7 @@ for (const folder of commandFolders) {
 
 client.once(Events.ClientReady, () => {
 	client.user.setActivity({
-		name: 'les bzez de ta daronne',
+		name: 'ton futur',
 		type: ActivityType.Watching,
 	});
 	console.log('Le bot à démarré sans erreur');
@@ -42,13 +44,14 @@ client.once(Events.ClientReady, () => {
  * @param {User} user L'utilisateur qui a ajouté la réaction
  * @returns {void}
  */
-client.on(Events.MessageReactionAdd, async (reaction, user) => {
+client.on(Events.MessageReactionAdd, async (reaction) => {
 	// When a reaction is received, check if the structure is partial
 	if (reaction.partial) {
 		// If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
 		try {
 			await reaction.fetch();
-		} catch (error) {
+		}
+		catch (error) {
 			console.error('Something went wrong when fetching the message:', error);
 			// Return as `reaction.message.author` may be undefined/null
 			return;
@@ -62,13 +65,14 @@ client.on(Events.MessageReactionAdd, async (reaction, user) => {
 });
 
 // Capture du retrait d'un emoji sur un message
-client.on(Events.MessageReactionRemove, async (reaction, user) => {
+client.on(Events.MessageReactionRemove, async (reaction) => {
 	// When a reaction is received, check if the structure is partial
 	if (reaction.partial) {
 		// If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
 		try {
 			await reaction.fetch();
-		} catch (error) {
+		}
+		catch (error) {
 			console.error('Something went wrong when fetching the message:', error);
 			// Return as `reaction.message.author` may be undefined/null
 			return;
@@ -109,11 +113,13 @@ client.on(Events.InteractionCreate, async interaction => {
 
 	try {
 		await command.execute(interaction);
-	} catch (error) {
+	}
+	catch (error) {
 		console.error(error);
 		if (interaction.replied || interaction.deferred) {
 			await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
-		} else {
+		}
+		else {
 			await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
 		}
 	}
