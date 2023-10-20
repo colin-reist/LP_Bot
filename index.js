@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const Sequelize = require('sequelize');
 const path = require('node:path');
-const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType, EmbedBuilder, TextChannel } = require('discord.js');
+const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType, EmbedBuilder } = require('discord.js');
 const { token } = require('./config.json');
 
 const client = new Client({
@@ -30,6 +30,7 @@ const Tags = sequelize.define('tags', {
 		allowNull: false,
 	},
 	posted: Sequelize.BOOLEAN,
+	linkedEmbed: Sequelize.TEXT,
 });
 
 client.commands = new Collection();
@@ -80,11 +81,19 @@ client.on(Events.MessageReactionAdd, async (reaction) => {
 		const messageID = reaction.message.id;
 		const messageURL = reaction.message.url;
 		const reactionCount = reaction.count;
-		let messageAttachment = message.attachments.size > 0 ? message.attachments.array()[0].url : null
+		let messageAttachment = null; // initialize messageAttachment to null
+
+		// Check if the message has an image attachment
+		if (reaction.message.attachments.size > 0) {
+			const attachment = reaction.message.attachments.first();
+			if (attachment.contentType.startsWith('image/')) {
+				messageAttachment = attachment.url;
+			}
+		}
 
 		const existingTag = await Tags.findOne({ where: { messageID: messageID } });
 		if (existingTag === null) {
-			console.log('---------Création du tag---------\n' + 'messageID: ' + messageID + ' \n'	+ 'messageURL: ' + messageURL + ' \n' + 'reactCount: ' + reactionCount + ' \n----------------------------------');
+			console.log('---------Création du tag---------');
 			// If a tag doesn't already exist, create one
 			// eslint-disable-next-line no-unused-vars
 			const tag = await Tags.create({
@@ -92,21 +101,22 @@ client.on(Events.MessageReactionAdd, async (reaction) => {
 				messageURL: messageURL,
 				reactCount: reactionCount,
 				posted: false,
+				linkedEmbed: null,
 			});
+			return;
 		} else {
-			console.log('Le tag existe \nmessageID: ' + messageID + ' \nmessageURL: ' + messageURL + ' \nreactCount: ' + reactionCount + ' \n----------------------------------');
+			console.log('-------Le tag existe déjà-------');
 			// If a tag already exists, increment the reactCount property
 			existingTag.reactCount = reactionCount;
 		}
 
-		if (existingTag !== null && existingTag.posted === false && reactionCount > 1) {
-			const exampleEmbed = new EmbedBuilder()
-				.setTitle('Some title')
-				if (messageAttachment !== null) {
-				.setImage(messageAttachment);
-			client.channels.cache.get('1118627219372249228').send({ embeds: [exampleEmbed] });
+		if (existingTag.posted === false && reactionCount > 1) {
+			createEmbed(existingTag, reactionCount, messageAttachment);
+		} else if (existingTag.posted === true) {
+			editEmbed(existingTag, reactionCount, messageAttachment);
 		}
-	} catch (error) {
+	}
+	catch (error) {
 		console.error('Une erreur est survenue lors d\'un rajout d\'émoji: ', error);
 	}
 
@@ -129,18 +139,81 @@ client.on(Events.MessageReactionRemove, async (reaction) => {
 
 	try {
 		const messageID = reaction.message.id;
+		const messageURL = reaction.message.url;
 		const reactionCount = reaction.count;
+		let messageAttachment = null; // initialize messageAttachment to null
+
+		// Check if the message has an image attachment
+		if (reaction.message.attachments.size > 0) {
+			const attachment = reaction.message.attachments.first();
+			if (attachment.contentType.startsWith('image/')) {
+				messageAttachment = attachment.url;
+			}
+		}
 
 		// Check if a tag already exists for this message
 		const existingTag = await Tags.findOne({ where: { messageID: messageID } });
-		if (existingTag === null) return;
-		existingTag.reactCount = reactionCount;
-		console.log('MessageID: ' + messageID + ' à perdu un vote \nReactCount: ' + reactionCount);
+		if (existingTag === null) {
+			console.log('---------Création du tag---------');
+			// If a tag doesn't already exist, create one
+			// eslint-disable-next-line no-unused-vars
+			const tag = await Tags.create({
+				messageID: messageID,
+				messageURL: messageURL,
+				reactCount: reactionCount,
+				posted: false,
+			});
+			return;
+		} else {
+			console.log('-------Le tag existe déjà-------');
+			// If a tag already exists, increment the reactCount property
+			existingTag.reactCount = reactionCount;
+		}
+
+		if (!existingTag.posted && reactionCount > 1) {
+			createEmbed(existingTag, reactionCount, messageAttachment);
+		} else if (existingTag.posted && reactionCount > 0) {
+			editEmbed(existingTag, reactionCount, messageAttachment);
+		} else if (existingTag.posted && reactionCount === 1) {
+			deleteEmbed(existingTag);
+		}
 	} catch (error) {
 		console.error('Une erreur est survenue lors d\'un retrait d\'émoji: ', error);
 	}
 
 });
+
+async function createEmbed(existingTag, reactionCount, messageAttachment) {
+	console.log(existingTag.posted);
+	existingTag.posted = true;
+	existingTag.save();
+	const exampleEmbed = new EmbedBuilder()
+		.setTitle('Star board 🌟 | ' + reactionCount + ' réactions')
+		.setColor('#0000FF')
+		.setImage(messageAttachment);
+	const message = await client.channels.cache.get('1164700276310155264').send({ embeds: [exampleEmbed] });
+	const sendMessageID = message.id;
+	existingTag.linkedEmbed = sendMessageID;
+	existingTag.save();
+}
+
+async function deleteEmbed(existingTag) {
+	console.log('Suppression de l\'embed');
+	existingTag.posted = false;
+	existingTag.save();
+	const message = await client.channels.cache.get('1164700276310155264').messages.fetch(existingTag.linkedEmbed);
+	message.delete();
+}
+
+async function editEmbed(existingTag, reactionCount, messageAttachment) {
+	console.log('Modification de l\'embed');
+	const message = await client.channels.cache.get('1164700276310155264').messages.fetch(existingTag.linkedEmbed);
+	const exampleEmbed = new EmbedBuilder()
+		.setTitle('Star board 🌟 | ' + reactionCount + ' réactions')
+		.setColor('#0000FF')
+		.setImage(messageAttachment);
+	message.edit({ embeds: [exampleEmbed] });
+}
 
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
@@ -157,12 +230,12 @@ client.on(Events.InteractionCreate, async interaction => {
 		try {
 			// equivalent to: INSERT INTO tags (name, description, username) values (?, ?, ?);
 			const tag = await Tags.create({
-				name: tagName,
+				messageID: tagName,
 				description: tagDescription,
 				username: interaction.user.username,
 			});
 
-			return interaction.reply(`Tag ${tag.name} added.`);
+			return interaction.reply(`Tag ${tag.messageID} added.`);
 		}
 		catch (error) {
 			if (error.name === 'SequelizeUniqueConstraintError') {
@@ -177,7 +250,7 @@ client.on(Events.InteractionCreate, async interaction => {
 		const tagName = interaction.options.getString('name');
 
 		// equivalent to: SELECT * FROM tags WHERE name = 'tagName' LIMIT 1;
-		const tag = await Tags.findOne({ where: { name: tagName } });
+		const tag = await Tags.findOne({ where: { messageID: tagName } });
 
 		if (tag) {
 			// equivalent to: UPDATE tags SET usage_count = usage_count + 1 WHERE name = 'tagName';
@@ -207,7 +280,7 @@ client.on(Events.InteractionCreate, async interaction => {
 		const tagName = interaction.options.getString('name');
 
 		// equivalent to: SELECT * FROM tags WHERE name = 'tagName' LIMIT 1;
-		const tag = await Tags.findOne({ where: { name: tagName } });
+		const tag = await Tags.findOne({ where: { messageID: tagName } });
 
 		if (tag) {
 			return interaction.reply(`${tagName} was created by ${tag.username} at ${tag.createdAt} and has been used ${tag.usage_count} times.`);
@@ -219,7 +292,7 @@ client.on(Events.InteractionCreate, async interaction => {
 		// equivalent to: SELECT name FROM tags;
 		console.log('showtags');
 		const tagList = await Tags.findAll({ attributes: ['messageID'] });
-		const tagString = tagList.map(t => t.name).join(', ') || 'No tags set.';
+		const tagString = tagList.map(t => t.messageID).join(', ') || 'No tags set.';
 
 		return interaction.reply(`List of tags: ${tagString}`);
 	}
