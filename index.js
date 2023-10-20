@@ -54,12 +54,27 @@ for (const folder of commandFolders) {
 	}
 }
 
+const status = [
+	{
+		type: ActivityType.Playing,
+		name: 'Compte le nombre de votes',
+	},
+	{
+		type: ActivityType.Watching,
+		name: 'qui est qualifié',
+	},
+	{
+		name: '.gg/lewd.paradise',
+		type: ActivityType.Playing,
+	},
+];
+
 client.once(Events.ClientReady, () => {
 	Tags.sync(); // force: true will drop the table if it already exists
-	client.user.setActivity({
-		name: 'les méchants pas beaux',
-		type: ActivityType.Watching,
-	});
+	setInterval(() => {
+		const index = Math.floor(Math.random() * (status.length - 1) + 1);
+		client.user.setActivity(status[index].name, { type: status[index].type });
+	}, 600000);
 	console.log('Le bot à démarré sans erreur');
 });
 
@@ -139,7 +154,7 @@ async function starboard(reaction) {
 
 		const starboardEmbed = new EmbedBuilder()
 			.setColor('#0000FF')
-			.setTitle('🌟 ' + reactionCount + ' | From <#' + reaction.message.channel + '>')
+			.setTitle('🌟 ' + reactionCount + ' | de <#' + reaction.message.channel + '>')
 			.setAuthor({ name: reaction.message.author.username, iconURL: reaction.message.author.displayAvatarURL(), url: messageURL })
 			.setImage(messageAttachment)
 			.setFooter({ text: 'Message ID: ' + messageID });
@@ -268,7 +283,6 @@ client.on(Events.InteractionCreate, async interaction => {
 		Tags.sync({ force: true });
 
 		return interaction.reply('Tags reset.');
-
 	}
 
 	if (!command) return;
