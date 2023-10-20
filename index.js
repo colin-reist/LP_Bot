@@ -10,8 +10,8 @@ const client = new Client({
 	partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
-const sequelize = new Sequelize('database', 'user', 'password', {
-	host: 'localhost',
+const sequelize = new Sequelize('customer_594039_test', 'customer_594039_test', '~RYLVX6jqprbK#@JIZos', {
+	host: 'eu02-sql.pebblehost.com',
 	dialect: 'sqlite',
 	logging: false,
 	// SQLite only
@@ -261,6 +261,9 @@ client.on(Events.InteractionCreate, async interaction => {
 		if (!rowCount) return interaction.reply('That tag doesn\'t exist.');
 
 		return interaction.reply('Tag deleted.');
+	} else if (commandName === 'resettag') {
+		console.log('resettag');
+		Tags.sync({ force: true });
 	}
 
 	if (!command) return;
