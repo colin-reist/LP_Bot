@@ -221,6 +221,15 @@ client.on(Events.InteractionCreate, async interaction => {
 		if (!rowCount) return interaction.reply('That tag doesn\'t exist.');
 
 		return interaction.reply('Tag deleted.');
+<<<<<<< Updated upstream
+=======
+	}
+	else if (commandName === 'resettag') {
+		console.log('resettag');
+		Tags.sync({ force: true });
+
+		return interaction.reply('Tags reset.');
+>>>>>>> Stashed changes
 	}
 
 	if (!command) return;

@@ -1,10 +1,11 @@
 /* eslint-disable indent */
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('edittag')
 		.setDescription('Modifie un tag')
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 		.addStringOption(option =>
             option.setName('name').setDescription('Le nom du tag').setRequired(true))
         .addStringOption(option =>
