@@ -4,6 +4,7 @@ const Sequelize = require('sequelize');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType, EmbedBuilder } = require('discord.js');
 const { token } = require('./config.json');
+const cron = require('cron');
 
 const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers],
@@ -66,16 +67,75 @@ const status = [
 	{
 		name: '.gg/lewd.paradise',
 		type: ActivityType.Playing,
+		url: 'https://discord.gg/lewd.paradise',
 	},
 ];
 
 client.once(Events.ClientReady, () => {
 	Tags.sync(); // force: true will drop the table if it already exists
+
 	setInterval(() => {
 		const index = Math.floor(Math.random() * (status.length - 1) + 1);
 		client.user.setActivity(status[index].name, { type: status[index].type });
 	}, 600000);
-	console.log('Le bot à démarré sans erreur');
+
+	/* const embed = new EmbedBuilder()
+		.setColor('#0099ff')
+		.setTitle('🌟 Fin des publications 🌟')
+		.addFields({
+			name: '🗳️ Phase de votes 🗳️',
+			value: 'Vous pouvez maintenant voter pour vos images préférées ! \nles personnes ayant plus de 15 votes seront affiché dans: \n* <#1153607344505245736>'
+			+ '\nPour voter, il vous suffit de réagir avec <:LP_vote:1001230627242250392> sur les images que vous aimez !'
+			+ '\nVous pouvez voter pour autant d\'images que vous le souhaitez !',
+		})
+		.addFields({
+			name: '🏆 Pour le vainquer 🏆',
+			value: 'Le vainqueur sera auto désigné par le bot ! \nIl sera celui qui aura le plus de votes !'
+			+ '\nLe gagnant recevra le rôle <@&1153607344505245736> et sera affiché dans: \n* <#1165043827430670416> !',
+		})
+		.setImage('https://images2.imgbox.com/c7/b8/dtsE4Xp8_o.png')
+		.setFooter({ text: 'Lewd Paradise au service de tout les horny' });
+
+	const channel = client.channels.cache.get('1047244666262802463');
+
+	channel.send({ embeds: [embed] });*/
+
+	const scheduledMessage = new cron.CronJob('0 20 * * 0', () => {
+		// This runs every day at 10:30:00, you can do anything you want
+		// Specifing your guild (server) and your channel
+
+	});
+
+	// When you want to start it, use:
+	scheduledMessage.start();
+
+	console.log(`Démarage de ${client.user.tag} à ${new Date().getHours()}h${new Date().getMinutes()}`);
+});
+
+// Send a message saying "hello" when the bot receives a message
+client.on(Events.MessageCreate, async (message) => {
+
+	if (message.interaction.commandName !== 'bump' || message.author.id === '932737762698874971') return;
+
+	if (message.author.id === '302050872383242240' && message.channelId === '993935433228619886') {
+		// eslint-disable-next-line no-useless-escape
+		const codeText = '\`/Bump\`';
+
+
+		message.channel.send('Merci d\'avoir bump le serveur <@' + message.interaction.user.id + '> !' + '\nNous vous rappelerons dans 2 heures de bump le serveur !');
+		setTimeout(() => {
+			const embed = new EmbedBuilder()
+				.setColor('#ff0000')
+				.setTitle('Il est temps de Bump !')
+				.addFields({
+					name: ' ',
+					value: 'Utilisez la commande de ' + codeText + ' de <@302050872383242240>',
+				})
+				.setImage('https://images2.imgbox.com/05/c5/b2vOiqS4_o.gif');
+
+			message.channel.send({ embeds: [embed] });
+		}, 1200000);
+	}
 });
 
 /**
