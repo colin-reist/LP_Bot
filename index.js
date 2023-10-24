@@ -24,12 +24,15 @@ const Tags = sequelize.define('tags', {
 		type: Sequelize.STRING,
 		unique: true,
 	},
+	messageAuthorName: Sequelize.STRING,
+	messageAuthorAvatar: Sequelize.STRING,
 	messageURL: Sequelize.TEXT,
 	reactCount: {
 		type: Sequelize.INTEGER,
 		defaultValue: 0,
 		allowNull: false,
 	},
+	attachment: Sequelize.STRING,
 	posted: Sequelize.BOOLEAN,
 	linkedEmbed: Sequelize.TEXT,
 });
@@ -72,14 +75,14 @@ const status = [
 ];
 
 client.once(Events.ClientReady, () => {
-	Tags.sync(); // force: true will drop the table if it already exists
+	Tags.sync({ force: true }); // force: true will drop the table if it already exists
 
 	setInterval(() => {
 		const index = Math.floor(Math.random() * (status.length - 1) + 1);
 		client.user.setActivity(status[index].name, { type: status[index].type });
 	}, 600000);
 
-	/* const embed = new EmbedBuilder()
+	const embed = new EmbedBuilder()
 		.setColor('#0099ff')
 		.setTitle('🌟 Fin des publications 🌟')
 		.addFields({
@@ -98,7 +101,7 @@ client.once(Events.ClientReady, () => {
 
 	const channel = client.channels.cache.get('1047244666262802463');
 
-	channel.send({ embeds: [embed] });*/
+	/* channel.send({ embeds: [embed] });*/
 
 	const scheduledMessage = new cron.CronJob('0 20 * * 0', () => {
 		// This runs every day at 10:30:00, you can do anything you want
@@ -115,9 +118,15 @@ client.once(Events.ClientReady, () => {
 // Send a message saying "hello" when the bot receives a message
 client.on(Events.MessageCreate, async (message) => {
 
-	if (message.interaction.commandName !== 'bump' || message.author.id === '932737762698874971') return;
+	const bumbChannelId = '993935433228619886'; // le channel du bump
+	const commandName = 'bump'; // la commande de bump
+	const bumpBotID = '302050872383242240'; // l'id du bot de bump
 
-	if (message.author.id === '302050872383242240' && message.channelId === '993935433228619886') {
+	// Si le message n'est pas dans le channel de bump ou c'est mon bot qui a envoyé le message ou le message n'est pas envoyé par le bot de bump
+	if (message.channelId !== bumbChannelId || message.author.id !== bumpBotID) return ;
+
+	// Si le message est envoyé par le bot de bump et que la commande est bump
+	if (message.interaction.commandName === commandName) {
 		// eslint-disable-next-line no-useless-escape
 		const codeText = '\`/Bump\`';
 
@@ -134,7 +143,7 @@ client.on(Events.MessageCreate, async (message) => {
 				.setImage('https://images2.imgbox.com/05/c5/b2vOiqS4_o.gif');
 
 			message.channel.send({ embeds: [embed] });
-		}, 1200000);
+		}, 7200000);
 	}
 });
 
@@ -152,7 +161,7 @@ client.on(Events.MessageReactionAdd, async (reaction) => {
 		console.error('Une erreur est survenue lors d\'un rajout d\'émoji: ', error);
 	}
 
-	starboard(reaction);
+	starboard(reaction, 'add');
 
 });
 
@@ -171,72 +180,88 @@ client.on(Events.MessageReactionRemove, async (reaction) => {
 		// Return as `reaction.message.author` may be undefined/null
 	}
 
-	starboard(reaction);
+	starboard(reaction, 'remove');
 
 });
 
-async function starboard(reaction) {
+async function starboard(reaction, AddOrRemove) {
 
-	if (reaction.message.channel.id !== '1079499858064441344') return console.log('La réaction n\'est pas dans le bon channel');
+
+	if (reaction.message.channel.id === '1047244666262802463' && reaction.emoji.name !== '🌟' ||
+	reaction.message.channel.id !== '1047244666262802463' && reaction.emoji.name !== '🌟') return;
 
 	try {
-		const messageID = reaction.message.id;
-		const messageURL = reaction.message.url;
-		const reactionCount = reaction.count;
+		let existingTag = await Tags.findOne({ where: { linkedEmbed: reaction.message.id } });
 		let messageAttachment = null; // initialize messageAttachment to null
 
-		// Check if the message has an image attachment
-		if (reaction.message.attachments.size > 0) {
-			const attachment = reaction.message.attachments.first();
-			if (attachment.contentType.startsWith('image/')) {
-				messageAttachment = attachment.url;
-			}
-		}
-
-		const existingTag = await Tags.findOne({ where: { messageID: messageID } });
 		if (existingTag === null) {
-			console.log('---------Création du tag---------');
-			// If a tag doesn't already exist, create one
-			// eslint-disable-next-line no-unused-vars
-			const tag = await Tags.create({
-				messageID: messageID,
-				messageURL: messageURL,
-				reactCount: reactionCount,
-				posted: false,
-				linkedEmbed: null,
-			});
-			return;
+			existingTag = await Tags.findOne({ where: { messageID: reaction.message.id } });
+			if (existingTag === null) {
+				console.log('---------Création du tag---------');
+
+
+				// Check if the message has an image attachment
+				if (reaction.message.attachments.size > 0) {
+					const attachment = reaction.message.attachments.first();
+					if (attachment.contentType.startsWith('image/')) {
+						messageAttachment = attachment.url;
+					}
+				}
+				// If a tag doesn't already exist, create one
+				// eslint-disable-next-line no-unused-vars
+				const tag = await Tags.create({
+					messageID: reaction.message.id,
+					messageAuthorName: reaction.message.author.username,
+					messageAuthorAvatar: reaction.message.author.displayAvatarURL(),
+					messageURL: reaction.message.url,
+					reactCount: reaction.count,
+					attachment: messageAttachment,
+					posted: false,
+					linkedEmbed: null,
+				});
+				return;
+			} else {
+				console.log('----Tag existant sans embed----');
+			}
 		} else {
-			console.log('-------Le tag existe déjà-------');
-			// If a tag already exists, increment the reactCount property
-			existingTag.reactCount = reactionCount;
+			console.log('----Tag existant avec embed----');
 		}
 
+		(AddOrRemove === 'add') ? existingTag.reactCount++ : existingTag.reactCount--;
+		existingTag.save();
+
+		const realReactCount = existingTag.reactCount - 1 ; // On retire 1 au compteur de réaction pour éviter de compter le bot
 		const starboardEmbed = new EmbedBuilder()
 			.setColor('#0000FF')
-			.setTitle('🌟 ' + reactionCount + ' | de <#' + reaction.message.channel + '>')
-			.setAuthor({ name: reaction.message.author.username, iconURL: reaction.message.author.displayAvatarURL(), url: messageURL })
-			.setImage(messageAttachment)
-			.setFooter({ text: 'Message ID: ' + messageID });
+			.setTitle('🌟 ' + realReactCount + ' | de ' + existingTag.messageURL)
+			.setAuthor({ name: existingTag.messageAuthorName, iconURL: existingTag.messageAuthorAvatar, url: existingTag.messageURL })
+			.setImage(existingTag.attachment)
+			.setFooter({ text: 'Message ID: ' + existingTag.messageID });
 
-		if (!existingTag.posted && reactionCount > 15) {
+		const starboardChannel = client.channels.cache.get('1164700276310155264');
+		// Si le message n'a pas encore été posté et qu'il a plus de 15 réactions, on poste un nouvel embed
+		if (!existingTag.posted && existingTag.reactCount > 1) {
+			console.log('Création de l\'embed');
 			existingTag.posted = true;
 			existingTag.save();
-			const message = await client.channels.cache.get('1153607344505245736').send({ embeds: [starboardEmbed] });
+			const message = await starboardChannel.send({ embeds: [starboardEmbed] });
+			await message.react('🌟');
 			const sendMessageID = message.id;
 			existingTag.linkedEmbed = sendMessageID;
 			existingTag.save();
 
-		} else if (existingTag.posted && reactionCount > 14) {
+		// Si le message a déjà été posté et qu'il a plus de 15 réactions, on modifie l'embed
+		} else if (existingTag.posted && existingTag.reactCount > 0) {
 			console.log('Modification de l\'embed');
-			const message = await client.channels.cache.get('1153607344505245736').messages.fetch(existingTag.linkedEmbed);
+			const message = await starboardChannel.messages.fetch(existingTag.linkedEmbed);
 			message.edit({ embeds: [starboardEmbed] });
 
-		} else if (existingTag.posted && reactionCount < 15) {
+		// Si le message a déjà été posté et qu'il a moins de 15 réactions, on supprime l'embed
+		} else if (existingTag.posted && existingTag.reactCount < 0) {
 			console.log('Suppression de l\'embed');
 			existingTag.posted = false;
 			existingTag.save();
-			const message = await client.channels.cache.get('1153607344505245736').messages.fetch(existingTag.linkedEmbed);
+			const message = await starboardChannel.messages.fetch(existingTag.linkedEmbed);
 			message.delete();
 
 		}
