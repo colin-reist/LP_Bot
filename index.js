@@ -37,10 +37,24 @@ const Tags = sequelize.define('tags', {
 	linkedEmbed: Sequelize.TEXT,
 });
 
-client.commands = new Collection();
+const Booster = sequelize.define('users', {
+	userId: {
+		type: Sequelize.STRING,
+		allowNull: false,
+		unique: true,
+	},
+	username: Sequelize.STRING,
+	boostCount: {
+		type: Sequelize.INTEGER,
+		defaultValue: 0,
+		allowNull: false,
+	},
+});
+
+client.commands = new Collection(); // permet de faire fonctionner les commandes
 client.cooldowns = new Collection(); // permet de faire fonctionner les cooldowns des commandes
-const foldersPath = path.join(__dirname, 'commands/.');
-const commandFolders = fs.readdirSync(foldersPath);
+const foldersPath = path.join(__dirname, 'commands/.'); // le chemin des dossiers de commandes
+const commandFolders = fs.readdirSync(foldersPath); // le dossier des commandes
 
 
 for (const folder of commandFolders) {
@@ -58,6 +72,9 @@ for (const folder of commandFolders) {
 	}
 }
 
+/**
+ * Tableau des status du bot
+ */
 const status = [
 	{
 		type: ActivityType.Playing,
@@ -74,48 +91,106 @@ const status = [
 	},
 ];
 
+/**
+ * Capte le démarage du bot
+ * @returns
+ */
 client.once(Events.ClientReady, () => {
-	Tags.sync({ force: true }); // force: true will drop the table if it already exists
+	Tags.sync(); // force: true will drop the table if it already exists
+	Booster.sync();
 
 	setInterval(() => {
 		const index = Math.floor(Math.random() * (status.length - 1) + 1);
 		client.user.setActivity(status[index].name, { type: status[index].type });
 	}, 600000);
 
-	const embed = new EmbedBuilder()
-		.setColor('#0099ff')
-		.setTitle('🌟 Fin des publications 🌟')
-		.addFields({
-			name: '🗳️ Phase de votes 🗳️',
-			value: 'Vous pouvez maintenant voter pour vos images préférées ! \nles personnes ayant plus de 15 votes seront affiché dans: \n* <#1153607344505245736>'
-			+ '\nPour voter, il vous suffit de réagir avec <:LP_vote:1001230627242250392> sur les images que vous aimez !'
-			+ '\nVous pouvez voter pour autant d\'images que vous le souhaitez !',
-		})
-		.addFields({
-			name: '🏆 Pour le vainquer 🏆',
-			value: 'Le vainqueur sera auto désigné par le bot ! \nIl sera celui qui aura le plus de votes !'
-			+ '\nLe gagnant recevra le rôle <@&1153607344505245736> et sera affiché dans: \n* <#1165043827430670416> !',
-		})
-		.setImage('https://images2.imgbox.com/c7/b8/dtsE4Xp8_o.png')
-		.setFooter({ text: 'Lewd Paradise au service de tout les horny' });
-
-	const channel = client.channels.cache.get('1047244666262802463');
-
-	/* channel.send({ embeds: [embed] });*/
-
-	const scheduledMessage = new cron.CronJob('0 20 * * 0', () => {
-		// This runs every day at 10:30:00, you can do anything you want
-		// Specifing your guild (server) and your channel
-
-	});
-
-	// When you want to start it, use:
-	scheduledMessage.start();
+	concours();
 
 	console.log(`Démarage de ${client.user.tag} à ${new Date().getHours()}h${new Date().getMinutes()}`);
 });
 
-// Send a message saying "hello" when the bot receives a message
+/**
+ * Fonction qui gère le concours
+ * @returns
+ */
+async function concours() {
+
+	const channel = client.channels.cache.get('1047244666262802463');
+
+	const mondayScheduledMessage = new cron.CronJob('0 10 * * 1', () => {
+		const mondayEmbed = new EmbedBuilder()
+			.setColor('#0099ff')
+			.setTitle('🎉 Annonce du nom du gagnant 🎉')
+			.addFields({
+				name: '🏆 Qui est le gagnant 🏆',
+				value: 'La personne ayant le plus de votes est: \n* <@&1153607344505245736> ! \n\nFélicitations à lui ! Il gagne avec  votes et obtient le rôle <@&1052591643544522782> !',
+			})
+			.setImage('https://images2.imgbox.com/c7/b8/dtsE4Xp8_o.png')
+			.setFooter({ text: 'Lewd Paradise au service de tout les horny' });
+
+		channel.send({ embeds: [mondayEmbed] });
+	});
+
+	const saturdayScheduledMessage = new cron.CronJob('0 10 * * 6', () => {
+		let maxReactCount = 0;
+		async function run() {
+
+			// Get all tags from the database
+			const allTags = await Tags.findAll();
+
+			// Find the max react count among all tags
+			maxReactCount = Math.max(...allTags.map(tag => tag.reactCount));
+
+			const mondayEmbed = new EmbedBuilder()
+				.setColor('#0099ff')
+				.setTitle('🎉 Annonce du nom du gagnant 🎉')
+				.addFields({
+					name: '🏆 Qui est le gagnant 🏆',
+					value: 'La personne ayant le plus de votes est: \n* <@&1153607344505245736> ! \n\nFélicitations à lui ! Il gagne avec '
+					+ maxReactCount + ' votes et obtient le rôle <@&1052591643544522782> !',
+				})
+				.setImage('https://images2.imgbox.com/c7/b8/dtsE4Xp8_o.png')
+				.setFooter({ text: 'Lewd Paradise au service de tout les horny' });
+
+			channel.send({ embeds: [mondayEmbed] });
+		}
+
+		run();
+	});
+
+	const sundayScheduledMessage = new cron.CronJob('0 10 * * 0', () => {
+		const sundayEmbed = new EmbedBuilder()
+			.setColor('#0099ff')
+			.setTitle('🌟 Fin des publications 🌟')
+			.addFields({
+				name: '🗳️ Phase de votes 🗳️',
+				value: 'Vous pouvez maintenant voter pour vos images préférées ! \nles personnes ayant plus de 15 votes seront affiché dans: \n* <#1153607344505245736>'
+				+ '\nPour voter, il vous suffit de réagir avec <:LP_vote:1001230627242250392> sur les images que vous aimez !'
+				+ '\nVous pouvez voter pour autant d\'images que vous le souhaitez !',
+			})
+			.addFields({
+				name: '🏆 Pour le vainquer 🏆',
+				value: 'Le vainqueur sera auto désigné par le bot ! \nIl sera celui qui aura le plus de votes !'
+				+ '\nLe gagnant recevra le rôle <@&1153607344505245736> et sera affiché dans: \n* <#1165043827430670416> !',
+			})
+			.setImage('https://images2.imgbox.com/c7/b8/dtsE4Xp8_o.png')
+			.setFooter({ text: 'Lewd Paradise au service de tout les horny' });
+
+		channel.send({ embeds: [sundayEmbed] });
+	});
+
+	// When you want to start it, use:
+	mondayScheduledMessage.start();
+	saturdayScheduledMessage.start();
+	sundayScheduledMessage.start();
+
+}
+
+/**
+ * Capte l'envoi d'un message
+ * @param {Message} message Le message envoyé
+ * @returns
+ */
 client.on(Events.MessageCreate, async (message) => {
 
 	const bumbChannelId = '993935433228619886'; // le channel du bump
@@ -129,10 +204,9 @@ client.on(Events.MessageCreate, async (message) => {
 	if (message.interaction.commandName === commandName) {
 		// eslint-disable-next-line no-useless-escape
 		const codeText = '\`/Bump\`';
-
-
 		message.channel.send('Merci d\'avoir bump le serveur <@' + message.interaction.user.id + '> !' + '\nNous vous rappelerons dans 2 heures de bump le serveur !');
 		setTimeout(() => {
+			message.channel.send('Il est temps de Bump ! <@&1044348995901861908> !');
 			const embed = new EmbedBuilder()
 				.setColor('#ff0000')
 				.setTitle('Il est temps de Bump !')
@@ -148,9 +222,71 @@ client.on(Events.MessageCreate, async (message) => {
 });
 
 /**
- * Capte le rajout d'une réaction sur un message
- * @param {MessageReaction} reaction La réaction ajoutée
+ * Capte la modification des rôles d'un membre
+ * @param {GuildMember} oldMember Le membre avant la modification
+ * @param {GuildMember} newMember Le membre après la modification
+ * @returns
  */
+client.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
+	const guild = newMember.guild;
+	const userId = newMember.user.id;
+
+	if (!oldMember.roles.cache.has('965755928974618735') && newMember.roles.cache.has('965755928974618735')) {
+		// User has boosted the server
+		const userBoost = await Booster.findOne({ where: { userId } });
+
+		if (userBoost) {
+			// User has boosted the server more than once
+			userBoost.boostCount++;
+			userBoost.save();
+
+			const embed = new EmbedBuilder()
+				.setTitle('Un booster a augmenté son nombre de boost !')
+				.setDescription(`Merci, ${newMember.user.tag}, pour booster le serveur ${userBoost.boostCount} fois ! Nous te sommes reconnaissants pour tes nombreux boosts.`)
+				.setColor('#ff0000');
+
+			const channel = guild.channels.cache.get('1061643658723590164');
+
+			if (channel) {
+				channel.send({ embeds: [embed] });
+			}
+		} else {
+			// User is boosting the server for the first time
+			await Booster.create({ userId, boostCount: 1 });
+
+			const embed = new EmbedBuilder()
+				.setTitle('Nouveau Booster!')
+				.setDescription(`Bienvenue, ${newMember.user.tag}, merci d'avoir booster le serveur ! Nous apprécions ton soutien.`)
+				.setColor('#ff0000');
+
+			const channel = guild.channels.cache.get('1061643658723590164');
+
+			if (channel) {
+				channel.send({ embeds: [embed] });
+			}
+		}
+	} else if (oldMember.roles.cache.has('965755928974618735') && !newMember.roles.cache.has('965755928974618735')) {
+		// User has removed a boost
+		const userBoost = await Booster.findOne({ where: { userId } });
+
+		if (userBoost) {
+			userBoost.boostCount--;
+
+			if (userBoost.boostCount <= 0) {
+			// If the user has no more boosts, delete the row from the database
+				await userBoost.destroy();
+			} else {
+				userBoost.save();
+			}
+		}
+	}
+});
+
+
+/**
+	 * Capte le rajout d'une réaction sur un message
+	 * @param {MessageReaction} reaction La réaction ajoutée
+	 */
 client.on(Events.MessageReactionAdd, async (reaction) => {
 	// When a reaction is received, check if the structure is partial
 	// If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
@@ -166,9 +302,9 @@ client.on(Events.MessageReactionAdd, async (reaction) => {
 });
 
 /**
- * Capte le retrait d'une réaction sur un message
- * @param {MessageReaction} reaction La réaction retirée
- */
+	 * Capte le retrait d'une réaction sur un message
+	 * @param {MessageReaction} reaction La réaction retirée
+	 */
 client.on(Events.MessageReactionRemove, async (reaction) => {
 	// When a reaction is received, check if the structure is partial
 	// If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
@@ -184,93 +320,106 @@ client.on(Events.MessageReactionRemove, async (reaction) => {
 
 });
 
+/**
+ * Fonction qui gère le starboard
+ * @param {*} reaction La réaction ajoutée ou retirée
+ * @param {*} AddOrRemove Si la réaction a été ajoutée ou retirée
+ * @returns
+ */
 async function starboard(reaction, AddOrRemove) {
 
 
-	if (reaction.message.channel.id === '1047244666262802463' && reaction.emoji.name !== '🌟' ||
-	reaction.message.channel.id !== '1047244666262802463' && reaction.emoji.name !== '🌟') return;
+	if (reaction.message.channel.id === '1079499858064441344' || reaction.message.channel.id === '1153607344505245736') {
 
-	try {
-		let existingTag = await Tags.findOne({ where: { linkedEmbed: reaction.message.id } });
-		let messageAttachment = null; // initialize messageAttachment to null
+		try {
+			let existingTag = await Tags.findOne({ where: { linkedEmbed: reaction.message.id } });
+			let messageAttachment = null; // initialize messageAttachment to null
 
-		if (existingTag === null) {
-			existingTag = await Tags.findOne({ where: { messageID: reaction.message.id } });
 			if (existingTag === null) {
-				console.log('---------Création du tag---------');
+				existingTag = await Tags.findOne({ where: { messageID: reaction.message.id } });
+				if (existingTag === null) {
+					console.log('---------Création du tag---------');
 
 
-				// Check if the message has an image attachment
-				if (reaction.message.attachments.size > 0) {
-					const attachment = reaction.message.attachments.first();
-					if (attachment.contentType.startsWith('image/')) {
-						messageAttachment = attachment.url;
+					// Check if the message has an image attachment
+					if (reaction.message.attachments.size > 0) {
+						const attachment = reaction.message.attachments.first();
+						if (attachment.contentType.startsWith('image/')) {
+							messageAttachment = attachment.url;
+						}
 					}
+					// If a tag doesn't already exist, create one
+					// eslint-disable-next-line no-unused-vars
+					const tag = await Tags.create({
+						messageID: reaction.message.id,
+						messageAuthorName: reaction.message.author.username,
+						messageAuthorAvatar: reaction.message.author.displayAvatarURL(),
+						messageURL: reaction.message.url,
+						reactCount: reaction.count,
+						attachment: messageAttachment,
+						posted: false,
+						linkedEmbed: null,
+					});
+					return;
+				} else {
+					console.log('----Tag existant sans embed----');
 				}
-				// If a tag doesn't already exist, create one
-				// eslint-disable-next-line no-unused-vars
-				const tag = await Tags.create({
-					messageID: reaction.message.id,
-					messageAuthorName: reaction.message.author.username,
-					messageAuthorAvatar: reaction.message.author.displayAvatarURL(),
-					messageURL: reaction.message.url,
-					reactCount: reaction.count,
-					attachment: messageAttachment,
-					posted: false,
-					linkedEmbed: null,
-				});
-				return;
 			} else {
-				console.log('----Tag existant sans embed----');
+				console.log('----Tag existant avec embed----');
 			}
-		} else {
-			console.log('----Tag existant avec embed----');
+
+			(AddOrRemove === 'add') ? existingTag.reactCount++ : existingTag.reactCount--;
+			existingTag.save();
+
+			const realReactCount = existingTag.reactCount - 1 ; // On retire 1 au compteur de réaction pour éviter de compter le bot
+			const starboardEmbed = new EmbedBuilder()
+				.setColor('#0000FF')
+				.setTitle('🌟 ' + realReactCount + ' | de ' + existingTag.messageURL)
+				.setAuthor({ name: existingTag.messageAuthorName, iconURL: existingTag.messageAuthorAvatar, url: existingTag.messageURL })
+				.setImage(existingTag.attachment)
+				.setFooter({ text: 'Message ID: ' + existingTag.messageID });
+
+			const starboardChannel = client.channels.cache.get('1153607344505245736'); // le channel du starboard
+			// Si le message n'a pas encore été posté et qu'il a plus de 15 réactions, on poste un nouvel embed
+			if (!existingTag.posted && existingTag.reactCount > 15) {
+				console.log('Création de l\'embed');
+				existingTag.posted = true;
+				existingTag.save();
+				const message = await starboardChannel.send({ embeds: [starboardEmbed] });
+				await message.react('🌟');
+				const sendMessageID = message.id;
+				existingTag.linkedEmbed = sendMessageID;
+				existingTag.save();
+
+				// Si le message a déjà été posté et qu'il a plus de 15 réactions, on modifie l'embed
+			} else if (existingTag.posted && existingTag.reactCount > 14) {
+				console.log('Modification de l\'embed');
+				const message = await starboardChannel.messages.fetch(existingTag.linkedEmbed);
+				message.edit({ embeds: [starboardEmbed] });
+
+				// Si le message a déjà été posté et qu'il a moins de 15 réactions, on supprime l'embed
+			} else if (existingTag.posted && existingTag.reactCount < 15) {
+				console.log('Suppression de l\'embed');
+				existingTag.posted = false;
+				existingTag.save();
+				const message = await starboardChannel.messages.fetch(existingTag.linkedEmbed);
+				message.delete();
+
+			}
 		}
-
-		(AddOrRemove === 'add') ? existingTag.reactCount++ : existingTag.reactCount--;
-		existingTag.save();
-
-		const realReactCount = existingTag.reactCount - 1 ; // On retire 1 au compteur de réaction pour éviter de compter le bot
-		const starboardEmbed = new EmbedBuilder()
-			.setColor('#0000FF')
-			.setTitle('🌟 ' + realReactCount + ' | de ' + existingTag.messageURL)
-			.setAuthor({ name: existingTag.messageAuthorName, iconURL: existingTag.messageAuthorAvatar, url: existingTag.messageURL })
-			.setImage(existingTag.attachment)
-			.setFooter({ text: 'Message ID: ' + existingTag.messageID });
-
-		const starboardChannel = client.channels.cache.get('1164700276310155264');
-		// Si le message n'a pas encore été posté et qu'il a plus de 15 réactions, on poste un nouvel embed
-		if (!existingTag.posted && existingTag.reactCount > 1) {
-			console.log('Création de l\'embed');
-			existingTag.posted = true;
-			existingTag.save();
-			const message = await starboardChannel.send({ embeds: [starboardEmbed] });
-			await message.react('🌟');
-			const sendMessageID = message.id;
-			existingTag.linkedEmbed = sendMessageID;
-			existingTag.save();
-
-		// Si le message a déjà été posté et qu'il a plus de 15 réactions, on modifie l'embed
-		} else if (existingTag.posted && existingTag.reactCount > 0) {
-			console.log('Modification de l\'embed');
-			const message = await starboardChannel.messages.fetch(existingTag.linkedEmbed);
-			message.edit({ embeds: [starboardEmbed] });
-
-		// Si le message a déjà été posté et qu'il a moins de 15 réactions, on supprime l'embed
-		} else if (existingTag.posted && existingTag.reactCount < 0) {
-			console.log('Suppression de l\'embed');
-			existingTag.posted = false;
-			existingTag.save();
-			const message = await starboardChannel.messages.fetch(existingTag.linkedEmbed);
-			message.delete();
-
+		catch (error) {
+			console.error('Une erreur est survenue lors d\'un rajout d\'émoji: ', error);
 		}
-	}
-	catch (error) {
-		console.error('Une erreur est survenue lors d\'un rajout d\'émoji: ', error);
+	} else {
+		console.log('Le message n\'est pas dans le channel starboard');
 	}
 }
 
+/**
+ * Capte les interactions
+ * @param {Interaction} interaction L'interaction créée par l'utilisateur
+ * @returns
+ */
 client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isChatInputCommand()) return;
 	const { cooldowns } = client;
@@ -356,7 +505,7 @@ client.on(Events.InteractionCreate, async interaction => {
 		console.log('deletetag');
 		const tagName = interaction.options.getString('name');
 		// equivalent to: DELETE from tags WHERE name = ?;
-		const rowCount = await Tags.destroy({ where: { name: tagName } });
+		const rowCount = await Tags.destroy({ where: { messageID: tagName } });
 
 		if (!rowCount) return interaction.reply('That tag doesn\'t exist.');
 

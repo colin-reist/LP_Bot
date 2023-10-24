@@ -13,18 +13,21 @@ module.exports = {
 			const members = await guild.members.fetch();
 
 			members.forEach(async (member) => {
-				if (member.permissions.has('Administrator')) return console.log('Member is an admin, skipping...'); // skip admins
+				if (member.permissions.has('Administrator')) return console.log(member.displayName + ' is an admin, skipping...'); // skip admins
 				let newName = member.displayName; // get current name
+				if (!newName.includes('!')) return; // remove everything after the first space
 				newName = newName.replaceAll('!', ''); // remove exclamation marks
 				newName = newName.trim(); // remove leading whitespace
-				await member.setNickname(newName); // set new name
+				console.log(`Renamed ${member.displayName} to ${newName}`);
+				setTimeout(async () => {
+					await member.setNickname(newName); // set new name
+				}, 1000); // wait 1 second between each rename
 			});
 
-			await interaction.followUp({ content: 'All members have been renamed!', ephemeral: true });
+			await interaction.editReply({ content: 'All members have been renamed!', ephemeral: true });
 		}
 		catch (error) {
 			console.error(error);
 		}
-		console.log('Finished renaming all members of the server.');
 	},
 };
