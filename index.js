@@ -5,6 +5,7 @@ const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType, EmbedBuilder } = require('discord.js');
 const { token } = require('./config.json');
 const cron = require('cron');
+const eventHandler = require('./handlers/eventHandler');
 
 const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers],
@@ -25,6 +26,7 @@ const Tags = sequelize.define('tags', {
 		unique: true,
 	},
 	messageAuthorName: Sequelize.STRING,
+	messageAuthorId: Sequelize.STRING,
 	messageAuthorAvatar: Sequelize.STRING,
 	messageURL: Sequelize.TEXT,
 	reactCount: {
@@ -49,6 +51,32 @@ const Booster = sequelize.define('users', {
 		defaultValue: 0,
 		allowNull: false,
 	},
+});
+
+const suggestion = sequelize.define('suggestion', {
+	suggestionId: {
+		type: Sequelize.STRING,
+		allowNull: false,
+		unique: true,
+	},
+	suggestionSuggestion: Sequelize.STRING,
+	suggestionSuggerant: Sequelize.STRING,
+	suggestionCountTrue: {
+		type: Sequelize.INTEGER,
+		defaultValue: 0,
+		allowNull: false,
+	},
+	suggestionCountFalse: {
+		type: Sequelize.INTEGER,
+		defaultValue: 0,
+		allowNull: false,
+	},
+	suggestionImage: Sequelize.STRING,
+});
+
+const userLevel = sequelize.define('userLevel', {
+	userId: Sequelize.INTEGER,
+	niveau: Sequelize.INTEGER,
 });
 
 client.commands = new Collection(); // permet de faire fonctionner les commandes
@@ -91,13 +119,17 @@ const status = [
 	},
 ];
 
+eventHandler(client);
+
 /**
  * Capte le démarage du bot
  * @returns
  */
 client.once(Events.ClientReady, () => {
-	Tags.sync(); // force: true will drop the table if it already exists
+	Tags.sync({ force: true }); // force: true will drop the table if it already exists
 	Booster.sync();
+	suggestion.sync();
+	userLevel.sync();
 
 	setInterval(() => {
 		const index = Math.floor(Math.random() * (status.length - 1) + 1);
@@ -106,7 +138,7 @@ client.once(Events.ClientReady, () => {
 
 	concours();
 
-	console.log(`Démarage de ${client.user.tag} à ${new Date().getHours()}h${new Date().getMinutes()}`);
+	console.log(`Démarage de ${client.user.tag} à ${new Date().getHours()}h`);
 });
 
 /**
@@ -115,15 +147,16 @@ client.once(Events.ClientReady, () => {
  */
 async function concours() {
 
-	const channel = client.channels.cache.get('1047244666262802463');
+	const channel = client.channels.cache.get('1052597479146790993');
 
-	const mondayScheduledMessage = new cron.CronJob('0 10 * * 1', () => {
+	const saturdayScheduledMessage = new cron.CronJob('0 10 * * 6', () => {
+		channel.send('<@&916476114254303262>>');
 		const mondayEmbed = new EmbedBuilder()
 			.setColor('#0099ff')
-			.setTitle('🎉 Annonce du nom du gagnant 🎉')
+			.setTitle('❗ Dernier jour pour poster ❗')
 			.addFields({
-				name: '🏆 Qui est le gagnant 🏆',
-				value: 'La personne ayant le plus de votes est: \n* <@&1153607344505245736> ! \n\nFélicitations à lui ! Il gagne avec  votes et obtient le rôle <@&1052591643544522782> !',
+				name: '🕰️ 24h pour participer 🕰️',
+				value: 'Il vous reste un peu moins de 24h pour poster vos images et tenter de gagner le concours de la semaine !',
 			})
 			.setImage('https://images2.imgbox.com/c7/b8/dtsE4Xp8_o.png')
 			.setFooter({ text: 'Lewd Paradise au service de tout les horny' });
@@ -131,8 +164,10 @@ async function concours() {
 		channel.send({ embeds: [mondayEmbed] });
 	});
 
-	const saturdayScheduledMessage = new cron.CronJob('0 10 * * 6', () => {
+	const mondayScheduledMessage = new cron.CronJob('0 10 * * 1', () => {
+		channel.send('<@&916476114254303262>>');
 		let maxReactCount = 0;
+		let winner = 0;
 		async function run() {
 
 			// Get all tags from the database
@@ -141,24 +176,30 @@ async function concours() {
 			// Find the max react count among all tags
 			maxReactCount = Math.max(...allTags.map(tag => tag.reactCount));
 
+			winner = await Tags.findOne({ where: { reactCount: maxReactCount } });
+
+			console.log(winner.messageID);
+
 			const mondayEmbed = new EmbedBuilder()
 				.setColor('#0099ff')
 				.setTitle('🎉 Annonce du nom du gagnant 🎉')
 				.addFields({
 					name: '🏆 Qui est le gagnant 🏆',
-					value: 'La personne ayant le plus de votes est: \n* <@&1153607344505245736> ! \n\nFélicitations à lui ! Il gagne avec '
-					+ maxReactCount + ' votes et obtient le rôle <@&1052591643544522782> !',
+					value: 'La personne ayant le plus de votes est: \n **<@' + winner.messageAuthorId + '>** ! \n\nFélicitations à lui ! Il gagne avec '
+				+ maxReactCount + ' votes et obtient le rôle <@&1052591643544522782> !',
 				})
 				.setImage('https://images2.imgbox.com/c7/b8/dtsE4Xp8_o.png')
 				.setFooter({ text: 'Lewd Paradise au service de tout les horny' });
 
 			channel.send({ embeds: [mondayEmbed] });
-		}
 
+			Tags.sync({ Force: true });
+		}
 		run();
 	});
 
 	const sundayScheduledMessage = new cron.CronJob('0 10 * * 0', () => {
+		channel.send('<@&916476114254303262>>');
 		const sundayEmbed = new EmbedBuilder()
 			.setColor('#0099ff')
 			.setTitle('🌟 Fin des publications 🌟')
@@ -196,6 +237,11 @@ client.on(Events.MessageCreate, async (message) => {
 	const bumbChannelId = '993935433228619886'; // le channel du bump
 	const commandName = 'bump'; // la commande de bump
 	const bumpBotID = '302050872383242240'; // l'id du bot de bump
+
+	const channel = client.channels.cache.get('1047244666262802463'); // Replace 'channel_id' with the actual channel ID
+	if (message.channelId == '1047244666262802463') {
+		channel.send('Un message à été envoyé');
+	}
 
 	// Si le message n'est pas dans le channel de bump ou c'est mon bot qui a envoyé le message ou le message n'est pas envoyé par le bot de bump
 	if (message.channelId !== bumbChannelId || message.author.id !== bumpBotID) return ;
@@ -296,9 +342,7 @@ client.on(Events.MessageReactionAdd, async (reaction) => {
 	catch (error) {
 		console.error('Une erreur est survenue lors d\'un rajout d\'émoji: ', error);
 	}
-
-	starboard(reaction, 'add');
-
+	checkReaction(reaction, 'add');
 });
 
 /**
@@ -316,9 +360,62 @@ client.on(Events.MessageReactionRemove, async (reaction) => {
 		// Return as `reaction.message.author` may be undefined/null
 	}
 
-	starboard(reaction, 'remove');
-
+	checkReaction(reaction, 'remove');
 });
+
+async function checkReaction(reaction, addOrRemove) {
+	if (reaction.message.channel.id === '1079499858064441344' || reaction.message.channel.id === '1153607344505245736') {
+		starboard(reaction, addOrRemove);
+	} else {
+		console.log(' -> La réaction n\'est pas dans un channel de suggestion ou de starboard');
+	}
+}
+
+/* async function suggestionManager(reaction, positive, negative) {
+	console.log('------suggestion manager------');
+
+	const existingSuggestion = await suggestion.findOne({ where: { suggestionId: reaction.message.id } });
+	if (existingSuggestion === null) {
+		console.log(' -> La suggestion n\'existe pas, id: ' + reaction.message.id);
+		return;
+	}
+
+	existingSuggestion.suggestionCountTrue = positive;
+	existingSuggestion.suggestionCountFalse = negative;
+	existingSuggestion.save();
+
+	if (existingSuggestion.suggestionImage === '') {
+		try {
+			const specialEmbed = new EmbedBuilder()
+				.setColor('#ff0000')
+				.addFields(
+					{ name: 'Votes', value: '\n✅' + existingSuggestion.suggestionCountTrue + '\n❌' + existingSuggestion.suggestionCountFalse + '\n' },
+					{ name: 'Suggestion', value: existingSuggestion.suggestionSuggestion },
+				)
+				.setTimestamp();
+			await reaction.message.edit({ embeds: [specialEmbed] });
+		} catch (error) {
+			console.error(error);
+		}
+		return;
+	} else {
+		try {
+			const specialEmbed = new EmbedBuilder()
+				.setColor('#ff0000')
+				.addFields(
+					{ name: 'Votes', value: '\n✅' + existingSuggestion.suggestionCountTrue + '\n❌' + existingSuggestion.suggestionCountFalse + '\n' },
+					{ name: 'Suggestion', value: existingSuggestion.suggestionSuggestion },
+				)
+				.setTimestamp()
+				.setImage(existingSuggestion.suggestionImage);
+			await reaction.message.edit({ embeds: [specialEmbed] });
+		} catch (error) {
+			console.error(error);
+		}
+		console.log(' -> Modification de l\'embed');
+	}
+	console.log('-------------------------------');
+}*/
 
 /**
  * Fonction qui gère le starboard
@@ -327,92 +424,94 @@ client.on(Events.MessageReactionRemove, async (reaction) => {
  * @returns
  */
 async function starboard(reaction, AddOrRemove) {
+	console.log('-------------starboard-------------');
 
 
-	if (reaction.message.channel.id === '1079499858064441344' || reaction.message.channel.id === '1153607344505245736') {
+	try {
+		let existingTag = await Tags.findOne({ where: { linkedEmbed: reaction.message.id } });
+		let messageAttachment = null; // initialize messageAttachment to null
 
-		try {
-			let existingTag = await Tags.findOne({ where: { linkedEmbed: reaction.message.id } });
-			let messageAttachment = null; // initialize messageAttachment to null
-
+		if (existingTag === null) {
+			existingTag = await Tags.findOne({ where: { messageID: reaction.message.id } });
 			if (existingTag === null) {
-				existingTag = await Tags.findOne({ where: { messageID: reaction.message.id } });
-				if (existingTag === null) {
-					console.log('---------Création du tag---------');
+				console.log('-------Création du tag-------');
 
 
-					// Check if the message has an image attachment
-					if (reaction.message.attachments.size > 0) {
-						const attachment = reaction.message.attachments.first();
-						if (attachment.contentType.startsWith('image/')) {
-							messageAttachment = attachment.url;
-						}
+				// Check if the message has an image attachment
+				if (reaction.message.attachments.size > 0) {
+					const attachment = reaction.message.attachments.first();
+					if (attachment.contentType.startsWith('image/')) {
+						messageAttachment = attachment.url;
 					}
-					// If a tag doesn't already exist, create one
-					// eslint-disable-next-line no-unused-vars
-					const tag = await Tags.create({
-						messageID: reaction.message.id,
-						messageAuthorName: reaction.message.author.username,
-						messageAuthorAvatar: reaction.message.author.displayAvatarURL(),
-						messageURL: reaction.message.url,
-						reactCount: reaction.count,
-						attachment: messageAttachment,
-						posted: false,
-						linkedEmbed: null,
-					});
-					return;
-				} else {
-					console.log('----Tag existant sans embed----');
 				}
-			} else {
-				console.log('----Tag existant avec embed----');
-			}
+				// If a tag doesn't already exist, create one
+				// eslint-disable-next-line no-unused-vars
+				const tag = await Tags.create({
+					messageID: reaction.message.id,
+					messageAuthorName: reaction.message.author.username,
+					messageAuthorId: reaction.message.author.id,
+					messageAuthorAvatar: reaction.message.author.displayAvatarURL(),
+					messageURL: reaction.message.url,
+					reactCount: reaction.count,
+					attachment: messageAttachment,
+					posted: false,
+					linkedEmbed: null,
+				});
+				return console.log(' Contenu du tag: \n' + 'MessageID: ' + tag.messageID + '\nMessageAuthorName: '
+					+ tag.messageAuthorName + '\nMessageAuthorId: '	+ tag.messageAuthorId + '\nMessageAuthorAvatar: ' + tag.messageAuthorAvatar
+					+ '\nMessageURL: ' + tag.messageURL + '\nReactCount: ' + tag.reactCount + '\nAttachment: '
+					+ tag.attachment + '\nPosted: ' + tag.posted + '\nLinkedEmbed: ' + tag.linkedEmbed + '\n -> Tag créé \n---------------------------');
 
-			(AddOrRemove === 'add') ? existingTag.reactCount++ : existingTag.reactCount--;
+			} else {
+				console.log(' -> Tag existant sans embed');
+			}
+		} else {
+			console.log(' -> Tag existant avec embed');
+		}
+
+		(AddOrRemove === 'add') ? existingTag.reactCount++ : existingTag.reactCount--;
+		existingTag.save();
+
+		const realReactCount = existingTag.reactCount - 1 ; // On retire 1 au compteur de réaction pour éviter de compter le bot
+		const starboardEmbed = new EmbedBuilder()
+			.setColor('#0000FF')
+			.setTitle('🌟 ' + realReactCount + ' | de ' + existingTag.messageURL)
+			.setAuthor({ name: existingTag.messageAuthorName, iconURL: existingTag.messageAuthorAvatar, url: existingTag.messageURL })
+			.setImage(existingTag.attachment)
+			.setFooter({ text: 'Message ID: ' + existingTag.messageID });
+
+		const starboardChannel = client.channels.cache.get('1153607344505245736'); // le channel du starboard
+		// Si le message n'a pas encore été posté et qu'il a plus de 15 réactions, on poste un nouvel embed
+		if (!existingTag.posted && existingTag.reactCount > 15) {
+			console.log(' -> Création de l\'embed');
+			existingTag.posted = true;
+			existingTag.save();
+			const message = await starboardChannel.send({ embeds: [starboardEmbed] });
+			await message.react('🌟');
+			const sendMessageID = message.id;
+			existingTag.linkedEmbed = sendMessageID;
 			existingTag.save();
 
-			const realReactCount = existingTag.reactCount - 1 ; // On retire 1 au compteur de réaction pour éviter de compter le bot
-			const starboardEmbed = new EmbedBuilder()
-				.setColor('#0000FF')
-				.setTitle('🌟 ' + realReactCount + ' | de ' + existingTag.messageURL)
-				.setAuthor({ name: existingTag.messageAuthorName, iconURL: existingTag.messageAuthorAvatar, url: existingTag.messageURL })
-				.setImage(existingTag.attachment)
-				.setFooter({ text: 'Message ID: ' + existingTag.messageID });
+			// Si le message a déjà été posté et qu'il a plus de 15 réactions, on modifie l'embed
+		} else if (existingTag.posted && existingTag.reactCount > 14) {
+			console.log(' -> Modification de l\'embed');
+			const message = await starboardChannel.messages.fetch(existingTag.linkedEmbed);
+			message.edit({ embeds: [starboardEmbed] });
 
-			const starboardChannel = client.channels.cache.get('1153607344505245736'); // le channel du starboard
-			// Si le message n'a pas encore été posté et qu'il a plus de 15 réactions, on poste un nouvel embed
-			if (!existingTag.posted && existingTag.reactCount > 15) {
-				console.log('Création de l\'embed');
-				existingTag.posted = true;
-				existingTag.save();
-				const message = await starboardChannel.send({ embeds: [starboardEmbed] });
-				await message.react('🌟');
-				const sendMessageID = message.id;
-				existingTag.linkedEmbed = sendMessageID;
-				existingTag.save();
+			// Si le message a déjà été posté et qu'il a moins de 15 réactions, on supprime l'embed
+		} else if (existingTag.posted && existingTag.reactCount < 15) {
+			console.log(' -> Suppression de l\'embed');
+			existingTag.posted = false;
+			existingTag.save();
+			const message = await starboardChannel.messages.fetch(existingTag.linkedEmbed);
+			message.delete();
 
-				// Si le message a déjà été posté et qu'il a plus de 15 réactions, on modifie l'embed
-			} else if (existingTag.posted && existingTag.reactCount > 14) {
-				console.log('Modification de l\'embed');
-				const message = await starboardChannel.messages.fetch(existingTag.linkedEmbed);
-				message.edit({ embeds: [starboardEmbed] });
-
-				// Si le message a déjà été posté et qu'il a moins de 15 réactions, on supprime l'embed
-			} else if (existingTag.posted && existingTag.reactCount < 15) {
-				console.log('Suppression de l\'embed');
-				existingTag.posted = false;
-				existingTag.save();
-				const message = await starboardChannel.messages.fetch(existingTag.linkedEmbed);
-				message.delete();
-
-			}
 		}
-		catch (error) {
-			console.error('Une erreur est survenue lors d\'un rajout d\'émoji: ', error);
-		}
-	} else {
-		console.log('Le message n\'est pas dans le channel starboard');
 	}
+	catch (error) {
+		console.error('Une erreur est survenue lors d\'un rajout d\'émoji: ', error);
+	}
+	console.log('-----------------------------------');
 }
 
 /**
@@ -433,13 +532,14 @@ client.on(Events.InteractionCreate, async interaction => {
 		const tagDescription = interaction.options.getString('description');
 
 		try {
+			console.log('-------Création du tag-------');
 			// equivalent to: INSERT INTO tags (name, description, username) values (?, ?, ?);
 			const tag = await Tags.create({
 				messageID: tagName,
 				description: tagDescription,
 				username: interaction.user.username,
 			});
-
+			console.log(' -> Tag créé \n' + ' Contenu du tag: \n' + 'MessageID: ' + tag.messageID + '\nMessageAuthorName: ');
 			return interaction.reply(`Tag ${tag.messageID} added.`);
 		}
 		catch (error) {
@@ -455,7 +555,7 @@ client.on(Events.InteractionCreate, async interaction => {
 		const tagName = interaction.options.getString('name');
 
 		// equivalent to: SELECT * FROM tags WHERE name = 'tagName' LIMIT 1;
-		const tag = await Tags.findOne({ where: { messageID: tagName } });
+		const tag = await suggestion.findOne({ where: { suggestionId: tagName } });
 
 		if (tag) {
 			// equivalent to: UPDATE tags SET usage_count = usage_count + 1 WHERE name = 'tagName';
@@ -485,7 +585,7 @@ client.on(Events.InteractionCreate, async interaction => {
 		const tagName = interaction.options.getString('name');
 
 		// equivalent to: SELECT * FROM tags WHERE name = 'tagName' LIMIT 1;
-		const tag = await Tags.findOne({ where: { messageID: tagName } });
+		const tag = await suggestion.findOne({ where: { suggestionId: tagName } });
 
 		if (tag) {
 			return interaction.reply(`${tagName} was created by ${tag.username} at ${tag.createdAt} and has been used ${tag.usage_count} times.`);
@@ -496,8 +596,8 @@ client.on(Events.InteractionCreate, async interaction => {
 	else if (commandName === 'showtags') {
 		// equivalent to: SELECT name FROM tags;
 		console.log('showtags');
-		const tagList = await Tags.findAll({ attributes: ['messageID'] });
-		const tagString = tagList.map(t => t.messageID).join(', ') || 'No tags set.';
+		const tagList = await suggestion.findAll({ attributes: ['suggestionId'] });
+		const tagString = tagList.map(t => t.suggestionId).join(', ') || 'No tags set.';
 
 		return interaction.reply(`List of tags: ${tagString}`);
 	}
@@ -510,13 +610,78 @@ client.on(Events.InteractionCreate, async interaction => {
 		if (!rowCount) return interaction.reply('That tag doesn\'t exist.');
 
 		return interaction.reply('Tag deleted.');
-
 	}
 	else if (commandName === 'resettag') {
 		console.log('resettag');
 		Tags.sync({ force: true });
 
 		return interaction.reply('Tags reset.');
+	} else if (commandName === 'suggérer') {
+		const actualSuggestions = await suggestion.findOne({ where: { suggestionId: interaction.id } });
+		console.log(actualSuggestions);
+		if (actualSuggestions === null) {
+			let messages = null;
+			if (interaction.options.getAttachment('image') === null) {
+				try {
+					console.log('création de l\'embed sans image');
+					const embed = new EmbedBuilder()
+						.setColor('#ff0000')
+						.setTitle('✨ Construction de votre suggestion ✨');
+
+					const channelID = interaction.channel;
+					messages = await channelID.send({ embeds: [embed] });
+				} catch (error) {
+					console.error(error);
+				}
+			} else {
+				try {
+					console.log('création de l\'embed avec image');
+					const embed = new EmbedBuilder()
+						.setColor('#ff0000')
+						.setTitle('✨ Construction de votre suggestion ✨');
+					const channelID = interaction.channel;
+					messages = await channelID.send({ embeds: [embed] });
+				} catch (error) {
+					console.error(error);
+				}
+			}
+
+			console.log('Rajout dans la table');
+			const suggestionId = messages.id;
+			const suggestionName = interaction.options.getString('nom');
+			const suggestionSuggestion = interaction.options.getString('suggestion');
+			const suggestionSuggerant = interaction.options.getUser('suggerant').id;
+			const suggestionCount = 0;
+			let existingImage = null;
+
+			if (interaction.options.getAttachment('image') === null) {
+				existingImage = '';
+			} else {
+				existingImage = interaction.options.getAttachment('image').url;
+			}
+
+			try {
+				console.log('-------Création de la suggestion-------');
+				// equivalent to: INSERT INTO tags (name, description, username) values (?, ?, ?);
+				const tag = await suggestion.create({
+					suggestionId: suggestionId,
+					suggestionName: suggestionName,
+					suggestionSuggestion: suggestionSuggestion,
+					suggestionSuggerant: suggestionSuggerant,
+					suggestionCountTrue: suggestionCount,
+					suggestionCountFalse: suggestionCount,
+					suggestionImage: existingImage,
+				});
+				console.log('Contenu de la suggestion: \n' + 'suggestionId: ' + tag.suggestionId + '\nsuggestionName: '
+				+ tag.suggestionName + '\nsuggestionDescription: ' + tag.suggestionSuggestion
+				+ '\nsuggestionSuggerant: ' + tag.suggestionSuggerant + '\nsuggestionCount: ' + tag.suggestionCount + '\nexistingImage: '
+				+ tag.suggestionImage + '\n---------------------------');
+			} catch (error) {
+				console.error(error);
+			}
+			await messages.react('✅');
+			await messages.react('❌');
+		}
 	}
 
 	if (!command) return;
