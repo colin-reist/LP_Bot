@@ -1,6 +1,7 @@
 const Sequelize = require('sequelize');
+const { database, user, password } = require('./config.json');
 
-const sequelize = new Sequelize('customer_594039_test', 'customer_594039_test', '~RYLVX6jqprbK#@JIZos', {
+const sequelize = new Sequelize(database, user, password, {
 	host: 'eu02-sql.pebblehost.com',
 	dialect: 'mysql',
 	logging: false,
