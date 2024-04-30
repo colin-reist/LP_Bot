@@ -1,11 +1,10 @@
 /* eslint-disable no-inline-comments */
 const fs = require('node:fs');
-const Sequelize = require('sequelize');
 const path = require('node:path');
+const Sequelize = require('sequelize');
 const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType, EmbedBuilder } = require('discord.js');
 const { token } = require('./config.json');
 const cron = require('cron');
-const eventHandler = require('./handlers/eventHandler');
 
 const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers],
@@ -15,7 +14,7 @@ const client = new Client({
 const sequelize = new Sequelize('customer_594039_test', 'customer_594039_test', '~RYLVX6jqprbK#@JIZos', {
 	host: 'eu02-sql.pebblehost.com',
 	dialect: 'sqlite',
-	logging: false,
+	logging: true,
 	// SQLite only
 	storage: 'database.sqlite',
 });
@@ -74,10 +73,24 @@ const suggestion = sequelize.define('suggestion', {
 	suggestionImage: Sequelize.STRING,
 });
 
-const userLevel = sequelize.define('userLevel', {
-	userId: Sequelize.INTEGER,
-	niveau: Sequelize.INTEGER,
-});
+const userLevels = sequelize.define('userLevels', {
+    userName: Sequelize.STRING,
+    userID: {
+        type: Sequelize.STRING,
+        allowNull: false,
+        unique: true,
+    },
+    userLevels: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
+        allowNull: false,
+    },
+    userXP: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0,
+        allowNull: false,
+    },
+}); 
 
 client.commands = new Collection(); // permet de faire fonctionner les commandes
 client.cooldowns = new Collection(); // permet de faire fonctionner les cooldowns des commandes
@@ -119,17 +132,15 @@ const status = [
 	},
 ];
 
-eventHandler(client);
-
 /**
  * Capte le démarage du bot
  * @returns
  */
 client.once(Events.ClientReady, () => {
-	Tags.sync({ force: true }); // force: true will drop the table if it already exists
+	Tags.sync(); // force: true will drop the table if it already exists
 	Booster.sync();
 	suggestion.sync();
-	userLevel.sync();
+	userLevels.sync();
 
 	setInterval(() => {
 		const index = Math.floor(Math.random() * (status.length - 1) + 1);
@@ -152,15 +163,15 @@ async function concours() {
 	const saturdayScheduledMessage = new cron.CronJob('0 10 * * 6', () => {
 		channel.send('<@&916476114254303262>>');
 		const mondayEmbed = new EmbedBuilder()
-			.setColor('#0099ff')
+			.setColor('#EBBC4E')
 			.setTitle('❗ Dernier jour pour poster ❗')
 			.addFields({
 				name: '🕰️ 24h pour participer 🕰️',
 				value: 'Il vous reste un peu moins de 24h pour poster vos images et tenter de gagner le concours de la semaine !',
 			})
 			.setImage('https://images2.imgbox.com/c7/b8/dtsE4Xp8_o.png')
+			
 			.setFooter({ text: 'Lewd Paradise au service de tout les horny' });
-
 		channel.send({ embeds: [mondayEmbed] });
 	});
 
@@ -181,7 +192,7 @@ async function concours() {
 			console.log(winner.messageID);
 
 			const mondayEmbed = new EmbedBuilder()
-				.setColor('#0099ff')
+				.setColor('#EBBC4E')
 				.setTitle('🎉 Annonce du nom du gagnant 🎉')
 				.addFields({
 					name: '🏆 Qui est le gagnant 🏆',
@@ -201,7 +212,7 @@ async function concours() {
 	const sundayScheduledMessage = new cron.CronJob('0 10 * * 0', () => {
 		channel.send('<@&916476114254303262>>');
 		const sundayEmbed = new EmbedBuilder()
-			.setColor('#0099ff')
+			.setColor('#EBBC4E')
 			.setTitle('🌟 Fin des publications 🌟')
 			.addFields({
 				name: '🗳️ Phase de votes 🗳️',
@@ -227,6 +238,22 @@ async function concours() {
 
 }
 
+async function levelManager(message) {
+    if (message.author.bot) return;
+
+    const messageUserId = message.author.id;
+
+    try{
+         if (await userLevels.findOne({ where: { userID: messageUserId } }) !== null) {
+            await userLevels.increment('userXP', { by: 1, where: { userID: messageUserId } });
+         } else {
+            await userLevels.create({ userName: message.author.username, userID: messageUserId, userLevels: 0, userXP: 1 });
+         }
+    } catch (error) {
+        console.error(error);
+    }
+}
+
 /**
  * Capte l'envoi d'un message
  * @param {Message} message Le message envoyé
@@ -238,10 +265,10 @@ client.on(Events.MessageCreate, async (message) => {
 	const commandName = 'bump'; // la commande de bump
 	const bumpBotID = '302050872383242240'; // l'id du bot de bump
 
-	const channel = client.channels.cache.get('1047244666262802463'); // Replace 'channel_id' with the actual channel ID
-	if (message.channelId == '1047244666262802463') {
-		channel.send('Un message à été envoyé');
+	if (!message.author.bot) {
+		levelManager(message)
 	}
+
 
 	// Si le message n'est pas dans le channel de bump ou c'est mon bot qui a envoyé le message ou le message n'est pas envoyé par le bot de bump
 	if (message.channelId !== bumbChannelId || message.author.id !== bumpBotID) return ;
@@ -254,7 +281,7 @@ client.on(Events.MessageCreate, async (message) => {
 		setTimeout(() => {
 			message.channel.send('Il est temps de Bump ! <@&1044348995901861908> !');
 			const embed = new EmbedBuilder()
-				.setColor('#ff0000')
+				.setColor('#EBBC4E')
 				.setTitle('Il est temps de Bump !')
 				.addFields({
 					name: ' ',
@@ -289,7 +316,7 @@ client.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
 			const embed = new EmbedBuilder()
 				.setTitle('Un booster a augmenté son nombre de boost !')
 				.setDescription(`Merci, ${newMember.user.tag}, pour booster le serveur ${userBoost.boostCount} fois ! Nous te sommes reconnaissants pour tes nombreux boosts.`)
-				.setColor('#ff0000');
+				.setColor('#EBBC4E');
 
 			const channel = guild.channels.cache.get('1061643658723590164');
 
@@ -303,7 +330,7 @@ client.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
 			const embed = new EmbedBuilder()
 				.setTitle('Nouveau Booster!')
 				.setDescription(`Bienvenue, ${newMember.user.tag}, merci d'avoir booster le serveur ! Nous apprécions ton soutien.`)
-				.setColor('#ff0000');
+				.setColor('#EBBC4E');
 
 			const channel = guild.channels.cache.get('1061643658723590164');
 
@@ -474,7 +501,7 @@ async function starboard(reaction, AddOrRemove) {
 
 		const realReactCount = existingTag.reactCount - 1 ; // On retire 1 au compteur de réaction pour éviter de compter le bot
 		const starboardEmbed = new EmbedBuilder()
-			.setColor('#0000FF')
+			.setColor('#EBBC4E')
 			.setTitle('🌟 ' + realReactCount + ' | de ' + existingTag.messageURL)
 			.setAuthor({ name: existingTag.messageAuthorName, iconURL: existingTag.messageAuthorAvatar, url: existingTag.messageURL })
 			.setImage(existingTag.attachment)
@@ -625,7 +652,7 @@ client.on(Events.InteractionCreate, async interaction => {
 				try {
 					console.log('création de l\'embed sans image');
 					const embed = new EmbedBuilder()
-						.setColor('#ff0000')
+						.setColor('#EBBC4E')
 						.setTitle('✨ Construction de votre suggestion ✨');
 
 					const channelID = interaction.channel;
@@ -637,7 +664,7 @@ client.on(Events.InteractionCreate, async interaction => {
 				try {
 					console.log('création de l\'embed avec image');
 					const embed = new EmbedBuilder()
-						.setColor('#ff0000')
+						.setColor('#EBBC4E')
 						.setTitle('✨ Construction de votre suggestion ✨');
 					const channelID = interaction.channel;
 					messages = await channelID.send({ embeds: [embed] });
