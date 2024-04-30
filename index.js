@@ -13,8 +13,8 @@ const client = new Client({
 
 const sequelize = new Sequelize('customer_594039_test', 'customer_594039_test', '~RYLVX6jqprbK#@JIZos', {
 	host: 'eu02-sql.pebblehost.com',
-	dialect: 'sqlite',
-	logging: true,
+	dialect: 'mysql',
+	logging: false,
 	// SQLite only
 	storage: 'database.sqlite',
 });
