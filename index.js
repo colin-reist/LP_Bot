@@ -5,92 +5,12 @@ const Sequelize = require('sequelize');
 const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType, EmbedBuilder } = require('discord.js');
 const { token } = require('./config.json');
 const cron = require('cron');
+const { Tags, Booster, suggestion, userLevels, sequelize  } = require('./database.js');
 
 const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers],
 	partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
-
-const sequelize = new Sequelize('customer_594039_test', 'customer_594039_test', '~RYLVX6jqprbK#@JIZos', {
-	host: 'eu02-sql.pebblehost.com',
-	dialect: 'mysql',
-	logging: false,
-	// SQLite only
-	storage: 'database.sqlite',
-});
-
-const Tags = sequelize.define('tags', {
-	messageID: {
-		type: Sequelize.STRING,
-		unique: true,
-	},
-	messageAuthorName: Sequelize.STRING,
-	messageAuthorId: Sequelize.STRING,
-	messageAuthorAvatar: Sequelize.STRING,
-	messageURL: Sequelize.TEXT,
-	reactCount: {
-		type: Sequelize.INTEGER,
-		defaultValue: 0,
-		allowNull: false,
-	},
-	attachment: Sequelize.STRING,
-	posted: Sequelize.BOOLEAN,
-	linkedEmbed: Sequelize.TEXT,
-});
-
-const Booster = sequelize.define('users', {
-	userId: {
-		type: Sequelize.STRING,
-		allowNull: false,
-		unique: true,
-	},
-	username: Sequelize.STRING,
-	boostCount: {
-		type: Sequelize.INTEGER,
-		defaultValue: 0,
-		allowNull: false,
-	},
-});
-
-const suggestion = sequelize.define('suggestion', {
-	suggestionId: {
-		type: Sequelize.STRING,
-		allowNull: false,
-		unique: true,
-	},
-	suggestionSuggestion: Sequelize.STRING,
-	suggestionSuggerant: Sequelize.STRING,
-	suggestionCountTrue: {
-		type: Sequelize.INTEGER,
-		defaultValue: 0,
-		allowNull: false,
-	},
-	suggestionCountFalse: {
-		type: Sequelize.INTEGER,
-		defaultValue: 0,
-		allowNull: false,
-	},
-	suggestionImage: Sequelize.STRING,
-});
-
-const userLevels = sequelize.define('userLevels', {
-    userName: Sequelize.STRING,
-    userID: {
-        type: Sequelize.STRING,
-        allowNull: false,
-        unique: true,
-    },
-    userLevels: {
-        type: Sequelize.INTEGER,
-        defaultValue: 0,
-        allowNull: false,
-    },
-    userXP: {
-        type: Sequelize.INTEGER,
-        defaultValue: 0,
-        allowNull: false,
-    },
-}); 
 
 client.commands = new Collection(); // permet de faire fonctionner les commandes
 client.cooldowns = new Collection(); // permet de faire fonctionner les cooldowns des commandes
@@ -747,5 +667,5 @@ client.on(Events.InteractionCreate, async interaction => {
 		}
 	}
 });
-
+module.exports = { userLevels };
 client.login(token);
