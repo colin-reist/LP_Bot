@@ -82,4 +82,14 @@ const userLevels = sequelize.define('userLevels', {
     },
 }); 
 
-module.exports = { Tags, Booster, suggestion, userLevels, sequelize };
+const badUser = sequelize.define('badUsers', {
+	userID: {
+		type: Sequelize.STRING,
+		allowNull: false,
+		unique: true,
+	},
+	userName: Sequelize.STRING,
+	
+})
+
+module.exports = { Tags, Booster, suggestion, userLevels, badUser, sequelize };

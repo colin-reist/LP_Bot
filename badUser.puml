@@ -1,0 +1,17 @@
+@startuml database "Database"
+  entity user {
+    userId: varchar(255)
+    userName: varchar(255)
+  }
+  entity userGroup {
+    groupId: varchar(255)
+    groupName: varchar(255)
+  }
+  entity userGroupRelation {
+    userId: varchar(255)
+    groupId: varchar(255)
+  }
+  userGroup ||--o{ user : "1" userId
+  userGroup ||--o{ userGroupRelation : "1" groupId
+  user ||--o{ userGroupRelation : "1" userId
+@enduml

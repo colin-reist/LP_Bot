@@ -1,17 +1,18 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('ban')
-		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-		.addUserOption(option => option.setName('user').setDescription('The user to reset the name').setRequired(true))
+		.addUserOption(option => option.setName('utilisateur').setDescription('La personne à bannir').setRequired(true))
 		.setDescription('Rename all members of the server'),
 	async execute(interaction) {
-		await interaction.reply({ content : 'Réinitialisation du nom de l\'utilisateur...', ephemeral: true });
+		const requiredRole = interaction.guild.roles.cache.find(role => role.name === 'Test lp bot');
+		if (!interaction.member.roles.cache.has(requiredRole.id)) {
+            return interaction.reply({ content: 'You do not have the required role to use this command.', ephemeral: true });
+        }
 
-		const user = interaction.options.getUser('user');
-		const member = await interaction.guild.members.fetch(user.id);
-		await member.setNickname(user.username);
+		const user = interaction.options.getUser('target');
+		guild.members.ban(user);
 
 		await interaction.editReply({ content : 'Le nom de l\'utilisateur a été réinitialisé', ephemeral: true });
 	},
