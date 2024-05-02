@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const Sequelize = require('sequelize');
-const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType, EmbedBuilder } = require('discord.js');
+const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType, EmbedBuilder, AuditLogEvent } = require('discord.js');
 const { token } = require('./config.json');
 const cron = require('cron');
 const { Tags, Booster, suggestion, userLevels, sequelize  } = require('./database.js');
@@ -173,6 +173,24 @@ async function levelManager(message) {
         console.error(error);
     }
 }
+
+client.on(Events.GuildAuditLogEntryCreate, async auditLog => {
+	// Define your variables.
+	// The extra information here will be the channel.
+	const { action, extra: channel, executorId, targetId } = auditLog;
+
+	// Check only for deleted messages.
+	if (action !== AuditLogEvent.MessageDelete) return;
+
+	// Ensure the executor is cached.
+	const executor = await client.users.fetch(executorId);
+
+	// Ensure the author whose message was deleted is cached.
+	const target = await client.users.fetch(targetId);
+
+	// Log the output.
+	console.log(`A message by ${target.tag} was deleted by ${executor.tag} in ${channel}.`);
+});
 
 /**
  * Capte l'envoi d'un message
