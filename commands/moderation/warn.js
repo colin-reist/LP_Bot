@@ -39,7 +39,7 @@ module.exports = {
 
         // Check si l'utilisateur à warni est déjà warni
         // Si l'utilisateur n'a jamais été warni on le rajoute à la liste de badUsers
-        const warnUser = await warns.findOne({ where: { wa_fk_badUserId: user.id } });
+        const warnUser = await badUserModel.findOne({ where: { bu_id: user.id } });
         if (!warnUser) {
             try {
             await badUserModel.create({

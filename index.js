@@ -5,7 +5,7 @@ const Sequelize = require('sequelize');
 const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType, EmbedBuilder, AuditLogEvent } = require('discord.js');
 const { token } = require('./config.json');
 const cron = require('cron');
-const { Tags, Booster, suggestion, userLevels, sequelize  } = require('./database.js');
+const { Tags, Booster, suggestion, userLevels } = require('./database.js');
 
 const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers],
