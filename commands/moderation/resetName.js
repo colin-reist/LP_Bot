@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -7,9 +7,9 @@ module.exports = {
 		.setDescription('Rename all members of the server'),
 	async execute(interaction) {
 		// Check if the user has the required role
-		const requiredRole = interaction.guild.roles.cache.find(role => role.name === 'Test lp bot');
+		const requiredRole = interaction.guild.roles.cache.find(role => role.name === 'Staff');
 		if (!interaction.member.roles.cache.has(requiredRole.id)) {
-			return interaction.reply({ content: 'You do not have the required role to use this command.', ephemeral: true });
+			return interaction.reply({ content: 'Tu n\'est pas un membre du staff', ephemeral: true });
 		}
 	
 		// Rest of your code here...
