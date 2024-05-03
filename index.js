@@ -2,10 +2,10 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const Sequelize = require('sequelize');
-const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType, EmbedBuilder } = require('discord.js');
+const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType, EmbedBuilder, AuditLogEvent } = require('discord.js');
 const { token } = require('./config.json');
 const cron = require('cron');
-const { Tags, Booster, suggestion, userLevels, sequelize  } = require('./database.js');
+const { Tags, Booster, suggestion, userLevels } = require('./database.js');
 
 const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers],
@@ -57,10 +57,6 @@ const status = [
  * @returns
  */
 client.once(Events.ClientReady, () => {
-	Tags.sync(); // force: true will drop the table if it already exists
-	Booster.sync();
-	suggestion.sync();
-	userLevels.sync();
 
 	setInterval(() => {
 		const index = Math.floor(Math.random() * (status.length - 1) + 1);
@@ -164,10 +160,10 @@ async function levelManager(message) {
     const messageUserId = message.author.id;
 
     try{
-         if (await userLevels.findOne({ where: { userID: messageUserId } }) !== null) {
-            await userLevels.increment('userXP', { by: 1, where: { userID: messageUserId } });
+         if (await userLevels.findOne({ where: { ul_user_id: messageUserId } }) !== null) {
+            await userLevels.increment('ul_xp', { by: 1, where: { ul_user_id: messageUserId } });
          } else {
-            await userLevels.create({ userName: message.author.username, userID: messageUserId, userLevels: 0, userXP: 1 });
+            await userLevels.create({ ul_name: message.author.username, ul_user_id: messageUserId, ul_level: 0, ul_xp: 1 });
          }
     } catch (error) {
         console.error(error);
