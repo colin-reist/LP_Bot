@@ -79,6 +79,6 @@ module.exports = {
 		await member.send('## Tu as été kick de Lewd Paradise pour la raison suivante : \n' + raison);
 
 		// kick l'utilisateur
-		await member.kick();
+		await member.kick({ reason: raison });
     },
 };

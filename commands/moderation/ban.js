@@ -72,7 +72,12 @@ module.exports = {
 		// Envoie un message d'avertissement à l'utilisateur
 		await member.send('## Tu as été ban sur Lewd Paradise pour la raison suivante : \n' + raison);
 
-		// Ban l'utilisateur
-		await member.ban();
+		// Ban l'utilisateur avec la raison
+		await member.ban({ reason: raison });
+
+		// Efface les messages de l'utilisateur
+		const fetched = await interaction.channel.messages.fetch({ limit: 100 });
+		const fetchedMessages = fetched.filter(msg => msg.author.id === user.id);
+		await interaction.channel.bulkDelete(fetchedMessages);
 	},
 };
