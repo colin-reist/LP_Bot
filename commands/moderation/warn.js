@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { warns, staffMembers, badUsers: badUserModel } = require('../../database.js');
 
 module.exports = {
@@ -69,8 +69,17 @@ module.exports = {
                 wa_reason: raison,
             });
 
-            // Envoie un message privé à l'utilisateur warni
-            await member.send('## Tu as été warn sur Lewd Paradise pour la raison suivante : \n' + raison);
+            // Envoie un embed privé à l'utilisateur warni
+            const embed = new EmbedBuilder()
+                .setColor('#FF0000')
+                .setTitle('Warn')
+                .setDescription('Tu as été warn sur Lewd Paradise')
+                .addFields(
+                    { name: 'Raison', value: raison },
+                    { name: 'Staff', value: staffName },
+                )
+                .setTimestamp();
+            member.send({ embeds: [embed] });
     
             await interaction.editReply({ content: '<@' + user + '> à été warn !', ephemeral: true });	
         } catch (error) {
@@ -83,5 +92,29 @@ module.exports = {
 
             await interaction.editReply({ content: 'Erreur lors de l\'ajout du warn dans la base de données', ephemeral: true });
         }
+
+        // Si l'utilisateur à déjà été warni 3 fois, on le ban
+        const warnCount = await warns.count({ where: { wa_fk_badUserId: fkBadUser } });
+        /*if (warnCount >= 3) {
+            await member.ban({ reason: 'A été warn 3 fois' });
+            await interaction.editReply({ content: '<@' + user + '> à été banni pour avoir accumulé le nombre max de warn !', ephemeral: true });
+        }*/
+
+        // Envoie d'un embed dans le channel de modération
+        const warnEmbed = new EmbedBuilder()
+            .setColor('#FF0000')
+            .setTitle('Warn')
+            .setDescription('Un utilisateur à été warn')
+            .addFields(
+                { name: 'Utilisateur', value: '<@' + user + '>' },
+                { name: 'Raison', value: raison },
+                { name: 'Staff', value: '<@' + staffId + '>' },
+            )
+            .setTimestamp()
+            // Récuopère l'image de profil de l'utilisateur warni
+            .setThumbnail(member.user.displayAvatarURL());
+        const channel = interaction.guild.channels.cache.find(channel => channel.name === 'warn-log');
+        channel.send({ embeds: [warnEmbed] });
+
     }
 }

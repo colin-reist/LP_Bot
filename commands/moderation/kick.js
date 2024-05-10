@@ -75,10 +75,35 @@ module.exports = {
 			return;
 		}
     
-        // Envoie un message d'avertissement à l'utilisateur
-		await member.send('## Tu as été kick de Lewd Paradise pour la raison suivante : \n' + raison);
+        // Envoie un embed d'avertissement à l'utilisateur
+		const embedToUser = new EmbedBuilder()
+			.setColor('#FF0000')
+			.setTitle('Kick')
+			.setDescription('Vous avez été kick')
+			.addFields(
+				{ name: 'Raison', value: raison },
+				{ name: 'Staff', value: staff.username },
+			)
+			.setTimestamp()
+			.setThumbnail(staff.displayAvatarURL());
+		member.send({ embeds: [embedToUser] });
 
 		// kick l'utilisateur
 		await member.kick({ reason: raison });
+
+		// Envoie un embed dans le channel de modération
+		const embedToLog = new EmbedBuilder()
+			.setColor('#FF0000')
+			.setTitle('Kick')
+			.setDescription('Un utilisateur a été kick')
+			.addFields(
+				{ name: 'Utilisateur', value: member.user.username },
+				{ name: 'Raison', value: raison },
+				{ name: 'Staff', value: staff.username },
+			)
+			.setTimestamp()
+			.setThumbnail(member.user.displayAvatarURL());
+		const channel = interaction.guild.channels.cache.find(ch => ch.name === 'kick-log');
+		channel.send({ embeds: [embedToLog] });
     },
 };
