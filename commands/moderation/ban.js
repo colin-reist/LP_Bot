@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { bans, badUsers: badUserModel, staffMembers } = require('../../database.js');
 
 module.exports = {
@@ -69,8 +69,18 @@ module.exports = {
 			return;
 		}
 
-		// Envoie un message d'avertissement à l'utilisateur
-		await member.send('## Tu as été ban sur Lewd Paradise pour la raison suivante : \n' + raison);
+		// Envoie un embed d'avertissement à l'utilisateur
+		const embedToUser = new EmbedBuilder()
+			.setColor('#FF0000')
+			.setTitle('Ban')
+			.setDescription('Vous avez été banni')
+			.addFields(
+				{ name: 'Raison', value: raison },
+				{ name: 'Staff', value: '<@' + staff.id + '>' },
+			)
+			.setTimestamp()
+			.setThumbnail(staff.avatarURL());
+		member.send({ embeds: [embedToUser] });
 
 		// Ban l'utilisateur avec la raison
 		await member.ban({ reason: raison });
@@ -79,5 +89,20 @@ module.exports = {
 		const fetched = await interaction.channel.messages.fetch({ limit: 100 });
 		const fetchedMessages = fetched.filter(msg => msg.author.id === user.id);
 		await interaction.channel.bulkDelete(fetchedMessages);
+
+		// Envoie un embed dans le channel de modération
+		const channel = interaction.guild.channels.cache.find(ch => ch.name === 'ban-log');
+		const embed = new EmbedBuilder()
+			.setColor('#FF0000')
+			.setTitle('Ban')
+			.setDescription('Un utilisateur a été banni')
+			.addFields(
+				{ name: 'Utilisateur', value: '<@' + user.id + '>' },
+				{ name: 'Raison', value: raison },
+				{ name: 'Staff', value: '<@' + staff.id + '>' },
+			)
+			.setTimestamp()
+			.setThumbnail(user.avatarURL());
+		channel.send({ embeds: [embed] });
 	},
 };
