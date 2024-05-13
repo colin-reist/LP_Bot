@@ -82,24 +82,6 @@ module.exports = {
 
         try {
             // Envoie un embed privé à l'utilisateur warni
-<<<<<<< Updated upstream
-            const embed = new EmbedBuilder()
-                .setColor('#FF0000')
-                .setTitle('Warn')
-                .setDescription('Tu as été warn sur Lewd Paradise')
-                .addFields(
-                    { name: 'Raison', value: raison },
-                    { name: 'Staff', value: staffName },
-                )
-                .setTimestamp();
-            try {
-                member.send({ embeds: [embed] });
-            } catch (error) {
-                console.log('Erreur lors de l\'envoie du message privé à l\'utilisateur warni : \n' + error);
-            }
-    
-            await interaction.editReply({ content: '<@' + user + '> à été warn !', ephemeral: true });	
-=======
 			const embed = new EmbedBuilder()
 				.setColor('#FF0000')
 				.setTitle('Warn')
@@ -110,7 +92,6 @@ module.exports = {
 				)
 				.setTimestamp();
 			member.send({ embeds: [embed] });
->>>>>>> Stashed changes
         } catch (error) {
             console.log('Erreur lors de l\'envoie de l\'embed à l\'utilisateur warni : ' + error);
         }
