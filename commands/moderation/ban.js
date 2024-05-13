@@ -80,7 +80,12 @@ module.exports = {
 			)
 			.setTimestamp()
 			.setThumbnail(staff.avatarURL());
-		member.send({ embeds: [embedToUser] });
+		try {
+			await member.send({ embeds: [embedToUser] });
+		} catch (error) {
+			console.log(error);
+			return;
+		}
 
 		// Ban l'utilisateur avec la raison
 		await member.ban({ reason: raison });

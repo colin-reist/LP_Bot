@@ -79,7 +79,11 @@ module.exports = {
                     { name: 'Staff', value: staffName },
                 )
                 .setTimestamp();
-            member.send({ embeds: [embed] });
+            try {
+                member.send({ embeds: [embed] });
+            } catch (error) {
+                console.log('Erreur lors de l\'envoie du message privé à l\'utilisateur warni : \n' + error);
+            }
     
             await interaction.editReply({ content: '<@' + user + '> à été warn !', ephemeral: true });	
         } catch (error) {
