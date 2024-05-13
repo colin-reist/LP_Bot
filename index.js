@@ -77,7 +77,7 @@ async function concours() {
 	const channel = client.channels.cache.get('1052597479146790993');
 
 	const saturdayScheduledMessage = new cron.CronJob('0 10 * * 6', () => {
-		channel.send('<@&916476114254303262>>');
+		channel.send('<@&1239680929958592524>');
 		const mondayEmbed = new EmbedBuilder()
 			.setColor('#EBBC4E')
 			.setTitle('❗ Dernier jour pour poster ❗')
@@ -92,7 +92,7 @@ async function concours() {
 	});
 
 	const mondayScheduledMessage = new cron.CronJob('0 10 * * 1', () => {
-		channel.send('<@&916476114254303262>>');
+		channel.send('<@&1239680929958592524>');
 		let maxReactCount = 0;
 		let winner = 0;
 		async function run() {
@@ -126,7 +126,7 @@ async function concours() {
 	});
 
 	const sundayScheduledMessage = new cron.CronJob('0 10 * * 0', () => {
-		channel.send('<@&916476114254303262>>');
+		channel.send('<@&1239680929958592524>');
 		const sundayEmbed = new EmbedBuilder()
 			.setColor('#EBBC4E')
 			.setTitle('🌟 Fin des publications 🌟')
