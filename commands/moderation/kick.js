@@ -86,7 +86,12 @@ module.exports = {
 			)
 			.setTimestamp()
 			.setThumbnail(staff.displayAvatarURL());
-		member.send({ embeds: [embedToUser] });
+		try {
+			member.send({ embeds: [embedToUser] });
+		} catch (error) {
+			console.log(error);
+			return;
+		}
 
 		// kick l'utilisateur
 		await member.kick({ reason: raison });
