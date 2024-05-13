@@ -74,6 +74,7 @@ module.exports = {
 			console.log(error);
 			return;
 		}
+<<<<<<< Updated upstream
     
         // Envoie un embed d'avertissement à l'utilisateur
 		const embedToUser = new EmbedBuilder()
@@ -92,23 +93,51 @@ module.exports = {
 			console.log(error);
 			return;
 		}
+=======
+>>>>>>> Stashed changes
 
-		// kick l'utilisateur
-		await member.kick({ reason: raison });
+		try {
+				// Envoie un embed d'avertissement à l'utilisateur
+			const embedToUser = new EmbedBuilder()
+				.setColor('#FF0000')
+				.setTitle('Kick')
+				.setDescription('Vous avez été kick')
+				.addFields(
+					{ name: 'Raison', value: raison },
+					{ name: 'Staff', value: staff.username },
+				)
+				.setTimestamp()
+				.setThumbnail(staff.displayAvatarURL());
+			member.send({ embeds: [embedToUser] });
+		} catch (error) {
+			console.log('Erreur lors de l\'envoie du messsage à l\'utilisateur' + error);
+		}
+		
+		try {
+			// kick l'utilisateur
+			await member.kick({ reason: raison });
+		} catch (error) {
+			console.log('Erreur lors du kick de l\'utilisateur' + error);
+		}
 
-		// Envoie un embed dans le channel de modération
-		const embedToLog = new EmbedBuilder()
-			.setColor('#FF0000')
-			.setTitle('Kick')
-			.setDescription('Un utilisateur a été kick')
-			.addFields(
-				{ name: 'Utilisateur', value: member.user.username },
-				{ name: 'Raison', value: raison },
-				{ name: 'Staff', value: staff.username },
-			)
-			.setTimestamp()
-			.setThumbnail(member.user.displayAvatarURL());
-		const channel = interaction.guild.channels.cache.find(ch => ch.name === 'kick-log');
-		channel.send({ embeds: [embedToLog] });
+		
+		try {
+			// Envoie un embed dans le channel de modération
+			const embedToLog = new EmbedBuilder()
+				.setColor('#FF0000')
+				.setTitle('Kick')
+				.setDescription('Un utilisateur a été kick')
+				.addFields(
+					{ name: 'Utilisateur', value: member.user.username },
+					{ name: 'Raison', value: raison },
+					{ name: 'Staff', value: staff.username },
+				)
+				.setTimestamp()
+				.setThumbnail(member.user.displayAvatarURL());
+			const channel = client.channels.cache.get('1238538219168206950');
+			channel.send({ embeds: [embedToLog] });
+		} catch (error) {
+			console.log('Erreur lors de l\'envoie du message dans le channel de modération' + error);
+		}
     },
 };

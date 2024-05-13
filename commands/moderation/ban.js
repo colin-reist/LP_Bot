@@ -87,27 +87,40 @@ module.exports = {
 			return;
 		}
 
-		// Ban l'utilisateur avec la raison
-		await member.ban({ reason: raison });
+		try {
+			// Ban l'utilisateur avec la raison
+			await member.ban({ reason: raison });
+		} catch (error) {
+			console.log('Erreur lors du ban de l\'utilisateur' + error);
+		}
 
-		// Efface les messages de l'utilisateur
-		const fetched = await interaction.channel.messages.fetch({ limit: 100 });
-		const fetchedMessages = fetched.filter(msg => msg.author.id === user.id);
-		await interaction.channel.bulkDelete(fetchedMessages);
 
-		// Envoie un embed dans le channel de modération
-		const channel = interaction.guild.channels.cache.find(ch => ch.name === 'ban-log');
-		const embed = new EmbedBuilder()
-			.setColor('#FF0000')
-			.setTitle('Ban')
-			.setDescription('Un utilisateur a été banni')
-			.addFields(
-				{ name: 'Utilisateur', value: '<@' + user.id + '>' },
-				{ name: 'Raison', value: raison },
-				{ name: 'Staff', value: '<@' + staff.id + '>' },
-			)
-			.setTimestamp()
-			.setThumbnail(user.avatarURL());
-		channel.send({ embeds: [embed] });
+		try {
+			// Efface les messages de l'utilisateur
+			const fetched = await interaction.channel.messages.fetch({ limit: 100 });
+			const fetchedMessages = fetched.filter(msg => msg.author.id === user.id);
+			await interaction.channel.bulkDelete(fetchedMessages)
+		} catch (error) {
+			console.log('Erreur lors de la suppression des messages de l\'utilisateur' + error);
+		}
+
+		try {
+			// Envoie un embed dans le channel de modération
+			const channel = client.channels.cache.get('1238537326427115592');
+			const embed = new EmbedBuilder()
+				.setColor('#FF0000')
+				.setTitle('Ban')
+				.setDescription('Un utilisateur a été banni')
+				.addFields(
+					{ name: 'Utilisateur', value: '<@' + user.id + '>' },
+					{ name: 'Raison', value: raison },
+					{ name: 'Staff', value: '<@' + staff.id + '>' },
+				)
+				.setTimestamp()
+				.setThumbnail(user.avatarURL());
+			channel.send({ embeds: [embed] });
+		} catch (error) {
+			console.log('Erreur lors de l\'envoie du message dans le channel de modération' + error);
+		}
 	},
 };
