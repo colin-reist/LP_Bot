@@ -74,27 +74,6 @@ module.exports = {
 			console.log(error);
 			return;
 		}
-<<<<<<< Updated upstream
-    
-        // Envoie un embed d'avertissement à l'utilisateur
-		const embedToUser = new EmbedBuilder()
-			.setColor('#FF0000')
-			.setTitle('Kick')
-			.setDescription('Vous avez été kick')
-			.addFields(
-				{ name: 'Raison', value: raison },
-				{ name: 'Staff', value: staff.username },
-			)
-			.setTimestamp()
-			.setThumbnail(staff.displayAvatarURL());
-		try {
-			member.send({ embeds: [embedToUser] });
-		} catch (error) {
-			console.log(error);
-			return;
-		}
-=======
->>>>>>> Stashed changes
 
 		try {
 				// Envoie un embed d'avertissement à l'utilisateur
