@@ -106,7 +106,7 @@ module.exports = {
 
 		try {
 			// Envoie un embed dans le channel de modération
-			const channel = client.channels.cache.get('1238537326427115592');
+			const channel = interaction.guild.channels.cache.find(channel => channel.name === 'ban-log');
 			const embed = new EmbedBuilder()
 				.setColor('#FF0000')
 				.setTitle('Ban')

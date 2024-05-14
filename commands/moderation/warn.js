@@ -1,6 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { warns, staffMembers, badUsers: badUserModel } = require('../../database.js');
-
 module.exports = {
 	data : new SlashCommandBuilder()
 		.setName('warn')
@@ -118,7 +117,7 @@ module.exports = {
 				.setTimestamp()
 			    // Récuopère l'image de profil de l'utilisateur warni
 				.setThumbnail(member.user.displayAvatarURL());
-			const channel = client.channels.cache.get('1239286338256375898');
+                const channel = interaction.guild.channels.cache.find(channel => channel.name === 'warn-log');
 			channel.send({ embeds: [warnEmbed] });
 		} catch (error) {
 			console.log('Erreur lors de l\'envoie du log dans le salon <@1239286338256375898>' + error);
