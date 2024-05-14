@@ -113,7 +113,7 @@ module.exports = {
 				)
 				.setTimestamp()
 				.setThumbnail(member.user.displayAvatarURL());
-			const channel = client.channels.cache.get('1238538219168206950');
+				const channel = interaction.guild.channels.cache.find(channel => channel.name === 'kick-log');
 			channel.send({ embeds: [embedToLog] });
 		} catch (error) {
 			console.log('Erreur lors de l\'envoie du message dans le channel de modération' + error);
