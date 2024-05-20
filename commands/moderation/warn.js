@@ -13,6 +13,11 @@ module.exports = {
 			return interaction.reply({ content: 'You do not have the required role to use this command.', ephemeral: true });
 		}
 
+		// Check if the user who about to get warn isn't a staff member
+		if (interaction.options.getUser('utilisateur').roles.cache.has(requiredRole.id)) {
+			return interaction.reply({ content: 'You can\'t warn a staff member.', ephemeral: true });
+		}
+
 		await interaction.reply({ content: 'Warn en cours...', ephemeral: true });
 
 		// Capture qui à lancé la commande de warn

@@ -24,6 +24,10 @@ module.exports = {
         if (!staffMember) {
             return interaction.editReply({ content: 'Tu n\'es pas un staff', ephemeral: true });
         }
+
+		if (interaction.options.getUser('utilisateur').roles.cache.has(requiredRole.id)) {
+			return interaction.reply({ content: 'You can\'t warn a staff member.', ephemeral: true });
+		}
 		
 		// Check si l'utilisateur est déjà sur la liste des mauvais utilisateurs
 		// Si l'utilisateur n'y est pas on le rajoute à la liste de badUsers
