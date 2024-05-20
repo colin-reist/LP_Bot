@@ -14,7 +14,8 @@ module.exports = {
 		}
 
 		// Check if the user who about to get warn isn't a staff member
-		if (interaction.options.getUser('utilisateur').roles.cache.has(requiredRole.id)) {
+		const isStaff = await staffMembers.findOne({ where: { sm_user_id: user.id } });
+		if (isStaff) {
 			return interaction.reply({ content: 'You can\'t warn a staff member.', ephemeral: true });
 		}
 

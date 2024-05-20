@@ -25,8 +25,9 @@ module.exports = {
             return interaction.editReply({ content: 'Tu n\'es pas un staff', ephemeral: true });
         }
 
-		if (interaction.options.getUser('utilisateur').roles.cache.has(requiredRole.id)) {
-			return interaction.reply({ content: 'You can\'t warn a staff member.', ephemeral: true });
+		const isStaff = await staffMembers.findOne({ where: { sm_user_id: user.id } });
+		if (isStaff) {
+			return interaction.reply({ content: 'You can\'t ban a staff member.', ephemeral: true });
 		}
 		
 		// Check si l'utilisateur est déjà sur la liste des mauvais utilisateurs
