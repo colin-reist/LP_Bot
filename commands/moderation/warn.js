@@ -98,10 +98,10 @@ module.exports = {
 
 		// Si l'utilisateur à déjà été warni 3 fois, on le ban
 		const warnCount = await warns.count({ where: { wa_fk_badUserId: fkBadUser } });
-		/* if (warnCount >= 3) {
+		if (warnCount >= 3) {
             await member.ban({ reason: 'A été warn 3 fois' });
             await interaction.editReply({ content: '<@' + user + '> à été banni pour avoir accumulé le nombre max de warn !', ephemeral: true });
-        }*/
+        }
 
 		// Envoie d'un embed dans le channel de modération
 		try {
