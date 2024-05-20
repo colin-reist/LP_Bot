@@ -1,4 +1,5 @@
-config.json
+MainConfig.json
+TestConfig.json
 .env
 node_modules
 .idea
