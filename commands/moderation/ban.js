@@ -11,23 +11,14 @@ module.exports = {
 
 		await interaction.reply({ content: 'Ban en cours...', ephemeral: true });
 
-		// Capture le staff executant la commande
-		const staff = interaction.member.user;
-        const staffId = staff.id;
-
 		// Capture la personne visée par la commande
 		const user = interaction.options.getUser('utilisateur');
-        const member = await interaction.guild.members.fetch(user.id);
+		const member = await interaction.guild.members.fetch(user.id);
 
-		// Check si le staff executant la commande est un staff
-        const staffMember = await staffMembers.findOne({ where: { sm_user_id: staffId } });
-        if (!staffMember) {
-            return interaction.editReply({ content: 'Tu n\'es pas un staff', ephemeral: true });
-        }
-
+		// Check if the user who about to get warn isn't a staff member
 		const isStaff = await staffMembers.findOne({ where: { sm_user_id: user.id } });
 		if (isStaff) {
-			return interaction.reply({ content: 'You can\'t ban a staff member.', ephemeral: true });
+			return interaction.editReply({ content: 'You can\'t ban a staff member.', ephemeral: true });
 		}
 		
 		// Check si l'utilisateur est déjà sur la liste des mauvais utilisateurs
