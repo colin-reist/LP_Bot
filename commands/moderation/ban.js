@@ -11,9 +11,16 @@ module.exports = {
 
 		await interaction.reply({ content: 'Ban en cours...', ephemeral: true });
 
+		// kick le membre puis enregistre le kick dans la base de données
+        // Capture le staff executant la commande
+		const staff = interaction.member.user;
+        const staffId = staff.id;
+
 		// Capture la personne visée par la commande
 		const user = interaction.options.getUser('utilisateur');
 		const member = await interaction.guild.members.fetch(user.id);
+
+
 
 		// Check if the user who about to get warn isn't a staff member
 		const isStaff = await staffMembers.findOne({ where: { sm_user_id: user.id } });
