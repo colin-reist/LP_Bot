@@ -11,7 +11,7 @@ module.exports = {
 		// Capture les informations du l'utilisateur warni
 		const user = interaction.options.getUser('utilisateur');
 		const member = await interaction.guild.members.fetch(user.id);
-
+		
 		// Check if the user has the required role
 		const requiredRole = interaction.guild.roles.cache.find(role => role.name === 'Staff');
 		if (!interaction.member.roles.cache.has(requiredRole.id)) {
@@ -31,6 +31,7 @@ module.exports = {
 		const staffId = staff.id;
 		const staffName = staff.username;
 
+		
 		
 
 		const raison = interaction.options.getString('raison');
