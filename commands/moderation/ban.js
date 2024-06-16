@@ -21,9 +21,7 @@ module.exports = {
 		const member = await interaction.guild.members.fetch(user.id);
 
 
-
-		// Check if the user who about to get warn isn't a staff member
-		const isStaff = await staffMembers.findOne({ where: { sm_user_id: user.id } });
+		const isStaff = staffMembers.findOne({ where: { sm_user_id: user.id } });
 		if (isStaff) {
 			return interaction.editReply({ content: 'You can\'t ban a staff member.', ephemeral: true });
 		}
