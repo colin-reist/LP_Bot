@@ -89,23 +89,6 @@ module.exports = {
 			await interaction.editReply({ content: 'Erreur lors de l\'ajout du warn dans la base de données', ephemeral: true });
 		}
 
-        try {
-            // Envoie un embed privé à l'utilisateur warni
-			const embed = new EmbedBuilder()
-				.setColor('#FF0000')
-				.setTitle('Warn')
-				.setDescription('Tu as été warn sur Lewd Paradise')
-				.addFields(
-					{ name: 'Raison', value: raison },
-					{ name: 'Staff', value: staffName },
-				)
-				.setTimestamp();
-			member.send({ embeds: [embed] });
-        } catch (error) {
-            console.log('Erreur lors de l\'envoie de l\'embed à l\'utilisateur warni : ' + error);
-        }
-
-
 		// Si l'utilisateur à déjà été warni 3 fois, on le ban
 		const warnCount = await warns.count({ where: { wa_fk_badUserId: fkBadUser } });
 		if (warnCount >= 3) {
