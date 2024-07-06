@@ -65,7 +65,7 @@ client.once(Events.ClientReady, () => {
 
 	concours();
 
-	console.log(`Démarage de ${client.user.tag} à ${new Date().getHours()}h\n Version: 1.0.0`);
+	console.log(`Démarage de ${client.user.tag} à ${new Date().getHours()}h`);
 });
 
 /**

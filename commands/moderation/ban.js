@@ -11,19 +11,23 @@ module.exports = {
 
 		await interaction.reply({ content: 'Ban en cours...', ephemeral: true });
 
-		// kick le membre puis enregistre le kick dans la base de données
-        // Capture le staff executant la commande
+		// Capture le staff executant la commande
 		const staff = interaction.member.user;
         const staffId = staff.id;
 
 		// Capture la personne visée par la commande
 		const user = interaction.options.getUser('utilisateur');
-		const member = await interaction.guild.members.fetch(user.id);
+        const member = await interaction.guild.members.fetch(user.id);
 
+		// Check si le staff executant la commande est un staff
+        const staffMember = await staffMembers.findOne({ where: { sm_user_id: staffId } });
+        if (!staffMember) {
+            return interaction.editReply({ content: 'Tu n\'es pas un staff', ephemeral: true });
+        }
 
-		const isStaff = staffMembers.findOne({ where: { sm_user_id: user.id } });
+		const isStaff = await staffMembers.findOne({ where: { sm_user_id: user.id } });
 		if (isStaff) {
-			return interaction.editReply({ content: 'You can\'t ban a staff member.', ephemeral: true });
+			return interaction.reply({ content: 'You can\'t ban a staff member.', ephemeral: true });
 		}
 		
 		// Check si l'utilisateur est déjà sur la liste des mauvais utilisateurs
