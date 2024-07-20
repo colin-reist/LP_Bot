@@ -1,6 +1,9 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { bans, badUsers: badUserModel, staffMembers } = require('../../database.js');
 
+/**
+ * Ban un utilisateur du serveur
+ */
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('ban')
@@ -11,7 +14,7 @@ module.exports = {
 
 		await interaction.reply({ content: 'Ban en cours...', ephemeral: true });
 
-		// Capture le staff executant la commande
+        // Capture le staff executant la commande
 		const staff = interaction.member.user;
         const staffId = staff.id;
 
@@ -19,15 +22,11 @@ module.exports = {
 		const user = interaction.options.getUser('utilisateur');
         const member = await interaction.guild.members.fetch(user.id);
 
-		// Check si le staff executant la commande est un staff
-        const staffMember = await staffMembers.findOne({ where: { sm_user_id: staffId } });
-        if (!staffMember) {
-            return interaction.editReply({ content: 'Tu n\'es pas un staff', ephemeral: true });
-        }
-
-		const isStaff = await staffMembers.findOne({ where: { sm_user_id: user.id } });
+		let isStaff;
+		isStaff = staffMembers.findOne({ where: { sm_user_id: staff.id } });
+		console.log(isStaff);
 		if (isStaff) {
-			return interaction.reply({ content: 'You can\'t ban a staff member.', ephemeral: true });
+			return interaction.editReply({ content: 'Tu ne peux pas bannir un membre du staff', ephemeral: true });
 		}
 		
 		// Check si l'utilisateur est déjà sur la liste des mauvais utilisateurs
@@ -125,7 +124,7 @@ module.exports = {
 				.setThumbnail(user.avatarURL());
 			channel.send({ embeds: [embed] });
 		} catch (error) {
-			console.log('Erreur lors de l\'envoie du message dans le channel de modération' + error);
+			console.log('Erreur lors de l\'envoir du log' + error);
 		}
 	},
 };

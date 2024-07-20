@@ -309,8 +309,6 @@ client.on(Events.MessageReactionRemove, async (reaction) => {
 async function checkReaction(reaction, addOrRemove) {
 	if (reaction.message.channel.id === '1079499858064441344' || reaction.message.channel.id === '1153607344505245736') {
 		starboard(reaction, addOrRemove);
-	} else {
-		console.log(' -> La réaction n\'est pas dans un channel de suggestion ou de starboard');
 	}
 }
 
