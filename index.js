@@ -74,7 +74,7 @@ client.once(Events.ClientReady, () => {
  */
 async function concours() {
 
-	const channel = client.channels.cache.get('1052597479146790993');
+	const channel = client.channels.cache.get('1256360061098397746');
 
 	const saturdayScheduledMessage = new cron.CronJob('0 10 * * 6', () => {
 		channel.send('<@&1239680929958592524>');
