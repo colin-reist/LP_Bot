@@ -21,7 +21,7 @@ module.exports = {
 		// Check if the user who about to get warn isn't a staff member
 		const isStaff = await staffMembers.findOne({ where: { sm_user_id: user.id } });
 		if (isStaff) {
-			return interaction.reply({ content: 'You can\'t warn a staff member.', ephemeral: true });
+			return interaction.reply({ content: 'Tu ne peux pas warn un membre de la modération.', ephemeral: true });
 		}
 
 		await interaction.reply({ content: 'Warn en cours...', ephemeral: true });
@@ -113,7 +113,7 @@ module.exports = {
                 const channel = interaction.guild.channels.cache.find(channel => channel.name === 'warn-log');
 			channel.send({ embeds: [warnEmbed] });
 		} catch (error) {
-			console.log('Erreur lors de l\'envoie du log dans le salon <@1239286338256375898>' + error);
+			console.log('Erreur lors de l\'envoie du log' + error);
 		}
 	},
 };

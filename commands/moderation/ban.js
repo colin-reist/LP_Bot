@@ -124,7 +124,7 @@ module.exports = {
 				.setThumbnail(user.avatarURL());
 			channel.send({ embeds: [embed] });
 		} catch (error) {
-			console.log('Erreur lors de l\'envoie du message dans le channel de modération' + error);
+			console.log('Erreur lors de l\'envoir du log' + error);
 		}
 	},
 };
