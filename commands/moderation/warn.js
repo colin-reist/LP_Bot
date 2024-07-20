@@ -16,7 +16,7 @@ module.exports = {
 		// Check if the user who about to get warn isn't a staff member
 		const isStaff = await staffMembers.findOne({ where: { sm_user_id: user.id } });
 		if (isStaff) {
-			return interaction.reply({ content: 'You can\'t warn a staff member.', ephemeral: true });
+			return interaction.reply({ content: 'Tu ne peux pas warn un membre de la modération.', ephemeral: true });
 		}
 
 		await interaction.reply({ content: 'Warn en cours...', ephemeral: true });
@@ -85,23 +85,6 @@ module.exports = {
 			await interaction.editReply({ content: 'Erreur lors de l\'ajout du warn dans la base de données', ephemeral: true });
 		}
 
-        try {
-            // Envoie un embed privé à l'utilisateur warni
-			const embed = new EmbedBuilder()
-				.setColor('#FF0000')
-				.setTitle('Warn')
-				.setDescription('Tu as été warn sur Lewd Paradise')
-				.addFields(
-					{ name: 'Raison', value: raison },
-					{ name: 'Staff', value: staffName },
-				)
-				.setTimestamp();
-			member.send({ embeds: [embed] });
-        } catch (error) {
-            console.log('Erreur lors de l\'envoie de l\'embed à l\'utilisateur warni : ' + error);
-        }
-
-
 		// Si l'utilisateur à déjà été warni 3 fois, on le ban
 		const warnCount = await warns.count({ where: { wa_fk_badUserId: fkBadUser } });
 		if (warnCount >= 3) {
@@ -126,7 +109,7 @@ module.exports = {
                 const channel = interaction.guild.channels.cache.find(channel => channel.name === 'warn-log');
 			channel.send({ embeds: [warnEmbed] });
 		} catch (error) {
-			console.log('Erreur lors de l\'envoie du log dans le salon <@1239286338256375898>' + error);
+			console.log('Erreur lors de l\'envoie du log' + error);
 		}
 	},
 };
