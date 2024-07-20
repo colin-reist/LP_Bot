@@ -20,7 +20,7 @@ module.exports = {
 
 		// Capture la personne visée par la commande
 		const user = interaction.options.getUser('utilisateur');
-		const member = await interaction.guild.members.fetch(user.id);
+        const member = await interaction.guild.members.fetch(user.id);
 
 		let isStaff;
 		isStaff = staffMembers.findOne({ where: { sm_user_id: staff.id } });

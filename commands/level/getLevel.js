@@ -22,7 +22,6 @@ module.exports = {
 
             // Send the formatted string as a response in Discord
             await interaction.reply(`Ton niveau est de ${userLevel}, tu as un total de ${userXP} points d'expérience.`);
-            await interaction.editReply(`Hey c'est mis à jour !`);
         }
         catch (error) {
             console.error(error);
