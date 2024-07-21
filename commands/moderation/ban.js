@@ -23,12 +23,10 @@ module.exports = {
         const member = await interaction.guild.members.fetch(user.id);
 
 		// Trouver si l'utilisateur est membre du staff
-		let isStaff;
-		isStaff = staffMembers.findOne({ where: { sm_user_id: user.id } });
-		console.log(user.username);
-		if (isStaff) {
-			return interaction.editReply({ content: 'Tu ne peux pas bannir un membre du staff', ephemeral: true });
-		}/*
+		const staffMember = await staffMembers.findOne({ where: { sm_user_id: staffId } });
+		if (!staffMember) {
+			return interaction.editReply({ content: 'Tu n\'es pas un staff', ephemeral: true });
+		}
 		
 		// Check si l'utilisateur est déjà sur la liste des mauvais utilisateurs
 		// Si l'utilisateur n'y est pas on le rajoute à la liste de badUsers
@@ -126,6 +124,6 @@ module.exports = {
 			channel.send({ embeds: [embed] });
 		} catch (error) {
 			console.log('Erreur lors de l\'envoir du log' + error);
-		}*/
+		}
 	},
 };
