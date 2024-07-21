@@ -22,8 +22,9 @@ module.exports = {
 		const user = interaction.options.getUser('utilisateur');
         const member = await interaction.guild.members.fetch(user.id);
 
+		// Trouver si l'utilisateur est membre du staff
 		let isStaff;
-		isStaff = staffMembers.findOne({ where: { sm_user_id: staff.id } });
+		isStaff = staffMembers.findOne({ where: { sm_user_id: member.id } });
 		console.log(isStaff);
 		if (isStaff) {
 			return interaction.editReply({ content: 'Tu ne peux pas bannir un membre du staff', ephemeral: true });
