@@ -24,8 +24,8 @@ module.exports = {
 
 		// Trouver si l'utilisateur est membre du staff
 		let isStaff;
-		isStaff = staffMembers.findOne({ where: { sm_user_id: member.id } });
-		console.log(isStaff);
+		isStaff = staffMembers.findOne({ where: { sm_user_id: user.id } });
+		console.log(isStaff.name);
 		if (isStaff) {
 			return interaction.editReply({ content: 'Tu ne peux pas bannir un membre du staff', ephemeral: true });
 		}
