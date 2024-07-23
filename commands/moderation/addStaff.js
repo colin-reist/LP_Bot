@@ -2,6 +2,7 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { staffMembers } = require('../../database.js');
 
 module.exports = {
+    category: 'moderation',
     data: new SlashCommandBuilder()
         .setName('addstaff')
         .addUserOption(option => option.setName('utilisateur').setDescription('Le membre à rajouter à la liste de staff').setRequired(true))

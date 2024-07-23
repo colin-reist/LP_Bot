@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require('discord.js');
 const { kicks, badUsers: badUserModel, staffMembers } = require('../../database.js');
 
 module.exports = {
+	category: 'moderation',
     data: new SlashCommandBuilder()
         .setName('kick')
         .addUserOption(option => option.setName('utilisateur').setDescription('L\'utilisateur à kick').setRequired(true))

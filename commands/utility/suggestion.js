@@ -2,6 +2,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 
 module.exports = {
+    category: 'utility',
 	data: new SlashCommandBuilder()
 		.setName('suggérer')
 		.setDescription('Permet de faire une suggestion')

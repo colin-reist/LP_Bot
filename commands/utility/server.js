@@ -2,6 +2,7 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { EmbedBuilder } = require('discord.js');
 
 module.exports = {
+	category: 'utility',
 	data: new SlashCommandBuilder()
 		.setName('server-info')
 		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)

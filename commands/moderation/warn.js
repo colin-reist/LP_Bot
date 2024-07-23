@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { warns, staffMembers, badUsers: badUserModel } = require('../../database.js');
 module.exports = {
+	category: 'moderation',
 	data : new SlashCommandBuilder()
 		.setName('warn')
 		.addUserOption(option => option.setName('utilisateur').setDescription('L\'utilisateur à warnir').setRequired(true))

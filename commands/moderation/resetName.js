@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require('discord.js');
 module.exports = {
+	category: 'moderation',
 	data: new SlashCommandBuilder()
 		.setName('resetname')
 		.addUserOption(option => option.setName('user').setDescription('The user to reset the name').setRequired(true))

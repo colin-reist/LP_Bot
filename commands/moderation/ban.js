@@ -5,6 +5,7 @@ const { bans, badUsers: badUserModel, staffMembers } = require('../../database.j
  * Ban un utilisateur du serveur
  */
 module.exports = {
+	category: 'moderation',
 	data: new SlashCommandBuilder()
 		.setName('ban')
 		.addUserOption(option => option.setName('utilisateur').setDescription('La personne à bannir').setRequired(true))
