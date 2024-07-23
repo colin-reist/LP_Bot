@@ -3,12 +3,10 @@ const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName('tag')
-		.setDescription('Retourne un tag')
+		.setName('showtags')
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-		.addStringOption(option =>
-            option.setName('name').setDescription('Le nom du tag').setRequired(true)),
+		.setDescription('Retourne tout les tags'),
     async execute(interaction) {
-        await interaction.reply('Retourne un tag');
+        await interaction.reply('Retourne tout les tags');
     },
 };
