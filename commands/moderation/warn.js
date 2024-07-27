@@ -14,6 +14,8 @@ module.exports = {
 			return interaction.reply({ content: 'You do not have the required role to use this command.', ephemeral: true });
 		}
 
+		const user = interaction.options.getUser('utilisateur');
+
 		// Check if the user who about to get warn isn't a staff member
 		const isStaff = await staffMembers.findOne({ where: { sm_user_id: user.id } });
 		if (isStaff) {
@@ -28,7 +30,7 @@ module.exports = {
 		const staffName = staff.username;
 
 		// Capture les informations du l'utilisateur warni
-		const user = interaction.options.getUser('utilisateur');
+		
 		const member = await interaction.guild.members.fetch(user.id);
 
 		const raison = interaction.options.getString('raison');
