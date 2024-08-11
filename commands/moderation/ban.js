@@ -93,7 +93,11 @@ module.exports = {
 
 		try {
 			// Ban l'utilisateur avec la raison
-			await member.ban({ reason: raison });
+			try {
+				await interaction.guild.members.ban(user.id, { reason: raison });
+			} catch (error) {
+				console.log('Erreur lors du ban de l\'utilisateur' + error);
+			}
 		} catch (error) {
 			console.log('Erreur lors du ban de l\'utilisateur' + error);
 		}
