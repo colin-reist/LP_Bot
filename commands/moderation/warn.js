@@ -114,5 +114,12 @@ module.exports = {
 		} catch (error) {
 			console.log('Erreur lors de l\'envoie du log' + error);
 		}
+
+		// Envoyer un message à l'utilisateur averti
+		try {
+			await user.send(`Vous avez été averti sur Lewd Paradise pour la raison suivante : ${raison}`);
+		} catch (error) {
+			console.log(`Erreur lors de l'envoi du message à l'utilisateur : ${error}`);
+		}
 	},
 };
