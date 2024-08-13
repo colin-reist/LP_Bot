@@ -5,9 +5,9 @@ module.exports = {
 	category: 'moderation',
 	data: new SlashCommandBuilder()
 		.setName('ban')
+		.addStringOption(option => option.setName('raison').setDescription('La raison du ban').setRequired(true))
 		.addUserOption(option => option.setName('utilisateur').setDescription('La personne à bannir').setRequired(false))
 		.addStringOption(option => option.setName('user_id').setDescription('L\'ID de la personne à bannir').setRequired(false))
-		.addStringOption(option => option.setName('raison').setDescription('La raison du ban').setRequired(true))
 		.setDescription('Ban un utilisateur du serveur'),
 	async execute(interaction) {
 		await interaction.reply({ content: 'Ban en cours...', ephemeral: true });
