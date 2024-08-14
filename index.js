@@ -251,7 +251,7 @@ client.on(Events.MessageReactionRemove, async (reaction) => {
  * @returns
  */
 client.on(Events.InteractionCreate, async interaction => {
-	interactionCreated.interactionCreate(interaction);
+	interactionCreated.interactionCreate(interaction, client);
 });
 
 client.login(token);

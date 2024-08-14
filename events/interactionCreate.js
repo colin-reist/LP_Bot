@@ -1,4 +1,4 @@
-async function interactionCreate(interaction) {
+async function interactionCreate(interaction, client) {
     if (!interaction.isChatInputCommand()) return;
 	const { cooldowns } = client;
 	const command = client.commands.get(interaction.commandName);
