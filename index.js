@@ -3,7 +3,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const Sequelize = require('sequelize');
 const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType, EmbedBuilder, AuditLogEvent } = require('discord.js');
-const { token } = require('./MainConfig.json');
+const { token } = require('./TestConfig.json');
 const cron = require('cron');
 const { Tags, Booster, suggestion, userLevels } = require('./database.js');
 const memberUpdate = require('./events/guildMemberUpdate.js');
@@ -66,7 +66,7 @@ client.once(Events.ClientReady, () => {
 		client.user.setActivity(status[index].name, { type: status[index].type });
 	}, 600000);
 
-	concours();
+	// concours();
 
 	console.log(`Démarage de ${client.user.tag} à ${new Date().getHours()}h`);
 });
