@@ -6,7 +6,6 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('ban')
 		.addStringOption(option => option.setName('raison').setDescription('La raison du ban').setRequired(true))
-		.addUserOption(option => option.setName('utilisateur').setDescription('La personne à bannir').setRequired(true))
 		.addStringOption(option => option.setName('user_id').setDescription('L\'ID de la personne à bannir').setRequired(false))
 		.setDescription('Ban un utilisateur du serveur'),
 	async execute(interaction) {
@@ -16,8 +15,8 @@ module.exports = {
 		const staffId = staff.id;
 
 		// Get the user mention or ID
-		let user = interaction.options.getUser('utilisateur');
-		const userId = interaction.options.getString('user_id') || (user && user.id);
+		const user = interaction.options.getString('user_id');
+		const userId = user ? user.replace(/\D/g, '') : null;
 
 		if (!user && !userId) {
 			return interaction.editReply({ content: 'Vous devez fournir un utilisateur ou un ID.', ephemeral: true });

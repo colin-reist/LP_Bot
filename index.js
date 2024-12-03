@@ -6,6 +6,9 @@ const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType, E
 const { token } = require('./MainConfig.json');
 const cron = require('cron');
 const { Tags, Booster, suggestion, userLevels } = require('./database.js');
+const memberUpdate = require('./events/guildMemberUpdate.js');
+const messageReactionAdd = require('./events/messageReactionAdd.js');
+const interactionCreated = require('./events/interactionCreate.js');
 
 const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.GuildMessageReactions, GatewayIntentBits.GuildMembers],
@@ -63,7 +66,7 @@ client.once(Events.ClientReady, () => {
 		client.user.setActivity(status[index].name, { type: status[index].type });
 	}, 600000);
 
-	concours();
+	// concours();
 
 	console.log(`Démarage de ${client.user.tag} à ${new Date().getHours()}h`);
 });
@@ -192,7 +195,7 @@ client.on(Events.MessageCreate, async (message) => {
 	// Si le message est envoyé par le bot de bump et que la commande est bump
 	if (message.interaction.commandName === commandName) {
 		// eslint-disable-next-line no-useless-escape
-		const codeText = '\`/Bump\`';
+		const codeText = '\/Bump\'';
 		message.channel.send('Merci d\'avoir bump le serveur <@' + message.interaction.user.id + '> !' + '\nNous vous rappelerons dans 2 heures de bump le serveur !');
 		setTimeout(() => {
 			message.channel.send('Il est temps de Bump ! <@&1044348995901861908> !');
@@ -217,243 +220,30 @@ client.on(Events.MessageCreate, async (message) => {
  * @returns
  */
 client.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
-	const guild = newMember.guild;
-	const userId = newMember.user.id;
-
 	if (!oldMember.roles.cache.has('965755928974618735') && newMember.roles.cache.has('965755928974618735')) {
-		// User has boosted the server
-		const userBoost = await Booster.findOne({ where: { userId } });
-
-		if (userBoost) {
-			// User has boosted the server more than once
-			userBoost.boostCount++;
-			userBoost.save();
-
-			const embed = new EmbedBuilder()
-				.setTitle('Un booster a augmenté son nombre de boost !')
-				.setDescription(`Merci, ${newMember.user.tag}, pour booster le serveur ${userBoost.boostCount} fois ! Nous te sommes reconnaissants pour tes nombreux boosts.`)
-				.setColor('#EBBC4E');
-
-			const channel = guild.channels.cache.get('1061643658723590164');
-
-			if (channel) {
-				channel.send({ embeds: [embed] });
-			}
-		} else {
-			// User is boosting the server for the first time
-			await Booster.create({ userId, boostCount: 1 });
-
-			const embed = new EmbedBuilder()
-				.setTitle('Nouveau Booster!')
-				.setDescription(`Bienvenue, ${newMember.user.tag}, merci d'avoir booster le serveur ! Nous apprécions ton soutien.`)
-				.setColor('#EBBC4E');
-
-			const channel = guild.channels.cache.get('1061643658723590164');
-
-			if (channel) {
-				channel.send({ embeds: [embed] });
-			}
-		}
-	} else if (oldMember.roles.cache.has('965755928974618735') && !newMember.roles.cache.has('965755928974618735')) {
-		// User has removed a boost
-		const userBoost = await Booster.findOne({ where: { userId } });
-
-		if (userBoost) {
-			userBoost.boostCount--;
-
-			if (userBoost.boostCount <= 0) {
-			// If the user has no more boosts, delete the row from the database
-				await userBoost.destroy();
-			} else {
-				userBoost.save();
-			}
-		}
+		memberUpdate.boost(newMember);
 	}
 });
 
-
-/**
-	 * Capte le rajout d'une réaction sur un message
-	 * @param {MessageReaction} reaction La réaction ajoutée
-	 */
 client.on(Events.MessageReactionAdd, async (reaction) => {
-	// When a reaction is received, check if the structure is partial
-	// If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
 	try {
 		await reaction.fetch();
 	}
 	catch (error) {
 		console.error('Une erreur est survenue lors d\'un rajout d\'émoji: ', error);
 	}
-	checkReaction(reaction, 'add');
+	messageReactionAdd.checkReaction(reaction, 'add');
 });
 
-/**
-	 * Capte le retrait d'une réaction sur un message
-	 * @param {MessageReaction} reaction La réaction retirée
-	 */
 client.on(Events.MessageReactionRemove, async (reaction) => {
-	// When a reaction is received, check if the structure is partial
-	// If the message this reaction belongs to was removed, the fetching might result in an API error which should be handled
 	try {
 		await reaction.fetch();
 	}
 	catch (error) {
 		console.error('Something went wrong when fetching the message:', error);
-		// Return as `reaction.message.author` may be undefined/null
 	}
-
-	checkReaction(reaction, 'remove');
+	messageReactionAdd.checkReaction(reaction, 'remove');
 });
-
-async function checkReaction(reaction, addOrRemove) {
-	if (reaction.message.channel.id === '1079499858064441344' || reaction.message.channel.id === '1153607344505245736') {
-		starboard(reaction, addOrRemove);
-	}
-}
-
-/* async function suggestionManager(reaction, positive, negative) {
-	console.log('------suggestion manager------');
-
-	const existingSuggestion = await suggestion.findOne({ where: { suggestionId: reaction.message.id } });
-	if (existingSuggestion === null) {
-		console.log(' -> La suggestion n\'existe pas, id: ' + reaction.message.id);
-		return;
-	}
-
-	existingSuggestion.suggestionCountTrue = positive;
-	existingSuggestion.suggestionCountFalse = negative;
-	existingSuggestion.save();
-
-	if (existingSuggestion.suggestionImage === '') {
-		try {
-			const specialEmbed = new EmbedBuilder()
-				.setColor('#ff0000')
-				.addFields(
-					{ name: 'Votes', value: '\n✅' + existingSuggestion.suggestionCountTrue + '\n❌' + existingSuggestion.suggestionCountFalse + '\n' },
-					{ name: 'Suggestion', value: existingSuggestion.suggestionSuggestion },
-				)
-				.setTimestamp();
-			await reaction.message.edit({ embeds: [specialEmbed] });
-		} catch (error) {
-			console.error(error);
-		}
-		return;
-	} else {
-		try {
-			const specialEmbed = new EmbedBuilder()
-				.setColor('#ff0000')
-				.addFields(
-					{ name: 'Votes', value: '\n✅' + existingSuggestion.suggestionCountTrue + '\n❌' + existingSuggestion.suggestionCountFalse + '\n' },
-					{ name: 'Suggestion', value: existingSuggestion.suggestionSuggestion },
-				)
-				.setTimestamp()
-				.setImage(existingSuggestion.suggestionImage);
-			await reaction.message.edit({ embeds: [specialEmbed] });
-		} catch (error) {
-			console.error(error);
-		}
-		console.log(' -> Modification de l\'embed');
-	}
-	console.log('-------------------------------');
-}*/
-
-/**
- * Fonction qui gère le starboard
- * @param {*} reaction La réaction ajoutée ou retirée
- * @param {*} AddOrRemove Si la réaction a été ajoutée ou retirée
- * @returns
- */
-async function starboard(reaction, AddOrRemove) {
-	console.log('-------------starboard-------------');
-
-
-	try {
-		let existingTag = await Tags.findOne({ where: { linkedEmbed: reaction.message.id } });
-		let messageAttachment = null; // initialize messageAttachment to null
-
-		if (existingTag === null) {
-			existingTag = await Tags.findOne({ where: { messageID: reaction.message.id } });
-			if (existingTag === null) {
-				console.log('-------Création du tag-------');
-
-
-				// Check if the message has an image attachment
-				if (reaction.message.attachments.size > 0) {
-					const attachment = reaction.message.attachments.first();
-					if (attachment.contentType.startsWith('image/')) {
-						messageAttachment = attachment.url;
-					}
-				}
-				// If a tag doesn't already exist, create one
-				// eslint-disable-next-line no-unused-vars
-				const tag = await Tags.create({
-					messageID: reaction.message.id,
-					messageAuthorName: reaction.message.author.username,
-					messageAuthorId: reaction.message.author.id,
-					messageAuthorAvatar: reaction.message.author.displayAvatarURL(),
-					messageURL: reaction.message.url,
-					reactCount: reaction.count,
-					attachment: messageAttachment,
-					posted: false,
-					linkedEmbed: null,
-				});
-				return console.log(' Contenu du tag: \n' + 'MessageID: ' + tag.messageID + '\nMessageAuthorName: '
-					+ tag.messageAuthorName + '\nMessageAuthorId: '	+ tag.messageAuthorId + '\nMessageAuthorAvatar: ' + tag.messageAuthorAvatar
-					+ '\nMessageURL: ' + tag.messageURL + '\nReactCount: ' + tag.reactCount + '\nAttachment: '
-					+ tag.attachment + '\nPosted: ' + tag.posted + '\nLinkedEmbed: ' + tag.linkedEmbed + '\n -> Tag créé \n---------------------------');
-
-			} else {
-				console.log(' -> Tag existant sans embed');
-			}
-		} else {
-			console.log(' -> Tag existant avec embed');
-		}
-
-		(AddOrRemove === 'add') ? existingTag.reactCount++ : existingTag.reactCount--;
-		existingTag.save();
-
-		const realReactCount = existingTag.reactCount - 1 ; // On retire 1 au compteur de réaction pour éviter de compter le bot
-		const starboardEmbed = new EmbedBuilder()
-			.setColor('#EBBC4E')
-			.setTitle('🌟 ' + realReactCount + ' | de ' + existingTag.messageURL)
-			.setAuthor({ name: existingTag.messageAuthorName, iconURL: existingTag.messageAuthorAvatar, url: existingTag.messageURL })
-			.setImage(existingTag.attachment)
-			.setFooter({ text: 'Message ID: ' + existingTag.messageID });
-
-		const starboardChannel = client.channels.cache.get('1153607344505245736'); // le channel du starboard
-		// Si le message n'a pas encore été posté et qu'il a plus de 15 réactions, on poste un nouvel embed
-		if (!existingTag.posted && existingTag.reactCount > 15) {
-			console.log(' -> Création de l\'embed');
-			existingTag.posted = true;
-			existingTag.save();
-			const message = await starboardChannel.send({ embeds: [starboardEmbed] });
-			await message.react('🌟');
-			const sendMessageID = message.id;
-			existingTag.linkedEmbed = sendMessageID;
-			existingTag.save();
-
-			// Si le message a déjà été posté et qu'il a plus de 15 réactions, on modifie l'embed
-		} else if (existingTag.posted && existingTag.reactCount > 14) {
-			console.log(' -> Modification de l\'embed');
-			const message = await starboardChannel.messages.fetch(existingTag.linkedEmbed);
-			message.edit({ embeds: [starboardEmbed] });
-
-			// Si le message a déjà été posté et qu'il a moins de 15 réactions, on supprime l'embed
-		} else if (existingTag.posted && existingTag.reactCount < 15) {
-			console.log(' -> Suppression de l\'embed');
-			existingTag.posted = false;
-			existingTag.save();
-			const message = await starboardChannel.messages.fetch(existingTag.linkedEmbed);
-			message.delete();
-
-		}
-	}
-	catch (error) {
-		console.error('Une erreur est survenue lors d\'un rajout d\'émoji: ', error);
-	}
-	console.log('-----------------------------------');
-}
 
 /**
  * Capte les interactions
@@ -661,5 +451,5 @@ client.on(Events.InteractionCreate, async interaction => {
 		}
 	}
 });
-module.exports = { userLevels };
+
 client.login(token);
