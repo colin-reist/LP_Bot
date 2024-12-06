@@ -6,7 +6,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('ban')
 		.addStringOption(option => option.setName('raison').setDescription('La raison du ban').setRequired(true))
-		.addUserOption(option => option.setName('user').setDescription('L\'ID de la personne à bannir').setRequired(true))
+		.addUserOption(option => option.setName('utilisateur').setDescription('La personne à bannir').setRequired(true))
 		.setDescription('Ban un utilisateur du serveur'),
 	async execute(interaction) {
 		await interaction.reply({ content: 'Ban en cours...', ephemeral: true });
@@ -14,22 +14,27 @@ module.exports = {
 		const staff = interaction.member.user;
 		const staffId = staff.id;
 
-		let user_to_ban = undefined;
-		let user_to_ban_id = undefined;
-		try {
-			user_to_ban = interaction.options.getUser('user');
-			user_to_ban_id = user_to_ban.id;
-		} catch (error) {
-			interaction.editReply({ content: `Erreur : ${error}`, ephemeral: true });
-			return;
+		// Get the user mention or ID
+		let user = interaction.options.getUser('utilisateur');
+		const userId = interaction.options.getString('user_id') || (user && user.id);
+
+		if (!user && !userId) {
+			return interaction.editReply({ content: 'Vous devez fournir un utilisateur ou un ID.', ephemeral: true });
 		}
 
-		console.log(user_to_ban_id);
+		// Fetch the user if not already fetched
+		if (!user) {
+			try {
+				user = await interaction.client.users.fetch(userId);
+			} catch (error) {
+				return interaction.editReply({ content: 'Utilisateur introuvable avec cet ID.', ephemeral: true });
+			}
+		}
 
 		// Fetch the guild member, if they are in the server
 		let member;
 		try {
-			member = await interaction.guild.members.fetch(user_to_ban_id);
+			member = await interaction.guild.members.fetch(userId);
 		} catch (error) {
 			member = null; // User is not in the server
 		}
@@ -41,11 +46,11 @@ module.exports = {
 		}
 
 		// Check if the user is already in the badUsers list
-		const badUser = await badUserModel.findOne({ where: { bu_id: user_to_ban_id } });
+		const badUser = await badUserModel.findOne({ where: { bu_id: user.id } });
 		if (!badUser) {
 			try {
 				await badUserModel.create({
-					bu_id: user_to_ban_id,
+					bu_id: user.id,
 					bu_name: user.username,
 				});
 			} catch (error) {
@@ -53,7 +58,7 @@ module.exports = {
 			}
 		}
 
-		const foundBadUser = await badUserModel.findOne({ where: { bu_id: user_to_ban_id } });
+		const foundBadUser = await badUserModel.findOne({ where: { bu_id: user.id } });
 		const fkBadUser = foundBadUser.pk_badUsers;
 
 		const staffMemberId = await staffMembers.findOne({ where: { sm_user_id: staffId } });
@@ -74,7 +79,7 @@ module.exports = {
 		}
 
 		try {
-			await interaction.editReply({ content: `L'utilisateur <@${user_to_ban_id}> a été banni pour la raison suivante : ${raison}` });
+			await interaction.editReply({ content: `L'utilisateur <@${user.id}> a été banni pour la raison suivante : ${raison}` });
 		} catch (error) {
 			console.log(error);
 			return;
@@ -101,9 +106,9 @@ module.exports = {
 
 		try {
 			// Ban the user by their ID
-			await interaction.guild.members.ban(user_to_ban_id, { reason: raison });
+			await interaction.guild.members.ban(userId, { reason: raison });
 		} catch (error) {
-			await interaction.editReply({ content: 'Erreur lors du ban de l\'utilisateur', ephemeral: true });
+			console.log('Erreur lors du ban de l\'utilisateur' + error);
 		}
 
 		try {
@@ -114,12 +119,12 @@ module.exports = {
 				.setTitle('Ban')
 				.setDescription('Un utilisateur a été banni')
 				.addFields(
-					{ name: 'Utilisateur', value: `<@${user_to_ban_id}>` },
+					{ name: 'Utilisateur', value: `<@${user.id}>` },
 					{ name: 'Raison', value: raison },
 					{ name: 'Staff', value: `<@${staff.id}>` },
 				)
 				.setTimestamp()
-				.setThumbnail(user_to_ban.avatarURL());
+				.setThumbnail(user.avatarURL());
 			channel.send({ embeds: [embed] });
 		} catch (error) {
 			console.log('Erreur lors de l\'envoie du log' + error);
