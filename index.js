@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, Events, GatewayIntentBits, Partials, ActivityType, EmbedBuilder, AuditLogEvent } = require('discord.js');
-const { token } = require('./MainConfig.json');
+const { token } = require('./TestConfig.json');
 const cron = require('cron');
 const { Tags, Booster, suggestion, userLevels } = require('./database.js');
 const memberUpdate = require('./events/guildMemberUpdate.js');
