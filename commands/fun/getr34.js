@@ -7,7 +7,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('getr34')
 		.setDescription('Récupère une image de Rule34')
-        .addStringOption(option => option.setName('tag').setDescription('Le tag à rechercher').setRequired(false)),
+        .addStringOption(option => option.setName('tag').setDescription('Le tag à rechercher').setRequired(true)),
 	async execute(interaction) {
 
         let tag = interaction.options.getString('tag');
