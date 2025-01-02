@@ -8,6 +8,6 @@ module.exports = (client) => {
         catch (error) {
             console.error('Une erreur est survenue lors d\'un rajout d\'émoji: ', error);
         }
-        messageReactionAdd.checkReaction(reaction, 'add');
+        // messageReactionAdd.checkReaction(reaction, 'add');
     });
 };

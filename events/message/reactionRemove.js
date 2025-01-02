@@ -7,6 +7,6 @@ module.exports = (client) => {
         catch (error) {
             console.error('Something went wrong when fetching the message:', error);
         }
-        messageReactionAdd.checkReaction(reaction, 'remove');
+        // messageReactionAdd.checkReaction(reaction, 'remove');
     });
 }
