@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder, AuditLogEvent } = require('discord.js');
-const { token } = require('./TestConfig.json'); // Import the token
+const { token } = require('./MainConfig.json'); // Import the token
 const logger = require('./logger'); // Import the logger
 
 const client = new Client({

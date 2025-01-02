@@ -1,5 +1,6 @@
 const { Events, EmbedBuilder } = require('discord.js');  // Importer Events et EmbedBuilder
 const { userLevels } = require('../../database.js'); // Importer la table userLevels
+const logger = require('../../logger'); // Importer logger
 
 /**
  * Capte l'envoi d'un message
@@ -8,6 +9,8 @@ const { userLevels } = require('../../database.js'); // Importer la table userLe
  */
 module.exports = (client) => {
     client.on(Events.MessageCreate, async (message) => {
+        logger.debug('-- MessageCreate --');
+        logger.debug(message.author.username + ' dans ' + message.channel.name + ' : ' + message.content);
         const bumbChannelId = '993935433228619886'; // le channel du bump
         const commandName = 'bump'; // la commande de bump
         const bumpBotID = '302050872383242240'; // l'id du bot de bump

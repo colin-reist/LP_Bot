@@ -7,7 +7,7 @@ const logFormat = printf(({ level, message, timestamp }) => {
 });
 
 const logger = createLogger({
-  level: 'debug',
+  level: 'info',
   format: combine(
     timestamp(),
     logFormat

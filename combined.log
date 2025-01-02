@@ -1,97 +1,20 @@
-2025-01-02T00:26:06.429Z [info]: Loading event: update.js
-2025-01-02T00:26:06.431Z [info]: Loading event: messageCreate.js
-2025-01-02T00:26:06.432Z [info]: Loading event: messageRectionAdd.js
-2025-01-02T00:34:18.238Z [info]: Loading event: update.js
-2025-01-02T00:34:18.240Z [info]: Loading event: create.js
-2025-01-02T00:34:18.241Z [info]: Loading event: reactionRemove.js
-2025-01-02T00:34:18.242Z [info]: Loading event: rectionAdd.js
-2025-01-02T00:34:18.955Z [info]: Démarage de Test lp bot#8901 à 1h
-2025-01-02T00:35:50.204Z [info]: Loading event: update.js
-2025-01-02T00:35:50.207Z [info]: Loading event: create.js
-2025-01-02T00:35:50.208Z [error]: Error loading event: create.js 
-ReferenceError: Events is not defined
-2025-01-02T00:36:29.923Z [info]: Loading event: update.js
-2025-01-02T00:36:29.925Z [info]: Loading event: create.js
-2025-01-02T00:36:29.927Z [info]: Loading event: create.js
-2025-01-02T00:36:29.928Z [info]: Loading event: reactionRemove.js
-2025-01-02T00:36:29.929Z [info]: Loading event: rectionAdd.js
-2025-01-02T00:36:30.638Z [info]: Démarage de Test lp bot#8901 à 1h
-2025-01-02T00:37:01.724Z [info]: Loading event: guildMember update.js
-2025-01-02T00:37:01.727Z [info]: Loading event: interaction create.js
-2025-01-02T00:37:01.728Z [info]: Loading event: message create.js
-2025-01-02T00:37:01.729Z [info]: Loading event: message reactionRemove.js
-2025-01-02T00:37:01.730Z [info]: Loading event: message rectionAdd.js
-2025-01-02T00:37:02.554Z [info]: Démarage de Test lp bot#8901 à 1h
-2025-01-02T00:37:53.272Z [info]: Loading event: GuildMemberupdate.js
-2025-01-02T00:37:53.275Z [info]: Loading event: Interactioncreate.js
-2025-01-02T00:37:53.277Z [info]: Loading event: Messagecreate.js
-2025-01-02T00:37:53.278Z [info]: Loading event: MessagereactionRemove.js
-2025-01-02T00:37:53.279Z [info]: Loading event: MessagerectionAdd.js
-2025-01-02T00:37:54.058Z [info]: Démarage de Test lp bot#8901 à 1h
-2025-01-02T00:38:25.907Z [info]: Loading event: GuildMemberupdate
-2025-01-02T00:38:25.909Z [info]: Loading event: Interactioncreate
-2025-01-02T00:38:25.911Z [info]: Loading event: Messagecreate
-2025-01-02T00:38:25.912Z [info]: Loading event: MessagereactionRemove
-2025-01-02T00:38:25.913Z [info]: Loading event: MessagerectionAdd
-2025-01-02T00:38:26.627Z [info]: Démarage de Test lp bot#8901 à 1h
-2025-01-02T00:40:43.474Z [info]: -- loading events --
-2025-01-02T00:40:43.476Z [info]: GuildMemberupdate
-2025-01-02T00:40:43.477Z [info]: Interactioncreate
-2025-01-02T00:40:43.478Z [info]: Messagecreate
-2025-01-02T00:40:43.479Z [info]: MessagereactionRemove
-2025-01-02T00:40:43.480Z [info]: MessagerectionAdd
-2025-01-02T00:40:43.481Z [info]: -- loading commands --
-2025-01-02T00:40:44.316Z [info]: Status : Bot is started
-2025-01-02T00:41:13.730Z [info]: Status : Bot is started
-2025-01-02T00:41:24.829Z [debug]: -- loading events --
-2025-01-02T00:41:24.831Z [debug]: GuildMemberupdate
-2025-01-02T00:41:24.832Z [debug]: Interactioncreate
-2025-01-02T00:41:24.833Z [debug]: Messagecreate
-2025-01-02T00:41:24.834Z [debug]: MessagereactionRemove
-2025-01-02T00:41:24.835Z [debug]: MessagerectionAdd
-2025-01-02T00:41:24.836Z [debug]: -- loading commands --
-2025-01-02T00:41:25.488Z [info]: Status : Bot is started
-2025-01-02T00:43:25.695Z [debug]: -- loading events --
-2025-01-02T00:43:25.697Z [debug]: Clientready
-2025-01-02T00:43:25.699Z [error]: Error loading event: ready.js 
-ReferenceError: ActivityType is not defined
-2025-01-02T00:45:45.652Z [debug]: -- loading events --
-2025-01-02T00:45:45.654Z [debug]: Clientready
-2025-01-02T00:45:45.655Z [debug]: GuildMemberupdate
-2025-01-02T00:45:45.656Z [debug]: Interactioncreate
-2025-01-02T00:45:45.657Z [debug]: Messagecreate
-2025-01-02T00:45:45.658Z [debug]: MessagereactionRemove
-2025-01-02T00:45:45.659Z [debug]: MessagerectionAdd
-2025-01-02T00:45:45.660Z [debug]: -- loading commands --
-2025-01-02T00:46:38.328Z [debug]: -- loading events --
-2025-01-02T00:46:38.330Z [debug]: Clientready
-2025-01-02T00:46:38.331Z [debug]: GuildMemberupdate
-2025-01-02T00:46:38.332Z [debug]: Interactioncreate
-2025-01-02T00:46:38.334Z [debug]: Messagecreate
-2025-01-02T00:46:38.335Z [debug]: MessagereactionRemove
-2025-01-02T00:46:38.336Z [debug]: MessagerectionAdd
-2025-01-02T00:46:38.336Z [debug]: -- loading commands --
-2025-01-02T00:47:21.149Z [debug]: -- loading events --
-2025-01-02T00:47:21.151Z [debug]: Clientready
-2025-01-02T00:47:21.152Z [debug]: GuildMemberupdate
-2025-01-02T00:47:21.153Z [debug]: Interactioncreate
-2025-01-02T00:47:21.154Z [debug]: Messagecreate
-2025-01-02T00:47:21.155Z [debug]: MessagereactionRemove
-2025-01-02T00:47:21.156Z [debug]: MessagerectionAdd
-2025-01-02T00:47:21.157Z [debug]: -- loading commands --
-2025-01-02T00:47:52.446Z [debug]: -- loading events --
-2025-01-02T00:47:52.448Z [debug]: Clientready
-2025-01-02T00:47:52.458Z [debug]: GuildMemberupdate
-2025-01-02T00:47:52.459Z [debug]: Interactioncreate
-2025-01-02T00:47:52.460Z [debug]: Messagecreate
-2025-01-02T00:47:52.461Z [debug]: MessagereactionRemove
-2025-01-02T00:47:52.462Z [debug]: MessagerectionAdd
-2025-01-02T00:47:52.463Z [debug]: -- loading commands --
-2025-01-02T00:48:25.117Z [debug]: -- loading events --
-2025-01-02T00:48:25.119Z [debug]: Clientready
-2025-01-02T00:48:25.129Z [debug]: GuildMemberupdate
-2025-01-02T00:48:25.130Z [debug]: Interactioncreate
-2025-01-02T00:48:25.131Z [debug]: Messagecreate
-2025-01-02T00:48:25.132Z [debug]: MessagereactionRemove
-2025-01-02T00:48:25.133Z [debug]: MessagerectionAdd
-2025-01-02T00:48:25.134Z [debug]: -- loading commands --
+2025-01-02T00:58:13.076Z [debug]: -- loading events --
+2025-01-02T00:58:13.078Z [debug]: Clientready
+2025-01-02T00:58:13.087Z [debug]: GuildMemberupdate
+2025-01-02T00:58:13.088Z [debug]: Interactioncreate
+2025-01-02T00:58:13.090Z [debug]: Messagecreate
+2025-01-02T00:58:13.367Z [debug]: MessagereactionRemove
+2025-01-02T00:58:13.368Z [debug]: MessagerectionAdd
+2025-01-02T00:58:13.369Z [debug]: -- loading commands --
+2025-01-02T00:58:14.087Z [info]: Status : Bot is started
+2025-01-02T00:58:39.692Z [debug]: -- loading events --
+2025-01-02T00:58:39.694Z [debug]: Clientready
+2025-01-02T00:58:39.702Z [debug]: GuildMemberupdate
+2025-01-02T00:58:39.704Z [debug]: Interactioncreate
+2025-01-02T00:58:39.705Z [debug]: Messagecreate
+2025-01-02T00:58:39.984Z [debug]: MessagereactionRemove
+2025-01-02T00:58:39.985Z [debug]: MessagerectionAdd
+2025-01-02T00:58:39.986Z [debug]: -- loading commands --
+2025-01-02T00:58:40.687Z [info]: Status : Bot is started
+2025-01-02T00:58:43.621Z [debug]: MessageCreate event triggered
+2025-01-02T00:58:43.622Z [debug]: mcdoa a envoyé un message dans le channel général : gay
