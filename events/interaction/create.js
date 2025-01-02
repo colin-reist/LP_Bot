@@ -1,4 +1,4 @@
-const { Events } = require('discord.js');
+const { Events, Collection } = require('discord.js');
 /**
  * Capte les interactions
  * @param {Interaction} interaction L'interaction créée par l'utilisateur
