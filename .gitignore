@@ -3,3 +3,5 @@ MainConfig.json
 .env
 node_modules
 .idea
+package.json
+combined.log
