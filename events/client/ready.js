@@ -1,4 +1,4 @@
-const { Events, ActivityType } = require('discord.js'); // Importer Events
+const { Events, ActivityType, EmbedBuilder } = require('discord.js'); // Importer Events
 const cron = require('cron'); // Importer cron
 const logger = require('../../logger'); // Importer logger
 
