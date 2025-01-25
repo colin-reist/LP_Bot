@@ -26,10 +26,13 @@ module.exports = {
 			return interaction.editReply({ content: 'Tu n\'es pas un staff', ephemeral: true });
 		}
 
+		await interaction.editReply({ content: 'Suppression des messages...', ephemeral: true });
 		await deleteAllUserMessages(interaction.guild, userId);
 		await handleBadUser(user);
 		await addBanToDatabase(user, staffId, interaction.options.getString('raison'));
 		await sendBanNotification(interaction, user, member, staff);
+		await interaction.editReply({ content: 'Utilisateur banni.', ephemeral: true });
+		await interaction.deleteReply({ timeout: 2000 });
 	},
 };
 
@@ -67,23 +70,33 @@ async function isStaffMember(staffId) {
 }
 
 async function deleteAllUserMessages(guild, userId) {
-	const textChannels = guild.channels.cache.filter(channel => channel.isTextBased());
-	const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000; // Timestamp d'il y a 7 jours
+	const textChannels = guild.channels.cache.filter(
+		channel => channel.isTextBased() && channel.permissionsFor(guild.members.me).has(['VIEW_CHANNEL', 'READ_MESSAGE_HISTORY', 'MANAGE_MESSAGES'])
+	);
+	const fourteenDaysAgo = Date.now() - 14 * 24 * 60 * 60 * 1000; // Discord limite la suppression à 14 jours
 
 	for (const [channelId, channel] of textChannels) {
 		try {
 			let fetchedMessages;
 			do {
+				// Récupérer jusqu'à 100 messages du canal
 				fetchedMessages = await channel.messages.fetch({ limit: 100 });
+
+				// Filtrer les messages de l'utilisateur et ceux qui datent de moins de 14 jours
 				const userMessages = fetchedMessages.filter(
-					msg => msg.author.id === userId && msg.createdTimestamp >= sevenDaysAgo
+					msg => msg.author.id === userId && msg.createdTimestamp >= fourteenDaysAgo
 				);
-				
+
+				// Supprimer chaque message de l'utilisateur
 				for (const msg of userMessages.values()) {
 					await msg.delete();
 				}
-			} while (fetchedMessages.size > 100);
-			
+
+				// Arrêter la boucle si aucun message récent de l'utilisateur n'est trouvé
+				if (userMessages.size === 0) break;
+
+			} while (fetchedMessages.size >= 100);
+
 			console.log(`Messages récents de l'utilisateur ${userId} supprimés dans le canal ${channel.name}.`);
 		} catch (error) {
 			console.error(`Erreur lors de la suppression des messages dans le canal ${channel.name}:`, error);
