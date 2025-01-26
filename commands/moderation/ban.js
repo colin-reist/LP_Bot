@@ -71,7 +71,7 @@ async function isStaffMember(staffId) {
 
 async function deleteAllUserMessages(guild, userId) {
 	const textChannels = guild.channels.cache.filter(
-		channel => channel.isTextBased() && channel.permissionsFor(guild.members.me).has(['VIEW_CHANNEL', 'READ_MESSAGE_HISTORY', 'MANAGE_MESSAGES'])
+		channel => channel.isTextBased() && channel.permissionsFor(guild.members.me).has(['ViewChannel', 'ReadMessageHistory', 'ManageMessages'])
 	);
 	const fourteenDaysAgo = Date.now() - 14 * 24 * 60 * 60 * 1000; // Discord limite la suppression à 14 jours
 
