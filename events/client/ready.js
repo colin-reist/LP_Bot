@@ -51,9 +51,11 @@ module.exports = (client) => {
                     name: '🕰️ 24h pour participer 🕰️',
                     value: 'Il vous reste un peu moins de 24h pour poster vos images et tenter de gagner le concours de la semaine !',
                 })
-                .setImage('https://images2.imgbox.com/c7/b8/dtsE4Xp8_o.png')
-
-                .setFooter({ text: 'Lewd Paradise au service de tout les horny' });
+                .setImage("https://i.imgur.com/3fUmg6N.png")
+                .setFooter({
+                    text: "Lewd Paradise au service de tout les hornys",
+                    iconURL: "https://i.imgur.com/PQtvZLa.gif",
+                });
             channel.send({ embeds: [mondayEmbed] });
         });
 
@@ -74,15 +76,18 @@ module.exports = (client) => {
                 console.log(winner.messageID);
 
                 const mondayEmbed = new EmbedBuilder()
-                    .setColor('#EBBC4E')
                     .setTitle('🎉 Annonce du nom du gagnant 🎉')
                     .addFields({
                         name: '🏆 Qui est le gagnant 🏆',
                         value: 'La personne ayant le plus de votes est: \n **<@' + winner.messageAuthorId + '>** ! \n\nFélicitations à lui ! Il gagne avec '
                             + maxReactCount + ' votes et obtient le rôle <@&1052591643544522782> !',
                     })
-                    .setImage('https://images2.imgbox.com/c7/b8/dtsE4Xp8_o.png')
-                    .setFooter({ text: 'Lewd Paradise au service de tout les horny' });
+                    .setImage("https://i.imgur.com/3fUmg6N.png")
+                    .setColor("#EBBC4E")
+                    .setFooter({
+                        text: "Lewd Paradise au service de tout les hornys",
+                        iconURL: "https://i.imgur.com/PQtvZLa.gif",
+                    });
 
                 channel.send({ embeds: [mondayEmbed] });
 
@@ -94,24 +99,28 @@ module.exports = (client) => {
         const sundayScheduledMessage = new cron.CronJob('0 10 * * 0', () => {
             channel.send('<@&1239680929958592524>');
             const sundayEmbed = new EmbedBuilder()
-                .setColor('#EBBC4E')
-                .setTitle('🌟 Fin des publications 🌟')
-                .addFields({
-                    name: '🗳️ Phase de votes 🗳️',
-                    value: 'Vous pouvez maintenant voter pour vos images préférées ! \nles personnes ayant plus de 15 votes seront affiché dans: \n* <#1153607344505245736>'
-                        + '\nPour voter, il vous suffit de réagir avec <:LP_vote:1001230627242250392> sur les images que vous aimez !'
-                        + '\nVous pouvez voter pour autant d\'images que vous le souhaitez !',
+                .setTitle("🌟 Fin des publications 🌟")
+                .setDescription("La phase de publication est terminé !")
+                .addFields(
+                    {
+                        name: "🗳️ Phase de votes : Choisissez vos préférés ! 🗳️",
+                        value: "- L'émoji de vote et le suivant : <:LP_vote:1001230627242250392>\n- Aucune limite de vote est appliqué (nombre de vote infini)\n- Toute image dépassant 15 votes sera affichés dans <#1153607344505245736>",
+                        inline: false
+                    },
+                    {
+                        name: "🏆 Pour le vainquer 🏆",
+                        value: "- Le vainqueur est désigné directement par le bot\n- Le gagnant sera récompensé par le rôle <@&1052591643544522782>",
+                        inline: false
+                    },
+                )
+                .setImage("https://i.imgur.com/3fUmg6N.png")
+                .setColor("#EBBC4E")
+                .setFooter({
+                    text: "Lewd Paradise au service de tout les hornys",
+                    iconURL: "https://i.imgur.com/PQtvZLa.gif",
                 })
-                .addFields({
-                    name: '🏆 Pour le vainquer 🏆',
-                    value: 'Le vainqueur sera auto désigné par le bot ! \nIl sera celui qui aura le plus de votes !'
-                        + '\nLe gagnant recevra le rôle <@&1153607344505245736> et sera affiché dans: \n* <#1165043827430670416> !',
-                })
-                .setImage('https://images2.imgbox.com/c7/b8/dtsE4Xp8_o.png')
-                .setFooter({ text: 'Lewd Paradise au service de tout les horny' });
-
-            channel.send({ embeds: [sundayEmbed] });
-        });
+                .setTimestamp();
+        })
 
         // When you want to start it, use:
         mondayScheduledMessage.start();
