@@ -30,7 +30,6 @@ module.exports = (client) => {
         }, 600000);
 
         concours();
-        smashOrPass();
 
         const dailyScheduledMessage = new cron.CronJob('0 11 * * *', () => {
             smashOrPass();
