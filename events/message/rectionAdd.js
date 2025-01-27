@@ -2,6 +2,7 @@ const { Events } = require('discord.js'); // Importer Events
 
 module.exports = (client) => {
     client.on(Events.MessageReactionAdd, async (reaction) => {
+        if (reaction.me) return;
         try {
             if (!reaction.message.guild) return;
 
