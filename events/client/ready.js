@@ -137,93 +137,88 @@ module.exports = (client) => {
     }
 
     async function smashOrPass() {
-        // Remplace avec les IDs des catégories souhaitées
-        const categoryIds = ['917158866943377509', '916879499386294292', '917202603195125780', '993871861811269704', '1039226609623912560', '916089088019427358']; 
-        const images = [];
-        const now = Date.now();
-        const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000; // Timestamp pour 7 jours en arrière
-
+        // IDs des catégories à scanner
+        const categoryIds = ['917158866943377509', '916879499386294292', '917202603195125780', '993871861811269704', '1039226609623912560', '916089088019427358'];
+    
+        // Liste pour stocker les salons des catégories spécifiées
+        const eligibleChannels = [];
+    
         // Parcourt toutes les guilds accessibles au bot
-        client.guilds.cache.forEach(async guild => {
-            // Récupère tous les salons textuels appartenant aux catégories spécifiées
+        client.guilds.cache.forEach(guild => {
+            // Filtre les salons appartenant aux catégories spécifiées
             const channels = guild.channels.cache.filter(channel =>
                 channel.isTextBased() &&
                 channel.parentId &&
                 categoryIds.includes(channel.parentId)
             );
-
-            if (channels.size === 0) {
-                console.log(`Aucun salon trouvé pour les catégories dans la guild : ${guild.name}`);
-                return;
-            }
-
-            console.log(`Recherche dans ${channels.size} salons de la guild : ${guild.name}`);
-
-            for (const channel of channels.values()) {
-                try {
-                    const messages = await channel.messages.fetch({ limit: 100 }); // Récupère les 100 derniers messages
-                    messages.forEach(message => {
-                        if (
-                            message.createdTimestamp > sevenDaysAgo && // Vérifie si le message date de moins de 7 jours
-                            message.attachments.size > 0 // Vérifie si le message a des fichiers attachés
-                        ) {
-                            message.attachments.forEach(attachment => {
-                                if (attachment.contentType && attachment.contentType.startsWith('image/')) {
-                                    images.push({
-                                        url: attachment.url, // URL de l'image
-                                        name: attachment.name, // Nom du fichier
-                                        messageUrl: message.url, // URL du message
-                                        authorTag: message.author.tag, // Auteur du message
-                                        authorId: message.author.id // ID de l'auteur
-                                    });
-                                }
+    
+            eligibleChannels.push(...channels.values());
+        });
+    
+        if (eligibleChannels.length === 0) {
+            console.log("Aucun salon éligible trouvé dans les catégories spécifiées.");
+            return;
+        }
+    
+        // Sélectionne un salon aléatoire
+        const randomChannel = eligibleChannels[Math.floor(Math.random() * eligibleChannels.length)];
+        console.log(`Salon sélectionné : ${randomChannel.name} (ID: ${randomChannel.id})`);
+    
+        // Récupère les messages du salon sélectionné
+        try {
+            const messages = await randomChannel.messages.fetch({ limit: 100 });
+            const images = [];
+    
+            messages.forEach(message => {
+                if (message.attachments.size > 0) { // Vérifie si le message a des fichiers attachés
+                    message.attachments.forEach(attachment => {
+                        if (attachment.contentType && attachment.contentType.startsWith('image/')) {
+                            images.push({
+                                url: attachment.url,
+                                name: attachment.name,
+                                messageUrl: message.url,
+                                authorTag: message.author.tag,
+                                authorId: message.author.id
                             });
                         }
                     });
-                } catch (error) {
-                    console.error(`Erreur lors de l'accès au salon ${channel.id}:`, error);
                 }
-            }
-        });
-
-        // Attends un moment pour que toutes les promesses soient résolues
-        setTimeout(async () => {
+            });
+    
             if (images.length === 0) {
-                console.log("Aucune image trouvée dans les salons des catégories spécifiées au cours des 7 derniers jours.");
+                console.log(`Aucune image trouvée dans le salon ${randomChannel.name}.`);
                 return;
             }
-
+    
             // Sélectionne une image au hasard
             const randomImage = images[Math.floor(Math.random() * images.length)];
             console.log(`Image sélectionnée : ${randomImage.url}`);
-
-            // Poste cette image dans un autre salon (par exemple, un salon spécifique)
-            const targetChannelId = '1052597309759828098'; // ID du salon où poster l'image
+    
+            // Poste l'image dans un autre salon (par exemple, un salon spécifique)
+            const targetChannelId = '1052597309759828098'; // ID du salon cible
             const targetChannel = client.channels.cache.get(targetChannelId);
-
+    
             if (targetChannel && targetChannel.isTextBased()) {
                 await targetChannel.send(`Nouveau poste ! <@&1163093412812177599>`);
-                try {
-                    const embed = new EmbedBuilder()
-                        .setTitle("✅ Smash or Pass ? ❌")
-                        .setDescription(`- Image posté par : **<@${randomImage.authorId}>** \n- Salon d'origine : ${randomImage.messageUrl}`)
-                        .setImage(randomImage.url)
-                        .setColor("#EBBC4E")
-                        .setFooter({
-                            text: "Lewd Paradise au service de tout les hornys",
-                            iconURL: "https://i.imgur.com/PQtvZLa.gif",
-                        });
-
-                    const message = await targetChannel.send({ embeds: [embed] });
-                    await message.react('✅');
-                    await message.react('❌');
-                    console.log("Image postée avec succès !");
-                } catch (error) {
-                    console.error("Erreur lors de la publication de l'image :", error);
-                }
+                const embed = new EmbedBuilder()
+                    .setTitle("✅ Smash or Pass ? ❌")
+                    .setDescription(`- Image postée par : **<@${randomImage.authorId}>** \n- Salon d'origine : ${randomImage.messageUrl}`)
+                    .setImage(randomImage.url)
+                    .setColor("#EBBC4E")
+                    .setFooter({
+                        text: "Lewd Paradise au service de tout les hornys",
+                        iconURL: "https://i.imgur.com/PQtvZLa.gif",
+                    });
+    
+                const message = await targetChannel.send({ embeds: [embed] });
+                await message.react('✅');
+                await message.react('❌');
+                console.log("Image postée avec succès !");
             } else {
                 console.log("Le salon cible est introuvable ou non textuel.");
             }
-        }, 5000); // Donne du temps aux requêtes asynchrones pour se compléter
+        } catch (error) {
+            console.error(`Erreur lors de la récupération des messages du salon ${randomChannel.id}:`, error);
+        }
     }
 }
