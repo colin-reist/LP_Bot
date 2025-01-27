@@ -210,8 +210,8 @@ module.exports = (client) => {
                     });
     
                 const message = await targetChannel.send({ embeds: [embed] });
-                await message.react('✅');
-                await message.react('❌');
+                await message.react('<a:LP_FoxxoWow:1090350412323901490>');
+                await message.react('<:LP_FoxxoHmph:1090351249360179220>');
                 console.log("Image postée avec succès !");
             } else {
                 console.log("Le salon cible est introuvable ou non textuel.");
