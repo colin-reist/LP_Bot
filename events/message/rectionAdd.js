@@ -6,11 +6,6 @@ module.exports = (client) => {
         if (reaction.me) return;
         try {
             if (!reaction.message.guild) return;
-
-            const botPermissions = reaction.message.guild.members.me.permissionsIn(reaction.message.channel);
-            if (!botPermissions.has('VIEW_CHANNEL') || !botPermissions.has('READ_MESSAGE_HISTORY')) {
-                throw new error('The bots does not have the required permissions to view the channel or read the message history');
-            }
             await reaction.fetch();
         }
         catch (error) {
