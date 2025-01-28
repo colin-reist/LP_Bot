@@ -26,12 +26,24 @@ module.exports = {
 			return interaction.editReply({ content: 'Tu n\'es pas un staff', ephemeral: true });
 		}
 
-		await interaction.editReply({ content: 'Suppression des messages...', ephemeral: true });
+		// Bannir l'utilisateur
+		try {
+			const raison = interaction.options.getString('raison');
+			await sendBanNotification(interaction, user, member, staff);
+			await interaction.guild.members.ban(userId, { reason: raison });
+			await addBanToDatabase(user, staffId, raison);
+			await interaction.editReply({ content: 'Utilisateur banni.', ephemeral: true });
+		} catch (error) {
+			console.error('Erreur lors du ban de l\'utilisateur:', error);
+			return interaction.editReply({ content: 'Erreur lors du ban de l\'utilisateur.', ephemeral: true });
+		}
+
+		// Supprimer les messages après le ban
+		await interaction.editReply({ content: 'Utilisateur banni.\nSuppression des messages...', ephemeral: true });
 		await deleteAllUserMessages(interaction.guild, userId);
-		await handleBadUser(user);
-		await addBanToDatabase(user, staffId, interaction.options.getString('raison'));
-		await sendBanNotification(interaction, user, member, staff);
-		await interaction.editReply({ content: 'Utilisateur banni.', ephemeral: true });
+
+		// Finaliser
+		await interaction.editReply({ content: 'Ban et suppression des messages terminés.', ephemeral: true });
 		await interaction.deleteReply({ timeout: 2000 });
 	},
 };
