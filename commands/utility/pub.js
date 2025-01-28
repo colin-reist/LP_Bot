@@ -6,7 +6,7 @@ const reminders = [];
 module.exports = {
     category: 'utility',
     data: new SlashCommandBuilder()
-        .setName('rappel')
+        .setName('pub')
         .setDescription('Créer un rappel pour un partenariat avec un serveur')
         .addStringOption(option =>
             option.setName('serveur')
