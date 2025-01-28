@@ -3,6 +3,41 @@ const cron = require('cron'); // Importer cron
 const logger = require('../../logger'); // Importer logger
 
 module.exports = (client) => {
+
+    const crashLogsChannelId = '1333850350867710073'; // ID du channel où envoyer les logs de crash
+
+    process.on('uncaughtException', async (error) => {
+        console.error('Une exception non capturée a été détectée :', error);
+
+        try {
+            // Remplace "ID_DU_CHANNEL" par l'ID du channel où tu veux envoyer le message
+            const channel = client.channels.cache.get(crashLogsChannelId);
+            if (channel && channel.isTextBased()) {
+                await channel.send('⚠️ Le bot va planter à cause d\'une erreur critique : ```' + error.message + '```');
+            }
+        } catch (err) {
+            console.error('Impossible d\'envoyer le message avant le crash :', err);
+        } finally {
+            process.exit(1); // Quitte le processus proprement
+        }
+    });
+
+    process.on('unhandledRejection', async (reason) => {
+        console.error('Une promesse rejetée n\'a pas été capturée :', reason);
+
+        try {
+            // Remplace "ID_DU_CHANNEL" par l'ID du channel où tu veux envoyer le message
+            const channel = client.channels.cache.get('ID_DU_CHANNEL');
+            if (channel && channel.isTextBased()) {
+                await channel.send('⚠️ Le bot a rencontré une promesse rejetée : ```' + reason + '```');
+            }
+        } catch (err) {
+            console.error('Impossible d\'envoyer le message avant le crash :', err);
+        } finally {
+            process.exit(1); // Quitte le processus proprement
+        }
+    });
+
     /**
      * Tableau des status du bot
      */
@@ -22,6 +57,9 @@ module.exports = (client) => {
         },
     ];
 
+    /**
+     * Event start of the bot
+     */
     client.once(Events.ClientReady, () => {
 
         setInterval(() => {

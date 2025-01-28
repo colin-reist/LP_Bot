@@ -1,4 +1,4 @@
-const { Events, Collection } = require('discord.js');
+const { Events, Collection, EmbedBuilder } = require('discord.js');
 /**
  * Capte les interactions
  * @param {Interaction} interaction L'interaction créée par l'utilisateur
@@ -203,6 +203,31 @@ module.exports = (client) => {
             }
             else {
                 await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+            }
+
+            try {
+                const errorEmbed = new EmbedBuilder()
+                    .setColor('#FF0000')
+                    .setTitle('Error while executing command ')
+                    .setDescription(`There was an error while executing the command \`${command.data.name}\``)
+                    .addFields(
+                        { name: 'Error', value: error.message },
+                        { name: 'Last user', value: `<@${interaction.user.id}>` },
+                        { name: 'Command name', value: command.data.name },
+                        { name: 'Time', value: `The error happened at : <t:${Math.floor(Date.now() / 1000)}:f>` }
+                    )
+                    .setImage("https://media1.tenor.com/m/sIB-6LgziVIAAAAC/spongebob-squarepants-spongebob.gif")
+                    .setFooter({
+                        text: "Lewd Paradise au service de tout les hornys",
+                        iconURL: "https://i.imgur.com/PQtvZLa.gif",
+                    });
+
+                const logChannel = client.channels.cache.get('1333850350867710073');
+                if (logChannel) {
+                    logChannel.send({ embeds: [errorEmbed] });
+                }
+            } catch (error) {
+                console.error('Error while sending error message:', error);
             }
         }
     });
