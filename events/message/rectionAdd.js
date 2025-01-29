@@ -22,7 +22,7 @@ module.exports = (client) => {
  * @returns
  */
     async function starboard(reaction, AddOrRemove) {
-        logger.log('-------------starboard-------------');
+        logger.log({ message: '-------------starboard-------------' });
 
 
         try {
