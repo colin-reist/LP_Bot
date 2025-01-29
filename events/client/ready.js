@@ -7,16 +7,30 @@ module.exports = (client) => {
 	const crashLogsChannelId = '1333850350867710073'; // ID du channel où envoyer les logs de crash
 
 	process.on('uncaughtException', async (error) => {
-		console.error('Une exception non capturée a été détectée :', error);
+		console.error('An unCaugth error has been detected :', error);
 
 		try {
+			const errorEmbed = new EmbedBuilder()
+                    .setColor('#FF0000')
+                    .setTitle('❌ UnCaught Error ❌')
+                    .setDescription(`An uncaugth error has been detected : \n\n\`\`\`${error}\`\`\``)
+                    .addFields({
+						name: '🔧 Stack trace 🔧',
+						value: `\`\`\`${error.stack}\`\`\``,
+					})
+                    .setImage("https://media1.tenor.com/m/sIB-6LgziVIAAAAC/spongebob-squarepants-spongebob.gif")
+                    .setFooter({
+                        text: "Lewd Paradise au service de tout les hornys",
+                        iconURL: "https://i.imgur.com/PQtvZLa.gif",
+                    });
+
 			// Remplace "ID_DU_CHANNEL" par l'ID du channel où tu veux envoyer le message
 			const channel = client.channels.cache.get(crashLogsChannelId);
 			if (channel && channel.isTextBased()) {
-				await channel.send('⚠️ Le bot va planter à cause d\'une erreur critique : ```' + error.message + '```');
+				await channel.send({ embeds: [errorEmbed] });
 			}
 		} catch (err) {
-			console.error('Impossible d\'envoyer le message avant le crash :', err);
+			console.error('Impossible d\'envoyer le message d\'erreur non géré :', err);
 		}
 	});
 

@@ -12,6 +12,7 @@ module.exports = {
             option.setName('serveur')
                 .setDescription('Nom du serveur partenaire')
                 .setRequired(true)),
+                
     async execute(interaction) {
         const serveurPartenaire = interaction.options.getString('serveur');
         const responsable = interaction.user; // Prend l'utilisateur exécutant la commande par défaut
