@@ -17,24 +17,6 @@ module.exports = (client) => {
             }
         } catch (err) {
             console.error('Impossible d\'envoyer le message avant le crash :', err);
-        } finally {
-            process.exit(1); // Quitte le processus proprement
-        }
-    });
-
-    process.on('unhandledRejection', async (reason) => {
-        console.error('Une promesse rejetée n\'a pas été capturée :', reason);
-
-        try {
-            // Remplace "ID_DU_CHANNEL" par l'ID du channel où tu veux envoyer le message
-            const channel = client.channels.cache.get('ID_DU_CHANNEL');
-            if (channel && channel.isTextBased()) {
-                await channel.send('⚠️ Le bot a rencontré une promesse rejetée : ```' + reason + '```');
-            }
-        } catch (err) {
-            console.error('Impossible d\'envoyer le message avant le crash :', err);
-        } finally {
-            process.exit(1); // Quitte le processus proprement
         }
     });
 
