@@ -22,7 +22,7 @@ module.exports = (client) => {
  * @returns
  */
     async function starboard(reaction, AddOrRemove) {
-        logger.log({ message: '-------------starboard-------------' });
+        console.log('-------------starboard-------------');
 
 
         try {
@@ -32,7 +32,7 @@ module.exports = (client) => {
             if (existingTag === null) {
                 existingTag = await Tags.findOne({ where: { messageID: reaction.message.id } });
                 if (existingTag === null) {
-                    logger.log('-------Création du tag-------');
+                    console.log('-------Création du tag-------');
 
 
                     // Check if the message has an image attachment
@@ -55,16 +55,16 @@ module.exports = (client) => {
                         posted: false,
                         linkedEmbed: null,
                     });
-                    return logger.log(' Contenu du tag: \n' + 'MessageID: ' + tag.messageID + '\nMessageAuthorName: '
+                    return console.log(' Contenu du tag: \n' + 'MessageID: ' + tag.messageID + '\nMessageAuthorName: '
                         + tag.messageAuthorName + '\nMessageAuthorId: ' + tag.messageAuthorId + '\nMessageAuthorAvatar: ' + tag.messageAuthorAvatar
                         + '\nMessageURL: ' + tag.messageURL + '\nReactCount: ' + tag.reactCount + '\nAttachment: '
                         + tag.attachment + '\nPosted: ' + tag.posted + '\nLinkedEmbed: ' + tag.linkedEmbed + '\n -> Tag créé \n---------------------------');
 
                 } else {
-                    logger.log(' -> Tag existant sans embed');
+                    console.log(' -> Tag existant sans embed');
                 }
             } else {
-                logger.log(' -> Tag existant avec embed');
+                console.log(' -> Tag existant avec embed');
             }
 
             (AddOrRemove === 'add') ? existingTag.reactCount++ : existingTag.reactCount--;
@@ -81,7 +81,7 @@ module.exports = (client) => {
             const starboardChannel = client.channels.cache.get('1153607344505245736'); // le channel du starboard
             // Si le message n'a pas encore été posté et qu'il a plus de 15 réactions, on poste un nouvel embed
             if (!existingTag.posted && existingTag.reactCount > 15) {
-                logger.log(' -> Création de l\'embed');
+                console.log(' -> Création de l\'embed');
                 existingTag.posted = true;
                 existingTag.save();
                 const message = await starboardChannel.send({ embeds: [starboardEmbed] });
@@ -92,13 +92,13 @@ module.exports = (client) => {
 
                 // Si le message a déjà été posté et qu'il a plus de 15 réactions, on modifie l'embed
             } else if (existingTag.posted && existingTag.reactCount > 14) {
-                logger.log(' -> Modification de l\'embed');
+                console.log(' -> Modification de l\'embed');
                 const message = await starboardChannel.messages.fetch(existingTag.linkedEmbed);
                 message.edit({ embeds: [starboardEmbed] });
 
                 // Si le message a déjà été posté et qu'il a moins de 15 réactions, on supprime l'embed
             } else if (existingTag.posted && existingTag.reactCount < 15) {
-                logger.log(' -> Suppression de l\'embed');
+                console.log(' -> Suppression de l\'embed');
                 existingTag.posted = false;
                 existingTag.save();
                 const message = await starboardChannel.messages.fetch(existingTag.linkedEmbed);
@@ -109,7 +109,7 @@ module.exports = (client) => {
         catch (error) {
             console.error('Une erreur est survenue lors d\'un rajout d\'émoji: ', error);
         }
-        logger.log('-----------------------------------');
+        console.log('-----------------------------------');
     }
 
     async function checkReaction(reaction, addOrRemove) {
