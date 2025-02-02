@@ -40,15 +40,17 @@ module.exports = (client) => {
 			.setColor('#00FF00')
 			.setTitle('✅ Bot started ✅')
 			.setDescription('The bot has been started successfully !')
-			.setImage("https://media1.tenor.com/m/sIB-6LgziVIAAAAC/spongebob-squarepants-spongebob.gif")
+			.setImage("https://i.imgur.com/3fUmg6N.png")
 			.setFooter({
 				text: "Lewd Paradise au service de tout les hornys",
 				iconURL: "https://i.imgur.com/PQtvZLa.gif",
 			});
 
-		const channel = client.channels.cache.get(1333850350867710073);
+		const channel = client.channels.cache.get('1333850350867710073');
 		if (channel && channel.isTextBased()) {
 			channel.send({ embeds: [startEmbed] });
+		} else {
+			console.error('Impossible d\'envoyer le message de démarrage du bot');
 		}
 	}
 
