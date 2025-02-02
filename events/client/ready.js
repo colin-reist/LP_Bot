@@ -1,6 +1,7 @@
 const { Events, ActivityType, EmbedBuilder } = require('discord.js'); // Importer Events
 const cron = require('cron'); // Importer cron
 const logger = require('../../logger'); // Importer logger
+const { start } = require('repl');
 
 module.exports = (client) => {
 
@@ -34,6 +35,23 @@ module.exports = (client) => {
 		}
 	});
 
+	function startBotLog() {
+		const startEmbed = new EmbedBuilder()
+			.setColor('#00FF00')
+			.setTitle('✅ Bot started ✅')
+			.setDescription('The bot has been started successfully !')
+			.setImage("https://media1.tenor.com/m/sIB-6LgziVIAAAAC/spongebob-squarepants-spongebob.gif")
+			.setFooter({
+				text: "Lewd Paradise au service de tout les hornys",
+				iconURL: "https://i.imgur.com/PQtvZLa.gif",
+			});
+
+		const channel = client.channels.cache.get(1333850350867710073);
+		if (channel && channel.isTextBased()) {
+			channel.send({ embeds: [startEmbed] });
+		}
+	}
+
 	/**
      * Tableau des status du bot
      */
@@ -57,6 +75,7 @@ module.exports = (client) => {
      * Event start of the bot
      */
 	client.once(Events.ClientReady, () => {
+		startBotLog()
 
 		setInterval(() => {
 			const index = Math.floor(Math.random() * (status.length - 1) + 1);
