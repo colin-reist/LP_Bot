@@ -30,10 +30,10 @@ module.exports = {
 			{ name: '📜 Règles à respecter', value: 
 				'✔️ **Deux images max** par personne (envoyées séparément).\n' +
 				'✔️ **Qualité minimum :** 500p (évitez les images trop pixélisées).\n' +
-				'✔️ **Utilisez l’émoji suivant :** 🗳️ `:LP_vote:`\n' +
+				'✔️ **Utilisez l’émoji suivant :** 🗳️ <:LP_vote:1001230627242250392>\n' +
 				'✔️ **Tous les styles sont acceptés !**\n' +
 				'✔️ **Réagissez** à votre propre image et à votre préférée pour plus d’interaction.\n' +
-				'✔️ **Postez vos œuvres dans** 🏆 `<#1079499858064441344>`.', 
+				'✔️ **Postez vos œuvres dans** 🏆 <#1079499858064441344>.', 
 			},
 			{ name: '🕒 Déroulement', value: 
 				'📅 **Soumissions & votes** : 4 à 5 jours pour poster et voter.\n' +
