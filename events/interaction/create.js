@@ -7,6 +7,9 @@ const { Events, Collection, EmbedBuilder } = require('discord.js');
 module.exports = (client) => {
     client.on(Events.InteractionCreate, async interaction => {
         if (!interaction.isChatInputCommand()) return;
+
+        console.log('Utilisation d\'une commande !');
+
         const { cooldowns } = client;
         const command = client.commands.get(interaction.commandName);
 

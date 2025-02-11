@@ -1,7 +1,7 @@
 {
     "ping": {
-        "version": "1.02",
-        "hash": "db6b6cef1610bd79d8ac7c5fc8ee838a"
+        "version": "1.03",
+        "hash": "2a666e3ba88e93fecec7ca0017228cfb"
     },
     "r34": {
         "version": "1.00",
@@ -20,8 +20,8 @@
         "hash": "94ed76e65f7bf9e7cb83a65242d30534"
     },
     "ban": {
-        "version": "1.00",
-        "hash": "7fc96f1cd12031c1814e9e01bade738b"
+        "version": "1.01",
+        "hash": "f867fe29e31ef1e7ee78d37a62c97cce"
     },
     "renameall": {
         "version": "1.00",
@@ -98,5 +98,9 @@
     "user": {
         "version": "1.00",
         "hash": "307758a4152beaa09d0a9487eebb584b"
+    },
+    "concours": {
+        "version": "1.08",
+        "hash": "71b875120fe9f460be7df2b47bbe7306"
     }
 }
