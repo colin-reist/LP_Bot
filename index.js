@@ -1,9 +1,10 @@
 /* eslint-disable no-inline-comments */
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, GatewayIntentBits, Partials, EmbedBuilder, AuditLogEvent } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Partials, } = require('discord.js');
 const { token } = require('./MainConfig.json'); // Import the token
 const logger = require('./logger'); // Import the logger
+const { exec } = require('child_process'); // Import child_process
 
 const client = new Client({
 	intents: [

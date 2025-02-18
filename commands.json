@@ -102,5 +102,9 @@
     "concours": {
         "version": "1.08",
         "hash": "71b875120fe9f460be7df2b47bbe7306"
+    },
+    "downloadimages": {
+        "version": "1.00",
+        "hash": "876e59bbac69b6cb5fe2c031a1287901"
     }
 }
