@@ -17,6 +17,20 @@ const client = new Client({
 	partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
+logger.info('-- deploy commands --');
+
+exec('node deploy-commands.js', (error, stdout, stderr) => {
+    if (error) {
+        logger.error(`Erreur lors du déploiement des commandes: ${error.message}`);
+        return;
+    }
+    if (stderr) {
+        logger.error(`Erreur lors du déploiement des commandes: ${stderr}`);
+        return;
+    }
+    logger.info(`Déploiement des commandes réussi: ${stdout}`);
+});
+
 logger.debug('-- loading events --');
 
 // Récupère et lance les événements
