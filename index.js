@@ -1,10 +1,12 @@
 /* eslint-disable no-inline-comments */
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, GatewayIntentBits, Partials, } = require('discord.js');
-const { token } = require('./MainConfig.json'); // Import the token
-const logger = require('./logger'); // Import the logger
-const { exec } = require('child_process'); // Import child_process
+const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
+const { token } = require('./MainConfig.json');
+const logger = require('./logger');
+const { exec } = require('child_process');
+const { Player } = require("discord-player");
+const { YouTubeExtractor } = require("@discord-player/extractor");
 
 const client = new Client({
 	intents: [
@@ -18,7 +20,7 @@ const client = new Client({
 	partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
 
-logger.info('-- deploy commands --');
+logger.debug('-- deploy commands --');
 
 exec('node deploy-commands.js', (error, stdout, stderr) => {
     if (error) {
@@ -29,14 +31,14 @@ exec('node deploy-commands.js', (error, stdout, stderr) => {
         logger.error(`Erreur lors du déploiement des commandes: ${stderr}`);
         return;
     }
-    logger.info(`Déploiement des commandes réussi: ${stdout}`);
+    logger.debug(`Déploiement des commandes réussi: ${stdout}`);
 });
 
 logger.debug('-- loading events --');
 
 // Récupère et lance les événements
-const eventFolderPath = path.join(__dirname, 'events/.'); // le chemin des dossiers d'événements
-const eventFolders = fs.readdirSync(eventFolderPath); // le dossier des événements
+const eventFolderPath = path.join(__dirname, 'events/.');
+const eventFolders = fs.readdirSync(eventFolderPath);
 for (const folder of eventFolders) {
 	const eventsPath = path.join(eventFolderPath, folder);
 	const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
@@ -55,10 +57,10 @@ for (const folder of eventFolders) {
 logger.debug('-- loading commands --');
 
 // Récupère les commandes
-client.commands = new Collection(); // permet de faire fonctionner les commandes
-client.cooldowns = new Collection(); // permet de faire fonctionner les cooldowns des commandes
-const foldersPath = path.join(__dirname, 'commands/.'); // le chemin des dossiers de commandes
-const commandFolders = fs.readdirSync(foldersPath); // le dossier des commandes
+client.commands = new Collection();
+client.cooldowns = new Collection();
+const foldersPath = path.join(__dirname, 'commands/.');
+const commandFolders = fs.readdirSync(foldersPath);
 for (const folder of commandFolders) {
 	const commandsPath = path.join(foldersPath, folder);
 	const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));

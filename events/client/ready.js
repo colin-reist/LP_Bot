@@ -2,7 +2,6 @@ const { Events, ActivityType, EmbedBuilder } = require('discord.js'); // Importe
 const { Tags } = require('../../database.js'); // Importer la table Tags
 const cron = require('cron'); // Importer cron
 const logger = require('../../logger'); // Importer logger
-const { start } = require('repl');
 
 module.exports = (client) => {
 
@@ -182,6 +181,7 @@ module.exports = (client) => {
 					iconURL: 'https://i.imgur.com/PQtvZLa.gif',
 				})
 				.setTimestamp();
+			channel.send({ embeds: [sundayEmbed]})
 		})
 
 		// When you want to start it, use:

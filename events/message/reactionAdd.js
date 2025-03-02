@@ -1,6 +1,6 @@
 const { Events, EmbedBuilder } = require('discord.js'); // Importer Events
 const { Tags } = require('../../database.js');
-const logger = require('../../logger'); // Importer logger
+const logger = require('../../logger.js'); // Importer logger
 
 module.exports = (client) => {
     client.on(Events.MessageReactionAdd, async (reaction) => {
@@ -23,7 +23,6 @@ module.exports = (client) => {
  */
     async function starboard(reaction, AddOrRemove) {
         console.log('-------------starboard-------------');
-
 
         try {
             let existingTag = await Tags.findOne({ where: { linkedEmbed: reaction.message.id } });
