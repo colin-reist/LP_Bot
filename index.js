@@ -5,8 +5,6 @@ const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js'
 const { token } = require('./MainConfig.json');
 const logger = require('./logger');
 const { exec } = require('child_process');
-const { Player } = require("discord-player");
-const { YouTubeExtractor } = require("@discord-player/extractor");
 
 const client = new Client({
 	intents: [
