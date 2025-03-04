@@ -20,7 +20,7 @@ const client = new Client({
 
 logger.debug('-- deploy commands --');
 
-exec('node ../scripts/deploy-commands.js', (error, stdout, stderr) => {
+exec('node ./scripts/deploy-commands.js', (error, stdout, stderr) => {
     if (error) {
         logger.error(`Erreur lors du déploiement des commandes: ${error.message}`);
         return;
