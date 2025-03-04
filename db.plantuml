@@ -1,0 +1,43 @@
+@startuml db
+
+class User {
+    +pk_user: Integer
+    +discord_identifier: Integer
+    +username: String
+    +experience: Integer
+    +is_admin: Boolean
+}
+
+class Punishment {
+    +pk_punishment: Integer
+    +fk_user: Integer
+    +fk_punisher: Integer
+    +reason: String
+    +date: Date
+    +type: String
+    +expires_at: Date
+}
+
+class Suggestion { 
+    +pk_suggestion: Integer
+    +title: String
+    +description: String
+    +fk_user: Integer
+    +date: Date
+    +positive_count: Integer
+    +negative_count: Integer
+    +status: String
+    +updated_at: Date
+}
+
+class Boost {
+    +pk_boost: Integer
+    +fk_user: Integer
+    +boost_date: Date
+}
+
+User "1" -- "0..*" Punishment : reçoit
+User "1" -- "0..*" Suggestion : propose
+User "1" -- "0..*" Boost : booste
+
+@enduml

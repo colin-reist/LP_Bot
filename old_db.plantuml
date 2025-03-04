@@ -1,0 +1,102 @@
+@startuml old
+
+class Tags {
+  +messageID: STRING
+  +messageAuthorName: STRING
+  +messageAuthorId: STRING
+  +messageAuthorAvatar: STRING
+  +messageURL: TEXT
+  +reactCount: INTEGER
+  +attachment: STRING
+  +posted: BOOLEAN
+  +linkedEmbed: TEXT
+}
+
+class Booster {
+  +userId: STRING
+  +username: STRING
+  +boostCount: INTEGER
+}
+
+class Suggestions {
+  +pk_suggestions: INTEGER
+  +su_id: STRING
+  +suggestionSuggestion: STRING
+  +suggestionSuggerant: STRING
+  +suggestionCountTrue: INTEGER
+  +suggestionCountFalse: INTEGER
+  +suggestionImage: STRING
+}
+
+class UserLevels {
+  +pk_userLevels: INTEGER
+  +ul_name: STRING
+  +ul_user_id: STRING
+  +ul_level: INTEGER
+  +ul_xp: INTEGER
+}
+
+class BadUsers {
+  +pk_badUsers: INTEGER
+  +bu_id: STRING
+  +bu_name: STRING
+}
+
+class StaffMembers {
+  +pk_staffMembers: INTEGER
+  +sm_user_id: STRING
+  +sm_staff_name: STRING
+}
+
+class Warns {
+  +pk_warns: INTEGER
+  +wa_reason: STRING
+  +wa_date: DATE
+  +wa_fk_badUserId: INTEGER
+  +wa_fk_staffMemberId: INTEGER
+}
+
+class WarnRemoves {
+  +pk_warnRemoves: INTEGER
+  +wr_reason: STRING
+  +wr_date: DATE
+  +wr_pk_warns: INTEGER
+  +wr_pk_staffMembers: INTEGER
+}
+
+class Bans {
+  +pk_bans: INTEGER
+  +ba_reason: STRING
+  +ba_date: DATE
+  +ba_fk_badUsers: INTEGER
+  +ba_fk_staffMembers: INTEGER
+}
+
+class BansRemoves {
+  +pk_banRemoves: INTEGER
+  +br_reason: STRING
+  +br_date: DATE
+  +br_fk_bans: INTEGER
+  +br_fk_staffMembers: INTEGER
+}
+
+class Kicks {
+  +pk_kicks: INTEGER
+  +ki_reason: STRING
+  +ki_date: DATE
+  +ki_fk_badUsers: INTEGER
+  +ki_fk_staffMembers: INTEGER
+}
+
+BadUsers "1" -- "*" Warns : reçoit
+StaffMembers "1" -- "*" Warns : inflige
+Warns "1" -- "*" WarnRemoves : annulé par
+
+BadUsers "1" -- "*" Bans : reçoit
+StaffMembers "1" -- "*" Bans : inflige
+Bans "1" -- "*" BansRemoves : annulé par
+
+BadUsers "1" -- "*" Kicks : reçoit
+StaffMembers "1" -- "*" Kicks : inflige
+
+@enduml
