@@ -1,11 +1,11 @@
 const { REST, Routes } = require('discord.js');
-const { clientId, guildId, token } = require('./MainConfig.json');
+const { clientId, guildId, token } = require('../config/TestConfig.json');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('crypto');
 
 const commands = [];
-const foldersPath = path.join(__dirname, 'commands');
+const foldersPath = path.join(__dirname, '../src/commands');
 const commandFolders = fs.readdirSync(foldersPath);
 
 const metadataPath = path.join(__dirname, 'commands.json');

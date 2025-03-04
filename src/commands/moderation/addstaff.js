@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
-const { staffMembers } = require('../../database.js');
+const { staffMembers } = require('../../../database/database.js');
 
 module.exports = {
     category: 'moderation',

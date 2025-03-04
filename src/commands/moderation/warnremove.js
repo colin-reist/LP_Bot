@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { warns, staffMembers, badUsers: badUserModel } = require('../../database.js');
+const { warns, staffMembers, badUsers: badUserModel } = require('../../../database/database.js');
 module.exports = {
 	category: 'moderation',
 	data : new SlashCommandBuilder()

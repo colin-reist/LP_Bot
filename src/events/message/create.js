@@ -1,5 +1,5 @@
 const { Events, EmbedBuilder } = require('discord.js');  // Importer Events et EmbedBuilder
-const { userLevels } = require('../../database.js'); // Importer la table userLevels
+const { userLevels } = require('../../../database/database.js'); // Importer la table userLevels
 const logger = require('../../logger'); // Importer logger
 
 /**

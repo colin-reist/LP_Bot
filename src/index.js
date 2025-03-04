@@ -2,8 +2,8 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
-const { token } = require('./MainConfig.json');
-const logger = require('./logger');
+const { token } = require('../config/TestConfig.json');
+const logger = require('./logger.js');
 const { exec } = require('child_process');
 
 const client = new Client({
@@ -20,7 +20,7 @@ const client = new Client({
 
 logger.debug('-- deploy commands --');
 
-exec('node deploy-commands.js', (error, stdout, stderr) => {
+exec('node ../scripts/deploy-commands.js', (error, stdout, stderr) => {
     if (error) {
         logger.error(`Erreur lors du déploiement des commandes: ${error.message}`);
         return;
@@ -57,7 +57,7 @@ logger.debug('-- loading commands --');
 // Récupère les commandes
 client.commands = new Collection();
 client.cooldowns = new Collection();
-const foldersPath = path.join(__dirname, 'commands/.');
+const foldersPath = path.join(__dirname, '../src/commands/.');
 const commandFolders = fs.readdirSync(foldersPath);
 for (const folder of commandFolders) {
 	const commandsPath = path.join(foldersPath, folder);

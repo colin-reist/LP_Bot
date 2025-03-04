@@ -1,5 +1,5 @@
 /* eslint-disable no-inline-comments */
-const { userLevels } = require('../../database.js');
+const { userLevels } = require('../../../database/database.js');
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 
 module.exports = {
