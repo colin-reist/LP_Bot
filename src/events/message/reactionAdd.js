@@ -1,5 +1,5 @@
 const { Events, EmbedBuilder } = require('discord.js'); // Importer Events
-const { Tags } = require('../../database.js');
+const { Tags } = require('../../../database/database.js');
 const logger = require('../../logger.js'); // Importer logger
 
 module.exports = (client) => {

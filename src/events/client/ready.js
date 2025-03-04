@@ -1,5 +1,5 @@
 const { Events, ActivityType, EmbedBuilder } = require('discord.js'); // Importer Events
-const { Tags } = require('../../database/database.js'); // Importer la table Tags
+const { Tags } = require('../../../database/database'); // Importer la table Tags
 const cron = require('cron'); // Importer cron
 const logger = require('../../logger'); // Importer logger
 
