@@ -36,8 +36,16 @@ class Boost {
     +boost_date: Date
 }
 
+class concours {
+    +pk_concours: Integer
+    +fk_user: Integer
+    +count : Integer
+    +post_link: String
+}
+
 User "1" -- "0..*" Punishment : reçoit
 User "1" -- "0..*" Suggestion : propose
 User "1" -- "0..*" Boost : booste
+User "1" -- "0..*" concours : participe
 
 @enduml
