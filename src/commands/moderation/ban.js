@@ -1,85 +1,95 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { bans, badUsers: badUserModel, staffMembers } = require('../../../database/database.js');
+const { User, Punishment } = require('../../../database/database.js');
 
 module.exports = {
 	category: 'moderation',
 	data: new SlashCommandBuilder()
 		.setName('ban')
-		.addStringOption(option => option.setName('raison').setDescription('La raison du ban').setRequired(true))
 		.addUserOption(option => option.setName('utilisateur').setDescription('La personne à bannir').setRequired(true))
+		.addStringOption(option => option.setName('raison').setDescription('La raison du ban').setRequired(true))
 		.setDescription('Ban un utilisateur du serveur'),
 	async execute(interaction) {
-		await interaction.reply({ content: 'Ban en cours...', ephemeral: true });
-
-		const staff = interaction.member.user;
-		const staffId = staff.id;
-
-		// Récupération de l'utilisateur
-		const user = await getUser(interaction);
-		if (!user) return;
-
-		const userId = user.id;
-		const member = await getGuildMember(interaction.guild, userId);
-
-		// Vérification des permissions
-		if (!(await isStaffMember(staffId))) {
-			return interaction.editReply({ content: 'Tu n\'es pas un staff', ephemeral: true });
+		const bannedUser = interaction.options.getUser('utilisateur');
+		const reason = interaction.options.getString('raison');
+		const staffMember = interaction.member.user;
+		if (!staffMember) {
+			return interaction.editReply({ content: 'Impossible de récupérer le responsable', ephemeral: true });
 		}
 
-		// Bannir l'utilisateur
+		const requiredRole = interaction.guild.roles.cache.find(role => role.name === 'Staff');
+		if (!interaction.member.roles.cache.has(requiredRole.id)) {
+			return interaction.editReply({ content: 'Vous n\'avez pas les permissions nécessaires pour utiliser cette commande.', ephemeral: true });
+		}
+
+		let user = await User.findOne({ where: { discord_identifier: bannedUser.id } });
+		if (!user) {
+			user = await User.create({
+				discord_identifier: bannedUser.id,
+				username: bannedUser.username,
+			});
+		}
+
+		let punisher = await User.findOne({ where: { discord_identifier: staffMember.id } });
+		if (!punisher) {
+			punisher = await User.create({
+				discord_identifier: staffMember.id,
+				username: staffMember.username,
+			});
+		}
+
+		await Punishment.create({
+			fk_user: user.pk_user,
+			fk_punisher: punisher.pk_user,
+			reason: reason,
+			type: 'ban',
+		});
+
+		deleteAllUserMessages(interaction.guild, bannedUser.id);
+
+		logBan(interaction, bannedUser, staffMember, reason);
+
+
+		// Ban l'utilisateur
 		try {
-			const raison = interaction.options.getString('raison');
-			await sendBanNotification(interaction, user, member, staff);
-			await interaction.guild.members.ban(userId, { reason: raison });
-			await addBanToDatabase(user, staffId, raison);
-			await interaction.editReply({ content: 'Utilisateur banni.', ephemeral: true });
+			await interaction.guild.members.ban(bannedUser.id, { reason: reason });
 		} catch (error) {
-			console.error('Erreur lors du ban de l\'utilisateur:', error);
-			return interaction.editReply({ content: 'Erreur lors du ban de l\'utilisateur.', ephemeral: true });
+			console.log('Erreur lors du ban de l\'utilisateur' + error);
 		}
-
-		// Supprimer les messages après le ban
-		await interaction.editReply({ content: 'Utilisateur banni.\nSuppression des messages...', ephemeral: true });
-		await deleteAllUserMessages(interaction.guild, userId);
-
-		// Finaliser
-		await interaction.editReply({ content: 'Ban et suppression des messages terminés.', ephemeral: true });
-		await interaction.deleteReply({ timeout: 2000 });
 	},
 };
 
-async function getUser(interaction) {
-	let user = interaction.options.getUser('utilisateur');
-	const userId = interaction.options.getString('user_id') || (user && user.id);
+async function logBan(interaction, bannedUser, staffMember, reason) {
+	const banEmbed = new EmbedBuilder()
+			.setColor('#FF0000')
+			.setTitle('Ban')
+			.setDescription('Un utilisateur a été banni')
+			.addFields(
+				{ name: 'Utilisateur', value: `<@${bannedUser.id}>`, inline: true },
+				{ name: 'Raison', value: reason, inline: true },
+				{ name: 'Staff', value: `<@${staffMember.id}>`, inline: true }
+			)
+			.setTimestamp()
+			.setThumbnail(bannedUser.displayAvatarURL());
 
-	if (!user && userId) {
-		try {
-			user = await interaction.client.users.fetch(userId);
-		} catch {
-			await interaction.editReply({ content: 'Utilisateur introuvable avec cet ID.', ephemeral: true });
-			return null;
-		}
-	}
-
-	if (!user) {
-		await interaction.editReply({ content: 'Vous devez fournir un utilisateur ou un ID.', ephemeral: true });
-		return null;
-	}
-
-	return user;
-}
-
-async function getGuildMember(guild, userId) {
+	// Public log
 	try {
-		return await guild.members.fetch(userId);
-	} catch {
-		return null;
+		const publicLogChannel = interaction.guild.channels.cache.get('1310662035436077198'); // FIXME: Change channel ID
+		const message = 'L\'utilisateur <@'+ bannedUser.id  + '> a été banni pour la raison suivante : ';
+		await publicLogChannel.send(message);
+		await publicLogChannel.send({ embeds: [banEmbed] });
+	} catch (error) {
+		console.error('Erreur lors du log public :', error);
+	}
+
+	// Admin log
+	try{
+		const adminLogWarnChannel = interaction.guild.channels.cache.get('1238537326427115592'); 
+		await adminLogWarnChannel.send({ embeds: [banEmbed] });
+	} catch (error) {
+		console.error('Erreur lors du log admin :', error);
 	}
 }
 
-async function isStaffMember(staffId) {
-	return await staffMembers.findOne({ where: { sm_user_id: staffId } });
-}
 
 async function deleteAllUserMessages(guild, userId) {
 	const textChannels = guild.channels.cache.filter(
@@ -116,86 +126,4 @@ async function deleteAllUserMessages(guild, userId) {
 	}
 
 	console.log(`Messages récents de l'utilisateur ${userId} supprimés dans tous les canaux.`);
-}
-
-async function handleBadUser(user) {
-	const badUser = await badUserModel.findOne({ where: { bu_id: user.id } });
-	if (!badUser) {
-		try {
-			await badUserModel.create({
-				bu_id: user.id,
-				bu_name: user.username,
-			});
-		} catch (error) {
-			console.log('Contrainte de clé unique violée sur la table badUsers');
-		}
-	}
-}
-
-async function addBanToDatabase(user, staffId, raison) {
-	const foundBadUser = await badUserModel.findOne({ where: { bu_id: user.id } });
-	const fkBadUser = foundBadUser.pk_badUsers;
-
-	const staffMemberId = await staffMembers.findOne({ where: { sm_user_id: staffId } });
-	const fkStaffMember = staffMemberId.pk_staffMembers;
-
-	try {
-		await bans.create({
-			ba_reason: raison,
-			ba_date: new Date(),
-			ba_fk_badUsers: fkBadUser,
-			ba_fk_staffMembers: fkStaffMember,
-		});
-	} catch (error) {
-		console.log('Erreur lors du rajout du ban dans la base de données');
-	}
-}
-
-async function sendBanNotification(interaction, user, member, staff) {
-	const raison = interaction.options.getString('raison');
-
-	// Notification à l'utilisateur
-	if (member) {
-		const embedToUser = new EmbedBuilder()
-			.setColor('#FF0000')
-			.setTitle('Ban')
-			.setDescription('Vous avez été banni')
-			.addFields(
-				{ name: 'Raison', value: raison },
-				{ name: 'Staff', value: `<@${staff.id}>` },
-			)
-			.setTimestamp()
-			.setThumbnail(staff.avatarURL());
-		try {
-			await member.send({ embeds: [embedToUser] });
-		} catch (error) {
-			console.log(error);
-		}
-	}
-
-	// Ban l'utilisateur
-	try {
-		await interaction.guild.members.ban(user.id, { reason: raison });
-	} catch (error) {
-		console.log('Erreur lors du ban de l\'utilisateur' + error);
-	}
-
-	// Log du ban
-	try {
-		const channel = interaction.guild.channels.cache.find(channel => channel.name === 'ban-log');
-		const embed = new EmbedBuilder()
-			.setColor('#FF0000')
-			.setTitle('Ban')
-			.setDescription('Un utilisateur a été banni')
-			.addFields(
-				{ name: 'Utilisateur', value: `<@${user.id}>` },
-				{ name: 'Raison', value: raison },
-				{ name: 'Staff', value: `<@${staff.id}>` },
-			)
-			.setTimestamp()
-			.setThumbnail(user.avatarURL());
-		channel.send({ embeds: [embed] });
-	} catch (error) {
-		console.log('Erreur lors de l\'envoie du log' + error);
-	}
 }

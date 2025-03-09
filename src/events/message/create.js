@@ -46,7 +46,7 @@ async function levelHandler(message) {
     let user = await User.findOne({ where: { discord_identifier: message.author.id } })
     if (user) {
         user.increment('experience', { by: 1, where: { discord_identifier: message.author.id } });
-        if (message.author.roles.cache.some(role => role.name === 'Staff')) {
+        if (message.member.roles.cache.some(role => role.name === 'Staff')) {
             user.update('is_admin', true, { where: { discord_identifier: message.author.id } });
         }
     } else {

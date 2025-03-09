@@ -33,7 +33,7 @@ const Punishment = sequelize.define('Punishment', {
 	date: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.NOW },
 	type: { type: DataTypes.STRING, allowNull: false }, // 'ban', 'warn', 'kick'
 	expires_at: { type: DataTypes.DATE, allowNull: true } // NULL si permanent
-}, { timestamps: true });
+}, { timestamps: true, tableName: 'Punishment' });
 
 const Suggestion = sequelize.define('Suggestion', {
 	pk_suggestion: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
@@ -73,7 +73,7 @@ const Concours = sequelize.define('Concours', {
 }, { timestamps: true });
 
 // Synchronisation de la base de données
-sequelize.sync({ force: false }).then(() => {
+sequelize.sync({ force: true }).then(() => {
 	console.log('Base de données synchronisée.');
 });
 

@@ -20,8 +20,8 @@
         "hash": "a28e0e318c1623132fc9f47998874665"
     },
     "ban": {
-        "version": "1.00",
-        "hash": "ec0c93ab90dabcaa32043db928314296"
+        "version": "1.01",
+        "hash": "e60b2065b619614c197dfc0ad0a3f436"
     },
     "renameall": {
         "version": "1.00",
@@ -32,20 +32,20 @@
         "hash": "1173905fc892537f45ba4e5e698c9b0a"
     },
     "kick": {
-        "version": "1.00",
-        "hash": "75ab9cb8d29e96ffe10b383a62729d65"
+        "version": "1.04",
+        "hash": "6b7fd174598d32fd2bbefb2f92a5d389"
     },
     "resetname": {
         "version": "1.00",
         "hash": "b6c61bbc3d327e015c0b18ead80e51dc"
     },
     "warn": {
-        "version": "1.07",
-        "hash": "9ee724648e8bc0daf864fb9dc66da283"
+        "version": "1.11",
+        "hash": "cd195c7f163682ee17c1cd2b66bfebb2"
     },
     "remove": {
-        "version": "1.00",
-        "hash": "cb6626ebf38f90bf43a42e96646d53e6"
+        "version": "1.06",
+        "hash": "d50f156eba6a51d610806d97861d472d"
     },
     "rappel": {
         "version": "1.00",

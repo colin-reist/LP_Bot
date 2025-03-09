@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { kicks, badUsers: badUserModel, staffMembers } = require('../../../database/database.js');
+const { User, Punishment } = require('../../../database/database.js');
 
 module.exports = {
     category: 'moderation',
@@ -15,9 +15,9 @@ module.exports = {
                 .setDescription('La raison du kick')
                 .setRequired(true)),
     async execute(interaction) {
-        const userOption = interaction.options.getUser('utilisateur'); // Récupération de l'option utilisateur
-        const raison = interaction.options.getString('raison');
-        const staff = interaction.member.user;
+        const kickedUser = interaction.options.getUser('utilisateur'); // Récupération de l'option utilisateur
+        const reason = interaction.options.getString('raison');
+        const staffMember = interaction.member.user;
 
         const requiredRole = interaction.guild.roles.cache.find(role => role.name === 'Staff');
         if (!interaction.member.roles.cache.has(requiredRole?.id)) {
@@ -27,88 +27,74 @@ module.exports = {
         await interaction.reply({ content: 'Traitement du kick en cours...', ephemeral: true });
 
         try {
-            // Gestion des cas où l'utilisateur est mentionné ou donné par ID
-            let user;
-            if (userOption) {
-                user = userOption; // Option utilisateur directement
-            } else {
-                const userInput = interaction.options.getString('utilisateur'); // Si seulement un ID brut
-                user = await interaction.client.users.fetch(userInput).catch(() => null);
-            }
-
+            let user = await User.findOne({ where: { discord_identifier: kickedUser.id } });
             if (!user) {
-                return interaction.editReply({ content: 'Utilisateur introuvable.', ephemeral: true });
+                user = await User.create({
+                    discord_identifier: kickedUser.id,
+                    username: kickedUser.username,
+                });
             }
 
-            const member = await interaction.guild.members.fetch(user.id).catch(() => null);
-            if (!member) {
-                return interaction.editReply({ content: 'Cet utilisateur n\'est pas un membre du serveur.', ephemeral: true });
+            let punisher = await User.findOne({ where: { discord_identifier: staffMember.id } });
+            if (!punisher) {
+                punisher = await User.create({
+                    discord_identifier: staffMember.id,
+                    username: staffMember.username,
+                });
             }
 
-            const staffMember = await staffMembers.findOne({ where: { sm_user_id: staff.id } });
-            if (!staffMember) {
-                return interaction.editReply({ content: 'Vous devez être staff pour utiliser cette commande.', ephemeral: true });
-            }
-
-            const isStaff = await staffMembers.findOne({ where: { sm_user_id: user.id } });
-            if (isStaff) {
-                return interaction.editReply({ content: 'Vous ne pouvez pas kicker un autre membre du staff.', ephemeral: true });
-            }
-
-            const [badUser] = await badUserModel.findOrCreate({
-                where: { bu_id: user.id },
-                defaults: { bu_id: user.id, bu_name: user.username }
+            await Punishment.create({
+                fk_user: user.pk_user,
+                fk_punisher: punisher.pk_user,
+                reason: reason,
+                type: 'kick',
             });
 
-            await kicks.create({
-                ki_reason: raison,
-                ki_date: new Date(),
-                ki_fk_badUsers: badUser.pk_badUsers,
-                ki_fk_staffMembers: staffMember.pk_staffMembers
-            });
+            logKick(interaction, kickedUser, staffMember, reason);
 
-            const embedToUser = new EmbedBuilder()
-                .setColor('#FF0000')
-                .setTitle('Kick')
-                .setDescription('Vous avez été kické du serveur')
-                .addFields(
-                    { name: 'Raison', value: raison },
-                    { name: 'Staff', value: staff.username }
-                )
-                .setTimestamp()
-                .setThumbnail(staff.displayAvatarURL());
-
+            // Kick l'utilisateur
             try {
-                await member.send({ embeds: [embedToUser] });
+                await interaction.guild.members.kick(kickedUser.id, { reason: reason });
             } catch (error) {
-                console.error('Impossible d\'envoyer le message au membre :', error);
-            }
-
-            await member.kick(raison);
-            await interaction.editReply({ content: `L'utilisateur <@${user.id}> a été kické pour la raison suivante : ${raison}` });
-
-            const logChannel = interaction.guild.channels.cache.find(channel => channel.name === 'kick-log');
-            if (logChannel) {
-                const embedToLog = new EmbedBuilder()
-                    .setColor('#FF0000')
-                    .setTitle('Kick')
-                    .setDescription('Un utilisateur a été kické')
-                    .addFields(
-                        { name: 'Utilisateur', value: user.username },
-                        { name: 'Raison', value: raison },
-                        { name: 'Staff', value: staff.username }
-                    )
-                    .setTimestamp()
-                    .setThumbnail(user.displayAvatarURL());
-
-                logChannel.send({ embeds: [embedToLog] });
-            } else {
-                console.warn('Le canal de log "kick-log" est introuvable.');
+                console.error('Erreur lors du kick de l\'utilisateur :', error);
+                return interaction.editReply({ content: 'Une erreur est survenue lors du kick de l\'utilisateur.', ephemeral: true });
             }
 
         } catch (error) {
-            console.error('Erreur lors du processus de kick :', error);
-            interaction.editReply({ content: 'Une erreur est survenue lors du kick de l\'utilisateur.' });
+            console.error(error);
+            return interaction.editReply({ content: 'Une erreur est survenue lors du kick de l\'utilisateur.', ephemeral: true });
         }
     }
 };
+
+async function logKick(interaction, kickedUser, staffMember, reason) {
+	const warnEmbed = new EmbedBuilder()
+			.setColor('#FF0000')
+			.setTitle('Kick')
+			.setDescription('Un utilisateur a été kick.')
+			.addFields(
+				{ name: 'Utilisateur', value: `<@${kickedUser.id}>`, inline: true },
+				{ name: 'Raison', value: reason, inline: true },
+				{ name: 'Staff', value: `<@${staffMember.id}>`, inline: true }
+			)
+			.setTimestamp()
+			.setThumbnail(kickedUser.displayAvatarURL());
+
+	// Public log
+	try {
+		const publicLogChannel = interaction.guild.channels.cache.get('1164700276310155264'); // FIXME: Change channel ID
+		const message = 'L\'utilisateur <@'+ kickedUser.id  + '> a été averti pour la raison suivante : ';
+		await publicLogChannel.send(message);
+		await publicLogChannel.send({ embeds: [warnEmbed] });
+	} catch (error) {
+		console.error('Erreur lors du log public :', error);
+	}
+
+	// Admin log
+	try{
+		const adminLogWarnChannel = interaction.guild.channels.cache.get('1239286338256375898'); 
+		await adminLogWarnChannel.send({ embeds: [warnEmbed] });
+	} catch (error) {
+		console.error('Erreur lors du log admin :', error);
+	}
+}
