@@ -1,5 +1,5 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const { database, user, password, hostUrl, dialect } = require('../config/TestConfig.json');
+const { database, user, password, hostUrl, dialect } = require('../config/MainConfig.json');
 
 const sequelize = new Sequelize(database, user, password, {
 	host: hostUrl,
