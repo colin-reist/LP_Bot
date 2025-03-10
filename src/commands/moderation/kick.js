@@ -82,7 +82,7 @@ async function logKick(interaction, kickedUser, staffMember, reason) {
 
 	// Public log
 	try {
-		const publicLogChannel = interaction.guild.channels.cache.get('1164700276310155264'); // FIXME: Change channel ID
+		const publicLogChannel = interaction.guild.channels.cache.get('1164700276310155264');
 		const message = 'L\'utilisateur <@'+ kickedUser.id  + '> a été averti pour la raison suivante : ';
 		await publicLogChannel.send(message);
 		await publicLogChannel.send({ embeds: [warnEmbed] });
@@ -90,7 +90,7 @@ async function logKick(interaction, kickedUser, staffMember, reason) {
 		console.error('Erreur lors du log public :', error);
 	}
 
-	// Admin log
+	// Admin log§
 	try{
 		const adminLogWarnChannel = interaction.guild.channels.cache.get('1239286338256375898'); 
 		await adminLogWarnChannel.send({ embeds: [warnEmbed] });
