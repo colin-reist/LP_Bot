@@ -74,7 +74,7 @@ const Concours = sequelize.define('Concours', {
 }, { timestamps: true });
 
 // Synchronisation de la base de données
-sequelize.sync({ force: true }).then(() => {
+sequelize.sync({ force: false }).then(() => {
 	console.log('Base de données synchronisée.');
 });
 
