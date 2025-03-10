@@ -1,5 +1,5 @@
 /* eslint-disable no-inline-comments */
-const { userLevels } = require('../../../database/database.js');
+const { User } = require('../../../database/database.js');
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 
 module.exports = {
@@ -10,7 +10,7 @@ module.exports = {
         try {
             // Get the user's level from the database
             const userId = interaction.user.id;
-            const user = await userLevels.findOne({ where: { ul_user_id: userId } });
+            const user = await User.findOne({ where: { ul_user_id: userId } });
 
             console.log(user);
 
