@@ -4,10 +4,9 @@ const { database, user, password, hostUrl, dialect } = require('../config/MainCo
 console.log(dialect);
 
 const sequelize = new Sequelize(database, user, password, {
-	host: hostUrl,
+	host: 'eu02-sql.pebblehost.com',
 	dialect: 'mysql',
 	logging: false,
-	// SQLite only
 	storage: 'database.sqlite',
 });
 
