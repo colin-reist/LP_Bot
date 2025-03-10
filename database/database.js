@@ -1,9 +1,11 @@
 const { Sequelize, DataTypes } = require('sequelize');
 const { database, user, password, hostUrl, dialect } = require('../config/MainConfig.json');
 
+console.log(dialect);
+
 const sequelize = new Sequelize(database, user, password, {
 	host: hostUrl,
-	dialect: dialect,
+	dialect: 'mysql',
 	logging: false,
 	// SQLite only
 	storage: 'database.sqlite',
