@@ -47,7 +47,7 @@ async function levelHandler(message) {
     if (user) {
         user.increment('experience', { by: 1, where: { discord_identifier: message.author.id } });
         if (message.member.roles.cache.some(role => role.name === 'Staff')) {
-            user.update('is_admin', true, { where: { discord_identifier: message.author.id } });
+            user.update({ is_admin: true }, { where: { discord_identifier: message.author.id } });
         }
     } else {
         user = User.create({
