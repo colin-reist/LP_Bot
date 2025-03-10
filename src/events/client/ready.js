@@ -31,7 +31,7 @@ module.exports = (client) => {
 				await channel.send({ embeds: [errorEmbed] });
 			}
 		} catch (err) {
-			console.error('Impossible d\'envoyer le message d\'erreur non géré :', err);
+			console.error('Impossible d\'envoyer le message d\'erreur non géré :' + err);
 		}
 	});
 

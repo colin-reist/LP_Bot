@@ -4,3 +4,5 @@ MainConfig.json
 node_modules
 .idea
 combined.log
+*.sqlite
+*.log
