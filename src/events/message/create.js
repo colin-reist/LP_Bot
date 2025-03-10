@@ -13,7 +13,7 @@ module.exports = (client) => {
 
         levelHandler(message);
 
-        bumpHandler();;
+        bumpHandler(message); // Passer l'objet message à bumpHandler
     });
 };
 
@@ -23,7 +23,7 @@ function bumpHandler(message) {
 
     if (message.channelId !== bumbChannelId) return;
 
-    if (message.interaction.commandName === commandName) {
+    if (message.interaction && message.interaction.commandName === commandName) {
         const codeText = '\/Bump\'';
         message.channel.send('Merci d\'avoir bump le serveur <@' + message.interaction.user.id + '> !' + '\nNous vous rappelerons dans 2 heures de bump le serveur !');
         setTimeout(() => {

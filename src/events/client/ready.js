@@ -1,5 +1,5 @@
 const { Events, ActivityType, EmbedBuilder } = require('discord.js'); // Importer Events
-const { Tags } = require('../../../database/database'); // Importer la table Tags
+const { Concours } = require('../../../database/database'); // Importer la table Tags
 const cron = require('cron'); // Importer cron
 const logger = require('../../logger'); // Importer logger
 
@@ -127,12 +127,12 @@ module.exports = (client) => {
 			async function run() {
 
 				// Get all tags from the database
-				const allTags = await Tags.findAll();
+				const allTags = await Concours.findAll();
 
 				// Find the max react count among all tags
 				maxReactCount = Math.max(...allTags.map(tag => tag.reactCount));
 
-				winner = await Tags.findOne({ where: { reactCount: maxReactCount } });
+				winner = await Concours.findOne({ where: { reactCount: maxReactCount } });
 
 				console.log(winner.messageID);
 
@@ -152,7 +152,7 @@ module.exports = (client) => {
 
 				channel.send({ embeds: [mondayEmbed] });
 
-				Tags.sync({ Force: true });
+				Concours.sync({ Force: true });
 			}
 			run();
 		});

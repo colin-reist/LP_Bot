@@ -78,8 +78,9 @@ const rest = new REST().setToken(token);
         );
 
         console.log(`Successfully reloaded ${data.length} application (/) commands.`);
-		process.exit();
     } catch (error) {
         console.error(error);
+    } finally {
+        console.log('Finished deploying commands');
     }
 })();
