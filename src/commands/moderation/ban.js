@@ -48,13 +48,14 @@ module.exports = {
 
 		logBan(interaction, bannedUser, staffMember, reason);
 
-
 		// Ban l'utilisateur
 		try {
 			await interaction.guild.members.ban(bannedUser.id, { reason: reason });
 		} catch (error) {
 			console.log('Erreur lors du ban de l\'utilisateur' + error);
 		}
+
+		await interaction.editReply({ content: `L'utilisateur <@${bannedUser.id}> a été banni pour la raison suivante : ${reason}`, ephemeral: true });
 	},
 };
 

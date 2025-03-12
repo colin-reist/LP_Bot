@@ -60,32 +60,32 @@ module.exports = {
 			}
 
 			logWarn(interaction, warnedUser, staffMember, reason);
+
+			await interaction.editReply({ content: `L'utilisateur <@${warnedUser.id}> a été averti pour la raison suivante : ${reason}`, ephemeral: true });
 		} catch (error) {
 			console.error('Erreur lors de l\'exécution de la commande warn :', error);
-			if (!interaction.replied) {
-				await interaction.editReply({ content: 'Une erreur est survenue lors de l\'exécution de la commande.', ephemeral: true });
-			}
+			await interaction.editReply({ content: 'Une erreur est survenue lors de l\'exécution de la commande.', ephemeral: true });
 		}
 	},
 };
 
 async function logWarn(interaction, warnedUser, staffMember, reason) {
 	const warnEmbed = new EmbedBuilder()
-			.setColor('#FF0000')
-			.setTitle('Warn')
-			.setDescription('Un utilisateur a été averti.')
-			.addFields(
-				{ name: 'Utilisateur', value: `<@${warnedUser.id}>`, inline: true },
-				{ name: 'Raison', value: reason, inline: true },
-				{ name: 'Staff', value: `<@${staffMember.id}>`, inline: true }
-			)
-			.setTimestamp()
-			.setThumbnail(warnedUser.displayAvatarURL());
+		.setColor('#FF0000')
+		.setTitle('Warn')
+		.setDescription('Un utilisateur a été averti.')
+		.addFields(
+			{ name: 'Utilisateur', value: `<@${warnedUser.id}>`, inline: true },
+			{ name: 'Raison', value: reason, inline: true },
+			{ name: 'Staff', value: `<@${staffMember.id}>`, inline: true }
+		)
+		.setTimestamp()
+		.setThumbnail(warnedUser.displayAvatarURL());
 
 	// Public log
 	try {
 		const publicLogChannel = interaction.guild.channels.cache.get('1164700276310155264'); // FIXME: Change channel ID
-		const message = 'L\'utilisateur <@'+ warnedUser.id  + '> a été averti pour la raison suivante : ';
+		const message = 'L\'utilisateur <@' + warnedUser.id + '> a été averti pour la raison suivante : ';
 		await publicLogChannel.send(message);
 		await publicLogChannel.send({ embeds: [warnEmbed] });
 	} catch (error) {
@@ -93,8 +93,8 @@ async function logWarn(interaction, warnedUser, staffMember, reason) {
 	}
 
 	// Admin log
-	try{
-		const adminLogWarnChannel = interaction.guild.channels.cache.get('1239286338256375898'); 
+	try {
+		const adminLogWarnChannel = interaction.guild.channels.cache.get('1239286338256375898');
 		await adminLogWarnChannel.send({ embeds: [warnEmbed] });
 	} catch (error) {
 		console.error('Erreur lors du log admin :', error);
