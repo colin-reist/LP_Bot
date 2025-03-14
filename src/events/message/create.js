@@ -20,9 +20,10 @@ function bumpHandler(message) {
 	const bumbChannelId = '993935433228619886';
 	const commandName = 'bump';
 	console.log(message.channelId);
+	console.log(message.interaction.channelId);
 	console.log(bumbChannelId);
 
-	if (message.channelId !== bumbChannelId) return;
+	if (!message.interaction || message.interaction.channelId !== bumbChannelId) return;
 
 	console.log('Bump');
 
