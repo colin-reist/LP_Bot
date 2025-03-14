@@ -25,7 +25,7 @@ function bumpHandler(message) {
 
 	if (!message.interaction || message.interaction.channelId !== bumbChannelId) return;
 
-	console.log('Bump');
+	console.log(message.interaction.commandName);
 
 	if (message.interaction && message.interaction.commandName === commandName) {
 		console.log('Bump command');
@@ -48,7 +48,7 @@ function bumpHandler(message) {
 };
 
 async function levelHandler(message) {
-	let user = await User.findOne({ where: { discord_identifier: message.author.id } })
+	let user = await User.findOne({ where: { discord_identifier: message.author.id } });
 	if (user) {
 		user.increment('experience', { by: 1, where: { discord_identifier: message.author.id } });
 		if (message.member.roles.cache.some(role => role.name === 'Staff')) {
