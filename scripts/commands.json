@@ -20,8 +20,8 @@
         "hash": "a28e0e318c1623132fc9f47998874665"
     },
     "ban": {
-        "version": "1.01",
-        "hash": "e60b2065b619614c197dfc0ad0a3f436"
+        "version": "1.02",
+        "hash": "14e282df2b68559a9a2fcd778e139909"
     },
     "renameall": {
         "version": "1.00",
@@ -40,8 +40,8 @@
         "hash": "b6c61bbc3d327e015c0b18ead80e51dc"
     },
     "warn": {
-        "version": "1.11",
-        "hash": "cd195c7f163682ee17c1cd2b66bfebb2"
+        "version": "1.12",
+        "hash": "6784c44fe47e7c0709a9d5e8aeab2be0"
     },
     "remove": {
         "version": "1.06",

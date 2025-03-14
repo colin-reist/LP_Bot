@@ -9,6 +9,7 @@ const { User } = require('../../../database/database.js');
 module.exports = (client) => {
 	client.on(Events.MessageCreate, async (message) => {
 		if (message.author.bot) return;
+        console.log(message);
 
 		levelHandler(message);
 
@@ -20,14 +21,17 @@ function bumpHandler(message) {
 	const bumbChannelId = '993935433228619886';
 	const commandName = 'bump';
 	console.log(message.channelId);
+
+	if (!message.interaction) return;
+
 	console.log(message.interaction.channelId);
 	console.log(bumbChannelId);
 
-	if (!message.interaction || message.interaction.channelId !== bumbChannelId) return;
+	if (message.interaction.channelId !== bumbChannelId) return;
 
 	console.log(message.interaction.commandName);
 
-	if (message.interaction && message.interaction.commandName === commandName) {
+	if (message.interaction.commandName === commandName) {
 		console.log('Bump command');
 		const codeText = '\/Bump\'';
 		message.channel.send('Merci d\'avoir bump le serveur <@' + message.interaction.user.id + '> !' + '\nNous vous rappelerons dans 2 heures de bump le serveur !');
