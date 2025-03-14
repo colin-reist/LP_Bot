@@ -8,9 +8,6 @@ const { User } = require('../../../database/database.js');
  */
 module.exports = (client) => {
 	client.on(Events.MessageCreate, async (message) => {
-		if (message.author.bot) return;
-        console.log(message);
-
 		levelHandler(message);
 
 		bumpHandler(message);
@@ -20,16 +17,10 @@ module.exports = (client) => {
 function bumpHandler(message) {
 	const bumbChannelId = '993935433228619886';
 	const commandName = 'bump';
-	console.log(message.channelId);
 
 	if (!message.interaction) return;
 
-	console.log(message.interaction.channelId);
-	console.log(bumbChannelId);
-
-	if (message.interaction.channelId !== bumbChannelId) return;
-
-	console.log(message.interaction.commandName);
+	if (message.channelId !== bumbChannelId) return;
 
 	if (message.interaction.commandName === commandName) {
 		console.log('Bump command');
