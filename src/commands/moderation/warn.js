@@ -85,7 +85,7 @@ async function logWarn(interaction, warnedUser, staffMember, reason) {
 
 	// Public log
 	try {
-		const publicLogChannel = interaction.guild.channels.cache.get('1164700276310155264'); // FIXME: Change channel ID
+		const publicLogChannel = interaction.guild.channels.cache.get('1310662035436077198');
 		if (!publicLogChannel) {
 			throw new Error('Public log channel not found');
 		}

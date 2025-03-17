@@ -84,7 +84,7 @@ async function logKick(interaction, kickedUser, staffMember, reason) {
 
 	// Public log
 	try {
-		const publicLogChannel = interaction.guild.channels.cache.get('1164700276310155264');
+		const publicLogChannel = interaction.guild.channels.cache.get('1310662035436077198');
 		const message = 'L\'utilisateur <@'+ kickedUser.id  + '> a été averti pour la raison suivante : ';
 		await publicLogChannel.send(message);
 		await publicLogChannel.send({ embeds: [warnEmbed] });
