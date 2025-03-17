@@ -12,6 +12,9 @@ module.exports = {
 		const bannedUser = interaction.options.getUser('utilisateur');
 		const reason = interaction.options.getString('raison');
 		const staffMember = interaction.member.user;
+
+		await interaction.deferReply({ ephemeral: true });
+
 		if (!staffMember) {
 			return interaction.editReply({ content: 'Impossible de récupérer le responsable', ephemeral: true });
 		}

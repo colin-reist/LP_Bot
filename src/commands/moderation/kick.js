@@ -19,6 +19,8 @@ module.exports = {
         const reason = interaction.options.getString('raison');
         const staffMember = interaction.member.user;
 
+        await interaction.deferReply({ ephemeral: true });
+
         const requiredRole = interaction.guild.roles.cache.find(role => role.name === 'Staff');
         if (!interaction.member.roles.cache.has(requiredRole?.id)) {
             return interaction.reply({ content: 'Vous n\'avez pas les permissions pour utiliser cette commande.', ephemeral: true });
