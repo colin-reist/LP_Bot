@@ -1,5 +1,5 @@
 const { Events, EmbedBuilder } = require('discord.js'); // Importer Events
-const { Concours } = require('../../../database/database.js');
+const { concours } = require('../../../database/database.js');
 const logger = require('../../logger.js'); // Importer logger
 
 module.exports = (client) => {
@@ -23,13 +23,15 @@ module.exports = (client) => {
  */
     async function starboard(reaction, AddOrRemove) {
         console.log('-------------starboard-------------');
-
         try {
-            let existingTag = await Concours.findOne({ where: { linkedEmbed: reaction.message.id } });
-            let messageAttachment = null; // initialize messageAttachment to null
+
+            let concours_item = await concours.findOne({ where: { messageID: reaction.message.id } });
+
+            let existingTag = await concours.findOne({ where: { linkedEmbed: reaction.message.id } });
+            let messageAttachment = null;
 
             if (existingTag === null) {
-                existingTag = await Concours.findOne({ where: { messageID: reaction.message.id } });
+                existingTag = await concours.findOne({ where: { messageID: reaction.message.id } });
                 if (existingTag === null) {
                     console.log('-------Création du tag-------');
 
@@ -43,7 +45,7 @@ module.exports = (client) => {
                     }
                     // If a tag doesn't already exist, create one
                     // eslint-disable-next-line no-unused-vars
-                    const tag = await Concours.create({
+                    const tag = await concours.create({
                         messageID: reaction.message.id,
                         messageAuthorName: reaction.message.author.username,
                         messageAuthorId: reaction.message.author.id,
