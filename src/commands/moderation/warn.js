@@ -16,6 +16,7 @@ module.exports = {
 				.setDescription('La raison du warn')
 				.setRequired(true)),
 	async execute(interaction) {
+		await interaction.deferReply({ ephemeral: true });
 		try {
 			const warnedUser = interaction.options.getUser('utilisateur');
 			const reason = interaction.options.getString('raison');
@@ -85,6 +86,9 @@ async function logWarn(interaction, warnedUser, staffMember, reason) {
 	// Public log
 	try {
 		const publicLogChannel = interaction.guild.channels.cache.get('1164700276310155264'); // FIXME: Change channel ID
+		if (!publicLogChannel) {
+			throw new Error('Public log channel not found');
+		}
 		const message = 'L\'utilisateur <@' + warnedUser.id + '> a été averti pour la raison suivante : ';
 		await publicLogChannel.send(message);
 		await publicLogChannel.send({ embeds: [warnEmbed] });
