@@ -19,6 +19,11 @@ module.exports = {
 		await interaction.deferReply({ ephemeral: true });
 		try {
 			const warnedUser = interaction.options.getUser('utilisateur');
+			if (!warnedUser) {
+				return interaction.editReply({ content: 'Impossible de récupérer l\'utilisateur, à t\'il quitté le serveur ?', ephemeral: true });
+			}
+
+
 			const reason = interaction.options.getString('raison');
 			const staffMember = interaction.member.user;
 			if (!staffMember) {
@@ -56,8 +61,7 @@ module.exports = {
 
 			const warnCount = await Punishment.count({ where: { fk_user: user.pk_user, type: 'warn' } });
 			if (warnCount >= 3) {
-				const member = await interaction.guild.members.fetch(warnedUser.id);
-				await member.ban({ reason: 'A été warn 3 fois.' });
+				await warnedUser.ban({ reason: 'A été warn 3 fois.' });
 			}
 
 			logWarn(interaction, warnedUser, staffMember, reason);
