@@ -56,7 +56,7 @@ module.exports = {
 		try {
 			await interaction.guild.members.ban(bannedUser.id, { reason: reason });
 		} catch (error) {
-			logger.info('Erreur lors du ban de l\'utilisateur' + error);
+			logger.error('Erreur lors du ban de l\'utilisateur' + error);
 		}
 
 		await interaction.editReply({ content: `L'utilisateur <@${bannedUser.id}> a été banni pour la raison suivante : ${reason}`, ephemeral: true });
@@ -83,7 +83,7 @@ async function logBan(interaction, bannedUser, staffMember, reason) {
 		await publicLogChannel.send(message);
 		await publicLogChannel.send({ embeds: [banEmbed] });
 	} catch (error) {
-		console.error('Erreur lors du log public :', error);
+		logger.error('Erreur lors du log public :', error);
 	}
 
 	// Admin log
@@ -91,7 +91,7 @@ async function logBan(interaction, bannedUser, staffMember, reason) {
 		const adminLogWarnChannel = interaction.guild.channels.cache.get('1238537326427115592'); 
 		await adminLogWarnChannel.send({ embeds: [banEmbed] });
 	} catch (error) {
-		console.error('Erreur lors du log admin :', error);
+		logger.error('Erreur lors du log admin :', error);
 	}
 }
 
@@ -124,11 +124,9 @@ async function deleteAllUserMessages(guild, userId) {
 
 			} while (fetchedMessages.size >= 100);
 
-			logger.info(`Messages récents de l'utilisateur ${userId} supprimés dans le canal ${channel.name}.`);
+			logger.debug(`Messages récents de l'utilisateur ${userId} supprimés dans le canal ${channel.name}.`);
 		} catch (error) {
-			console.error(`Erreur lors de la suppression des messages dans le canal ${channel.name}:`, error);
+			logger.error(`Erreur lors de la suppression des messages dans le canal ${channel.name}:`, error);
 		}
 	}
-
-	logger.info(`Messages récents de l'utilisateur ${userId} supprimés dans tous les canaux.`);
 }

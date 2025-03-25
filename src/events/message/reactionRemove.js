@@ -6,7 +6,7 @@ module.exports = (client) => {
             await reaction.fetch();
         }
         catch (error) {
-            console.error('Something went wrong when fetching the message:', error);
+            logger.error('Something went wrong when fetching the message:', error);
         }
         checkReaction(reaction, 'remove');
     });

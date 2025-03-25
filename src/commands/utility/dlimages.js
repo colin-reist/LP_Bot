@@ -86,7 +86,7 @@ module.exports = {
             try {
                 await zipMessage.delete();
             } catch (error) {
-                console.error("Erreur lors de la suppression du message ZIP :", error);
+                logger.error("Erreur lors de la suppression du message ZIP :", error);
             }
         }, 30000); // Supprime après 30 secondes
 

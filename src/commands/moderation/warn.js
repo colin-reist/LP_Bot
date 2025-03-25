@@ -51,7 +51,7 @@ module.exports = {
 				});
 			}
 
-			logger.info('user', user);
+			logger.debug('user', user);
 			await Punishment.create({
 				fk_user: user.pk_user,
 				fk_punisher: punisher.pk_user,
@@ -68,7 +68,7 @@ module.exports = {
 
 			await interaction.editReply({ content: `L'utilisateur <@${warnedUser.id}> a été averti pour la raison suivante : ${reason}`, ephemeral: true });
 		} catch (error) {
-			console.error('Erreur lors de l\'exécution de la commande warn :', error);
+			logger.error('Erreur lors de l\'exécution de la commande warn :', error);
 			await interaction.editReply({ content: 'Une erreur est survenue lors de l\'exécution de la commande.', ephemeral: true });
 		}
 	},
@@ -97,7 +97,7 @@ async function logWarn(interaction, warnedUser, staffMember, reason) {
 		await publicLogChannel.send(message);
 		await publicLogChannel.send({ embeds: [warnEmbed] });
 	} catch (error) {
-		console.error('Erreur lors du log public :', error);
+		logger.error('Erreur lors du log public :', error);
 	}
 
 	// Admin log
@@ -105,6 +105,6 @@ async function logWarn(interaction, warnedUser, staffMember, reason) {
 		const adminLogWarnChannel = interaction.guild.channels.cache.get('1239286338256375898');
 		await adminLogWarnChannel.send({ embeds: [warnEmbed] });
 	} catch (error) {
-		console.error('Erreur lors du log admin :', error);
+		logger.error('Erreur lors du log admin :', error);
 	}
 }

@@ -58,14 +58,14 @@ module.exports = {
             try {
                 await interaction.guild.members.kick(kickedUser.id, { reason: reason });
             } catch (error) {
-                console.error('Erreur lors du kick de l\'utilisateur :', error);
+                logger.error('Erreur lors du kick de l\'utilisateur :', error);
                 return interaction.editReply({ content: 'Une erreur est survenue lors du kick de l\'utilisateur.', ephemeral: true });
             }
 
             return interaction.editReply({ content: `L'utilisateur <@${kickedUser.id}> a été kick pour la raison suivante : ${reason}` });
 
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             return interaction.editReply({ content: 'Une erreur est survenue lors du kick de l\'utilisateur.', ephemeral: true });
         }
     }
@@ -91,7 +91,7 @@ async function logKick(interaction, kickedUser, staffMember, reason) {
 		await publicLogChannel.send(message);
 		await publicLogChannel.send({ embeds: [warnEmbed] });
 	} catch (error) {
-		console.error('Erreur lors du log public :', error);
+		logger.error('Erreur lors du log public :', error);
 	}
 
 	// Admin log§
@@ -99,6 +99,6 @@ async function logKick(interaction, kickedUser, staffMember, reason) {
 		const adminLogWarnChannel = interaction.guild.channels.cache.get('1239286338256375898'); 
 		await adminLogWarnChannel.send({ embeds: [warnEmbed] });
 	} catch (error) {
-		console.error('Erreur lors du log admin :', error);
+		logger.error('Erreur lors du log admin :', error);
 	}
 }

@@ -80,7 +80,7 @@ setInterval(async () => {
 
             await channel.send({ content: `📢 **Rappel pour le serveur ${reminder.serveur}**`, embeds: [rappelEmbed] });
         } catch (error) {
-            console.error('Erreur lors de l\'envoi du rappel :', error);
+            logger.error('Erreur lors de l\'envoi du rappel :', error);
         }
 
         // Remove the reminder from memory

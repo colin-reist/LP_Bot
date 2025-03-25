@@ -24,7 +24,7 @@ function bumpHandler(message) {
 	if (message.channelId !== bumbChannelId) return;
 
 	if (message.interaction.commandName === commandName) {
-		logger.info('Bump command');
+		logger.debug('Bump command');
 		const codeText = '\/Bump\'';
 		message.channel.send('Merci d\'avoir bump le serveur <@' + message.interaction.user.id + '> !' + '\nNous vous rappelerons dans 2 heures de bump le serveur !');
 		setTimeout(() => {

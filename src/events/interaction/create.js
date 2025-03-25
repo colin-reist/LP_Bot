@@ -9,7 +9,7 @@ module.exports = (client) => {
     client.on(Events.InteractionCreate, async interaction => {
         if (!interaction.isChatInputCommand()) return;
 
-        logger.info('Utilisation d\'une commande !');
+        logger.debug('Utilisation d\'une commande !');
 
         const { cooldowns } = client;
         const command = client.commands.get(interaction.commandName);
@@ -17,19 +17,19 @@ module.exports = (client) => {
         const { commandName } = interaction;
 
         if (commandName === 'addtag') {
-            logger.info('addtag');
+            logger.debug('addtag');
             const tagName = interaction.options.getString('name');
             const tagDescription = interaction.options.getString('description');
 
             try {
-                logger.info('-------Création du tag-------');
+                logger.debug('-------Création du tag-------');
                 // equivalent to: INSERT INTO tags (name, description, username) values (?, ?, ?);
                 const tag = await Tags.create({
                     messageID: tagName,
                     description: tagDescription,
                     username: interaction.user.username,
                 });
-                logger.info(' -> Tag créé \n' + ' Contenu du tag: \n' + 'MessageID: ' + tag.messageID + '\nMessageAuthorName: ');
+                logger.debug(' -> Tag créé \n' + ' Contenu du tag: \n' + 'MessageID: ' + tag.messageID + '\nMessageAuthorName: ');
                 return interaction.reply(`Tag ${tag.messageID} added.`);
             }
             catch (error) {
@@ -41,7 +41,7 @@ module.exports = (client) => {
             }
         }
         else if (commandName === 'tag') {
-            logger.info('tag');
+            logger.debug('tag');
             const tagName = interaction.options.getString('name');
 
             // equivalent to: SELECT * FROM tags WHERE name = 'tagName' LIMIT 1;
@@ -57,7 +57,7 @@ module.exports = (client) => {
             return interaction.reply(`Could not find tag: ${tagName}`);
         }
         else if (commandName === 'edittag') {
-            logger.info('edittag');
+            logger.debug('edittag');
             const tagName = interaction.options.getString('name');
             const tagDescription = interaction.options.getString('description');
 
@@ -71,7 +71,7 @@ module.exports = (client) => {
             return interaction.reply(`Could not find a tag with name ${tagName}.`);
         }
         else if (commandName == 'taginfo') {
-            logger.info('taginfo');
+            logger.debug('taginfo');
             const tagName = interaction.options.getString('name');
 
             // equivalent to: SELECT * FROM tags WHERE name = 'tagName' LIMIT 1;
@@ -85,14 +85,14 @@ module.exports = (client) => {
         }
         else if (commandName === 'showtags') {
             // equivalent to: SELECT name FROM tags;
-            logger.info('showtags');
+            logger.debug('showtags');
             const tagList = await suggestion.findAll({ attributes: ['suggestionId'] });
             const tagString = tagList.map(t => t.suggestionId).join(', ') || 'No tags set.';
 
             return interaction.reply(`List of tags: ${tagString}`);
         }
         else if (commandName === 'deletetag') {
-            logger.info('deletetag');
+            logger.debug('deletetag');
             const tagName = interaction.options.getString('name');
             // equivalent to: DELETE from tags WHERE name = ?;
             const rowCount = await Tags.destroy({ where: { messageID: tagName } });
@@ -102,18 +102,18 @@ module.exports = (client) => {
             return interaction.reply('Tag deleted.');
         }
         else if (commandName === 'resettag') {
-            logger.info('resettag');
+            logger.debug('resettag');
             Tags.sync({ force: true });
 
             return interaction.reply('Tags reset.');
         } else if (commandName === 'suggérer') {
             const actualSuggestions = await suggestion.findOne({ where: { suggestionId: interaction.id } });
-            logger.info(actualSuggestions);
+            logger.debug(actualSuggestions);
             if (actualSuggestions === null) {
                 let messages = null;
                 if (interaction.options.getAttachment('image') === null) {
                     try {
-                        logger.info('création de l\'embed sans image');
+                        logger.debug('création de l\'embed sans image');
                         const embed = new EmbedBuilder()
                             .setColor('#EBBC4E')
                             .setTitle('✨ Construction de votre suggestion ✨');
@@ -121,22 +121,22 @@ module.exports = (client) => {
                         const channelID = interaction.channel;
                         messages = await channelID.send({ embeds: [embed] });
                     } catch (error) {
-                        console.error(error);
+                        logger.error(error);
                     }
                 } else {
                     try {
-                        logger.info('création de l\'embed avec image');
+                        logger.debug('création de l\'embed avec image');
                         const embed = new EmbedBuilder()
                             .setColor('#EBBC4E')
                             .setTitle('✨ Construction de votre suggestion ✨');
                         const channelID = interaction.channel;
                         messages = await channelID.send({ embeds: [embed] });
                     } catch (error) {
-                        console.error(error);
+                        logger.error(error);
                     }
                 }
 
-                logger.info('Rajout dans la table');
+                logger.debug('Rajout dans la table');
                 const suggestionId = messages.id;
                 const suggestionName = interaction.options.getString('nom');
                 const suggestionSuggestion = interaction.options.getString('suggestion');
@@ -151,7 +151,7 @@ module.exports = (client) => {
                 }
 
                 try {
-                    logger.info('-------Création de la suggestion-------');
+                    logger.debug('-------Création de la suggestion-------');
                     // equivalent to: INSERT INTO tags (name, description, username) values (?, ?, ?);
                     const tag = await suggestion.create({
                         suggestionId: suggestionId,
@@ -162,12 +162,12 @@ module.exports = (client) => {
                         suggestionCountFalse: suggestionCount,
                         suggestionImage: existingImage,
                     });
-                    logger.info('Contenu de la suggestion: \n' + 'suggestionId: ' + tag.suggestionId + '\nsuggestionName: '
+                    logger.debug('Contenu de la suggestion: \n' + 'suggestionId: ' + tag.suggestionId + '\nsuggestionName: '
                         + tag.suggestionName + '\nsuggestionDescription: ' + tag.suggestionSuggestion
                         + '\nsuggestionSuggerant: ' + tag.suggestionSuggerant + '\nsuggestionCount: ' + tag.suggestionCount + '\nexistingImage: '
                         + tag.suggestionImage + '\n---------------------------');
                 } catch (error) {
-                    console.error(error);
+                    logger.error(error);
                 }
                 await messages.react('✅');
                 await messages.react('❌');
@@ -201,7 +201,7 @@ module.exports = (client) => {
             await command.execute(interaction);
         }
         catch (error) {
-            console.error(error);
+            logger.error(error);
             if (interaction.replied || interaction.deferred) {
                 await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
             }
@@ -231,7 +231,7 @@ module.exports = (client) => {
                     logChannel.send({ embeds: [errorEmbed] });
                 }
             } catch (error) {
-                console.error('Error while sending error message:', error);
+                logger.error('Error while sending error message:', error);
             }
         }
     });

@@ -80,7 +80,7 @@ const rest = new REST().setToken(token);
 
         logger.info(`Successfully reloaded ${data.length} application (/) commands.`);
     } catch (error) {
-        console.error(error);
+        logger.error(error);
     } finally {
         logger.info('Finished deploying commands');
     }

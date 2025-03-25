@@ -26,13 +26,13 @@ module.exports = {
     });
 
     if (eligibleChannels.length === 0) {
-        logger.info('Aucun salon éligible trouvé dans les catégories spécifiées.');
+        logger.error('Aucun salon éligible trouvé dans les catégories spécifiées.');
         return;
     }
 
     // Sélectionne un salon aléatoire
     const randomChannel = eligibleChannels[Math.floor(Math.random() * eligibleChannels.length)];
-    logger.info(`Salon sélectionné : ${randomChannel.name} (ID: ${randomChannel.id})`);
+    logger.debug(`Salon sélectionné : ${randomChannel.name} (ID: ${randomChannel.id})`);
 
     // Récupère les messages du salon sélectionné
     try {
@@ -56,13 +56,13 @@ module.exports = {
         });
 
         if (images.length === 0) {
-            logger.info(`Aucune image trouvée dans le salon ${randomChannel.name}.`);
+            logger.error(`Aucune image trouvée dans le salon ${randomChannel.name}.`);
             return;
         }
 
         // Sélectionne une image au hasard
         const randomImage = images[Math.floor(Math.random() * images.length)];
-        logger.info(`Image sélectionnée : ${randomImage.url}`);
+        logger.debug(`Image sélectionnée : ${randomImage.url}`);
 
         // Poste l'image dans un autre salon (par exemple, un salon spécifique)
         const targetChannelId = '1052597309759828098'; // ID du salon cible
@@ -83,12 +83,12 @@ module.exports = {
             const message = await targetChannel.send({ embeds: [embed] });
             await message.react('<a:LP_FoxxoWow:1090350412323901490>');
             await message.react('<:LP_FoxxoHmph:1090351249360179220>');
-            logger.info('Image postée avec succès !');
+            logger.debug('Image postée avec succès !');
         } else {
-            logger.info('Le salon cible est introuvable ou non textuel.');
+            logger.error('Le salon cible est introuvable ou non textuel.');
         }
     } catch (error) {
-        console.error(`Erreur lors de la récupération des messages du salon ${randomChannel.id}:`, error);
+        logger.error(`Erreur lors de la récupération des messages du salon ${randomChannel.id}:`, error);
     }
         await interaction.reply('Forcing the smash or pass command to run.');
     },

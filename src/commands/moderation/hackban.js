@@ -23,8 +23,6 @@ module.exports = {
 			return;
 		}
 
-		logger.info(user_to_ban_id);
-
 		// Fetch the guild member, if they are in the server
 		let member;
 		try {
@@ -48,7 +46,7 @@ module.exports = {
 					bu_name: user.username,
 				});
 			} catch (error) {
-				logger.info('Contrainte de clé unique violée sur la table badUsers');
+				logger.error('Contrainte de clé unique violée sur la table badUsers');
 			}
 		}
 
@@ -56,7 +54,7 @@ module.exports = {
         
 		try {
             // Ban the user by their ID
-            logger.info(user_to_ban_id);
+            logger.debug(user_to_ban_id);
 			await interaction.guild.members.ban(user_to_ban_id, { reason: raison });
 		} catch (error) {
             await interaction.editReply({ content: `Erreur lors du ban de l\'utilisateur ${error}`, ephemeral: true });
@@ -66,7 +64,7 @@ module.exports = {
         try {
             await interaction.editReply({ content: `L'utilisateur <@${user_to_ban_id}> a été banni pour la raison suivante : ${raison}` });
         } catch (error) {
-            logger.info(error);
+            logger.error(error);
             return;
         }
 
@@ -85,7 +83,7 @@ module.exports = {
 				.setTimestamp()
 			channel.send({ embeds: [embed] });
 		} catch (error) {
-			logger.info('Erreur lors de l\'envoie du log' + error);
+			logger.error('Erreur lors de l\'envoie du log' + error);
 		}
 	},
 };

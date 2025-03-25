@@ -24,7 +24,7 @@ async function starboard(reaction, AddOrRemove, client) {
  * Créer une nouvelle participation pour le concours
  */
 async function createConcoursParticipation(reaction, user) {
-    logger.info('createConcoursParticipation');
+    logger.debug('createConcoursParticipation');
     const concoursItem = await Concours.findOne({ where: { post_link: reaction.message.url } });
     if (concoursItem) return;
 
