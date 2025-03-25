@@ -2,7 +2,7 @@
 const { createLogger, format, transports } = require('winston');
 const { combine, timestamp, printf } = format;
 const config = require('../config/MainConfig.json');
-const level = config.logLevel || 'debug';
+const level = config.loggerLevel || 'debug';
 
 const logFormat = printf(({ level, message, timestamp }) => {
   return `${timestamp} [${level}]: ${message}`;
