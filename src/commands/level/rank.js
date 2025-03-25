@@ -29,7 +29,7 @@ module.exports = {
                 .setFooter({ text: "Continue à participer pour gagner plus d'XP !" })
                 .setTimestamp();
 
-            await interaction.reply({ embeds: [embed], ephemeral: true });
+            await interaction.reply({ embeds: [embed], ephemeral: false });
 
         } catch (error) {
             await interaction.reply({ content: `⚠️ Erreur lors de l'exécution de la commande.\nMerci de prévenir le staff.`, ephemeral: true });
