@@ -4,6 +4,8 @@ const { combine, timestamp, printf } = format;
 const config = require('../config/MainConfig.json');
 const level = config.loggerLevel || 'debug';
 
+console.log('Logger level:', level, 'config:', config.loggerLevel);
+
 const logFormat = printf(({ level, message, timestamp }) => {
   return `${timestamp} [${level}]: ${message}`;
 });

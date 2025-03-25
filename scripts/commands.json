@@ -8,8 +8,8 @@
         "hash": "1b13a6bc354f03e568d83f75fb0b038f"
     },
     "forcesmashorpass": {
-        "version": "1.02",
-        "hash": "3a50a49902c1b1387105399ffb6255d7"
+        "version": "1.03",
+        "hash": "1ef085cf690393e959b3b32087f87278"
     },
     "getlevel": {
         "version": "1.00",
@@ -20,36 +20,36 @@
         "hash": "a28e0e318c1623132fc9f47998874665"
     },
     "ban": {
-        "version": "1.04",
-        "hash": "1bac83e84c557061fd206faa3fe74b68"
+        "version": "1.05",
+        "hash": "d032450499753305aeced29098874531"
     },
     "renameall": {
-        "version": "1.02",
-        "hash": "abe4b6b018b1b2cabb3a9b61955ac12d"
+        "version": "1.03",
+        "hash": "c9210c071b178845f8f08100ffc1e10a"
     },
     "hackban": {
-        "version": "1.02",
-        "hash": "057a949e7710bb2ca062ed6301759565"
+        "version": "1.03",
+        "hash": "eaebe6c45a32aacb06b4b6b87b28a07e"
     },
     "kick": {
-        "version": "1.06",
-        "hash": "144c7ceb537f9e6764136f117839ead8"
+        "version": "1.07",
+        "hash": "b404124f2e818ef6a3bfb8c66ea0195c"
     },
     "resetname": {
         "version": "1.00",
         "hash": "b6c61bbc3d327e015c0b18ead80e51dc"
     },
     "warn": {
-        "version": "1.15",
-        "hash": "983485045c86fc59f3bcabdfab919549"
+        "version": "1.16",
+        "hash": "847af9cc6a358134c1ece9746f998b3a"
     },
     "remove": {
         "version": "1.06",
         "hash": "d50f156eba6a51d610806d97861d472d"
     },
     "rappel": {
-        "version": "1.00",
-        "hash": "3d472f3fa7f24ade6e7872053675173b"
+        "version": "1.01",
+        "hash": "bead2a1cbb46d8b603c56c92e2a8e14a"
     },
     "addtag": {
         "version": "1.00",
@@ -84,16 +84,16 @@
         "hash": "71b875120fe9f460be7df2b47bbe7306"
     },
     "downloadimages": {
-        "version": "1.00",
-        "hash": "876e59bbac69b6cb5fe2c031a1287901"
+        "version": "1.01",
+        "hash": "dd24b421de75222e3e586fa934e03f31"
     },
     "pub": {
-        "version": "1.00",
-        "hash": "473ddab66580747bd39a715890e5842c"
+        "version": "1.01",
+        "hash": "86cdd26b87f413daccb1fcbc39184bff"
     },
     "reload": {
-        "version": "1.00",
-        "hash": "88fa0e5b84144c1b92f82be2157d8609"
+        "version": "1.01",
+        "hash": "95be45c5dc260adf902149804b3cd65d"
     },
     "server-info": {
         "version": "1.00",

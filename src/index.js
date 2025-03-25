@@ -6,10 +6,6 @@ const { token, logLevel } = require('../config/MainConfig.json');
 const logger = require('./logger.js');
 const { exec } = require('child_process');
 
-logger.level = logLevel || 'info';
-
-logger.level = 'debug';
-
 const client = new Client({
     intents: [
         GatewayIntentBits.DirectMessages,
