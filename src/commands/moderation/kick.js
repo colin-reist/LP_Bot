@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { User, Punishment } = require('../../../database/database.js');
+const { Users, Punishment } = require('../../../database/database.js');
 
 module.exports = {
     category: 'moderation',
@@ -29,17 +29,17 @@ module.exports = {
         await interaction.reply({ content: 'Traitement du kick en cours...', ephemeral: true });
 
         try {
-            let user = await User.findOne({ where: { discord_identifier: kickedUser.id } });
+            let user = await Users.findOne({ where: { discord_identifier: kickedUser.id } });
             if (!user) {
-                user = await User.create({
+                user = await Users.create({
                     discord_identifier: kickedUser.id,
                     username: kickedUser.username,
                 });
             }
 
-            let punisher = await User.findOne({ where: { discord_identifier: staffMember.id } });
+            let punisher = await Users.findOne({ where: { discord_identifier: staffMember.id } });
             if (!punisher) {
-                punisher = await User.create({
+                punisher = await Users.create({
                     discord_identifier: staffMember.id,
                     username: staffMember.username,
                 });

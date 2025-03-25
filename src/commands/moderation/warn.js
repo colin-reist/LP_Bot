@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { Punishment, User } = require('../../../database/database.js');
+const { Punishment, Users } = require('../../../database/database.js');
 const logger = require('../../logger.js');
 
 module.exports = {
@@ -35,17 +35,17 @@ module.exports = {
 				return interaction.editReply({ content: 'Vous n\'avez pas les permissions nécessaires pour utiliser cette commande.', ephemeral: true });
 			}
 
-			let user = await User.findOne({ where: { discord_identifier: warnedUser.id } });
+			let user = await Users.findOne({ where: { discord_identifier: warnedUser.id } });
 			if (!user) {
-				user = await User.create({
+				user = await Users.create({
 					discord_identifier: warnedUser.id,
 					username: warnedUser.username,
 				});
 			}
 
-			let punisher = await User.findOne({ where: { discord_identifier: staffMember.id } });
+			let punisher = await Users.findOne({ where: { discord_identifier: staffMember.id } });
 			if (!punisher) {
-				punisher = await User.create({
+				punisher = await Users.create({
 					discord_identifier: staffMember.id,
 					username: staffMember.username,
 				});

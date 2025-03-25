@@ -28,7 +28,7 @@ module.exports = {
 		try {
 			member = await interaction.guild.members.fetch(user_to_ban_id);
 		} catch (error) {
-			member = null; // User is not in the server
+			member = null; // Users is not in the server
 		}
 
 		// Check if the executing user is a staff member

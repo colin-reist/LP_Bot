@@ -55,7 +55,7 @@ async function updateParticipation(reaction, user) {
  */
 async function checkReaction(reaction, AddOrRemove, client) {
     const user = await reaction.users.fetch(reaction.userId);
-    if (!user) return logger.error('User not found');
+    if (!user) return logger.error('Users not found');
 
     if (reaction.count === 1) {
         createConcoursParticipation(reaction, user);

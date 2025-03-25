@@ -20,32 +20,32 @@
         "hash": "a28e0e318c1623132fc9f47998874665"
     },
     "ban": {
-        "version": "1.05",
-        "hash": "d032450499753305aeced29098874531"
+        "version": "1.06",
+        "hash": "66a0b451cda8fecee00f5139538039c4"
     },
     "renameall": {
         "version": "1.03",
         "hash": "c9210c071b178845f8f08100ffc1e10a"
     },
     "hackban": {
-        "version": "1.03",
-        "hash": "eaebe6c45a32aacb06b4b6b87b28a07e"
+        "version": "1.04",
+        "hash": "8d8c4b0d982939d327ebc47a1c7b2e73"
     },
     "kick": {
-        "version": "1.07",
-        "hash": "b404124f2e818ef6a3bfb8c66ea0195c"
+        "version": "1.08",
+        "hash": "845818edde9535b772cd8ce7e92a84da"
     },
     "resetname": {
         "version": "1.00",
         "hash": "b6c61bbc3d327e015c0b18ead80e51dc"
     },
     "warn": {
-        "version": "1.16",
-        "hash": "847af9cc6a358134c1ece9746f998b3a"
+        "version": "1.17",
+        "hash": "24344ee1c477603df81fd4eca6057c8b"
     },
     "remove": {
-        "version": "1.06",
-        "hash": "d50f156eba6a51d610806d97861d472d"
+        "version": "1.07",
+        "hash": "6dfada692d94f192b1f03c04ae1da8ba"
     },
     "rappel": {
         "version": "1.01",
@@ -104,7 +104,11 @@
         "hash": "e21d5faffbde51aada2d3af495d4e0ac"
     },
     "user": {
-        "version": "1.00",
-        "hash": "307758a4152beaa09d0a9487eebb584b"
+        "version": "1.01",
+        "hash": "e16a6f7a6283a2b5430af10463357786"
+    },
+    "rank": {
+        "version": "1.38",
+        "hash": "0422eded005642bb520d2f45f2362913"
     }
 }

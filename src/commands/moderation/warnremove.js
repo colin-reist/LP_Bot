@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { Punishment, User } = require('../../../database/database.js');
+const { Punishment, Users } = require('../../../database/database.js');
 module.exports = {
 	category: 'moderation',
 	data : new SlashCommandBuilder()
@@ -18,8 +18,8 @@ module.exports = {
 		const reason = interaction.options.getString('raison');
 
 		// Check if the user has been warned
-		const user = await User.findOne({ where: { discord_identifier: unWarnedUser.id } });
-		if (!User) {
+		const user = await Users.findOne({ where: { discord_identifier: unWarnedUser.id } });
+		if (!Users) {
 			return interaction.reply({ content: 'This user has not been warned.', ephemeral: true });
 		}
 		const warnCount = await Punishment.count({ where: { fk_user: unWarnedUser.id, type: 'warn' } });

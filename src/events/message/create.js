@@ -1,5 +1,5 @@
 const { Events, EmbedBuilder } = require('discord.js');
-const { User } = require('../../../database/database.js');
+const { Users } = require('../../../database/database.js');
 const logger = require('../../logger.js');
 
 /**
@@ -44,17 +44,21 @@ function bumpHandler(message) {
 };
 
 async function levelHandler(message) {
-	let user = await User.findOne({ where: { discord_identifier: message.author.id } });
-	if (user) {
-		user.increment('experience', { by: 1, where: { discord_identifier: message.author.id } });
-		if (message.member && message.member.roles.cache.some(role => role.name === 'Staff')) {
-			user.update({ is_admin: true }, { where: { discord_identifier: message.author.id } });
+	try {
+		let user = await Users.findOne({ where: { discord_identifier: message.author.id } });
+		if (user) {
+			user.increment('experience', { by: 1, where: { discord_identifier: message.author.id } });
+			if (message.member && message.member.roles.cache.some(role => role.name === 'Staff')) {
+				user.update({ is_admin: true }, { where: { discord_identifier: message.author.id } });
+			}
+		} else {
+			user = Users.create({
+				discord_identifier: message.author.id,
+				username: message.author.username,
+				experience: 1,
+			});
 		}
-	} else {
-		user = User.create({
-			discord_identifier: message.author.id,
-			username: message.author.username,
-			experience: 1,
-		});
+	} catch (error) {
+		logger.error('Erreur lors de l\'incrémentation de l\'expérience :\n', error);
 	}
 }
