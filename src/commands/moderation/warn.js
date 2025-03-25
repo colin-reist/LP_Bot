@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { Punishment, User } = require('../../../database/database.js');
-const { log } = require('console');
+const logger = require('../../logger.js');
 
 module.exports = {
 	category: 'moderation',
@@ -51,7 +51,7 @@ module.exports = {
 				});
 			}
 
-			console.log('user', user);
+			logger.info('user', user);
 			await Punishment.create({
 				fk_user: user.pk_user,
 				fk_punisher: punisher.pk_user,

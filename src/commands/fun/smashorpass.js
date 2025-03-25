@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const logger = require('../../logger.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -25,13 +26,13 @@ module.exports = {
     });
 
     if (eligibleChannels.length === 0) {
-        console.log('Aucun salon éligible trouvé dans les catégories spécifiées.');
+        logger.info('Aucun salon éligible trouvé dans les catégories spécifiées.');
         return;
     }
 
     // Sélectionne un salon aléatoire
     const randomChannel = eligibleChannels[Math.floor(Math.random() * eligibleChannels.length)];
-    console.log(`Salon sélectionné : ${randomChannel.name} (ID: ${randomChannel.id})`);
+    logger.info(`Salon sélectionné : ${randomChannel.name} (ID: ${randomChannel.id})`);
 
     // Récupère les messages du salon sélectionné
     try {
@@ -55,13 +56,13 @@ module.exports = {
         });
 
         if (images.length === 0) {
-            console.log(`Aucune image trouvée dans le salon ${randomChannel.name}.`);
+            logger.info(`Aucune image trouvée dans le salon ${randomChannel.name}.`);
             return;
         }
 
         // Sélectionne une image au hasard
         const randomImage = images[Math.floor(Math.random() * images.length)];
-        console.log(`Image sélectionnée : ${randomImage.url}`);
+        logger.info(`Image sélectionnée : ${randomImage.url}`);
 
         // Poste l'image dans un autre salon (par exemple, un salon spécifique)
         const targetChannelId = '1052597309759828098'; // ID du salon cible
@@ -82,9 +83,9 @@ module.exports = {
             const message = await targetChannel.send({ embeds: [embed] });
             await message.react('<a:LP_FoxxoWow:1090350412323901490>');
             await message.react('<:LP_FoxxoHmph:1090351249360179220>');
-            console.log('Image postée avec succès !');
+            logger.info('Image postée avec succès !');
         } else {
-            console.log('Le salon cible est introuvable ou non textuel.');
+            logger.info('Le salon cible est introuvable ou non textuel.');
         }
     } catch (error) {
         console.error(`Erreur lors de la récupération des messages du salon ${randomChannel.id}:`, error);

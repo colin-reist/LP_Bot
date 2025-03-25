@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { User, Punishment } = require('../../../database/database.js');
+const logger = require('../../logger.js');
 
 module.exports = {
 	category: 'moderation',
@@ -55,7 +56,7 @@ module.exports = {
 		try {
 			await interaction.guild.members.ban(bannedUser.id, { reason: reason });
 		} catch (error) {
-			console.log('Erreur lors du ban de l\'utilisateur' + error);
+			logger.info('Erreur lors du ban de l\'utilisateur' + error);
 		}
 
 		await interaction.editReply({ content: `L'utilisateur <@${bannedUser.id}> a été banni pour la raison suivante : ${reason}`, ephemeral: true });
@@ -123,11 +124,11 @@ async function deleteAllUserMessages(guild, userId) {
 
 			} while (fetchedMessages.size >= 100);
 
-			console.log(`Messages récents de l'utilisateur ${userId} supprimés dans le canal ${channel.name}.`);
+			logger.info(`Messages récents de l'utilisateur ${userId} supprimés dans le canal ${channel.name}.`);
 		} catch (error) {
 			console.error(`Erreur lors de la suppression des messages dans le canal ${channel.name}:`, error);
 		}
 	}
 
-	console.log(`Messages récents de l'utilisateur ${userId} supprimés dans tous les canaux.`);
+	logger.info(`Messages récents de l'utilisateur ${userId} supprimés dans tous les canaux.`);
 }

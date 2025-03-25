@@ -1,9 +1,9 @@
 const { Sequelize, DataTypes } = require('sequelize');
-const { database, user, password } = require('../config/MainConfig.json');
+const { database, user, password } = require('../config/TestConfig.json');
 
 const sequelize = new Sequelize(database, user, password, {
-    host: 'eu02-sql.pebblehost.com',
-    dialect: 'mysql',
+    host: 'localhost',
+    dialect: 'sqlite',
     logging: false,
     storage: 'database.sqlite',
 });

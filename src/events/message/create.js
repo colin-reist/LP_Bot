@@ -1,5 +1,6 @@
 const { Events, EmbedBuilder } = require('discord.js');
 const { User } = require('../../../database/database.js');
+const logger = require('../../logger.js');
 
 /**
  * Capte l'envoi d'un message
@@ -23,7 +24,7 @@ function bumpHandler(message) {
 	if (message.channelId !== bumbChannelId) return;
 
 	if (message.interaction.commandName === commandName) {
-		console.log('Bump command');
+		logger.info('Bump command');
 		const codeText = '\/Bump\'';
 		message.channel.send('Merci d\'avoir bump le serveur <@' + message.interaction.user.id + '> !' + '\nNous vous rappelerons dans 2 heures de bump le serveur !');
 		setTimeout(() => {

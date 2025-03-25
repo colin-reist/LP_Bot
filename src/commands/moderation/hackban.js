@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { bans, badUsers: badUserModel, staffMembers } = require('../../../database/database.js');
+const logger = require('../../logger.js');
 
 module.exports = {
 	category: 'moderation',
@@ -22,7 +23,7 @@ module.exports = {
 			return;
 		}
 
-		console.log(user_to_ban_id);
+		logger.info(user_to_ban_id);
 
 		// Fetch the guild member, if they are in the server
 		let member;
@@ -47,7 +48,7 @@ module.exports = {
 					bu_name: user.username,
 				});
 			} catch (error) {
-				console.log('Contrainte de clé unique violée sur la table badUsers');
+				logger.info('Contrainte de clé unique violée sur la table badUsers');
 			}
 		}
 
@@ -55,7 +56,7 @@ module.exports = {
         
 		try {
             // Ban the user by their ID
-            console.log(user_to_ban_id);
+            logger.info(user_to_ban_id);
 			await interaction.guild.members.ban(user_to_ban_id, { reason: raison });
 		} catch (error) {
             await interaction.editReply({ content: `Erreur lors du ban de l\'utilisateur ${error}`, ephemeral: true });
@@ -65,7 +66,7 @@ module.exports = {
         try {
             await interaction.editReply({ content: `L'utilisateur <@${user_to_ban_id}> a été banni pour la raison suivante : ${raison}` });
         } catch (error) {
-            console.log(error);
+            logger.info(error);
             return;
         }
 
@@ -84,7 +85,7 @@ module.exports = {
 				.setTimestamp()
 			channel.send({ embeds: [embed] });
 		} catch (error) {
-			console.log('Erreur lors de l\'envoie du log' + error);
+			logger.info('Erreur lors de l\'envoie du log' + error);
 		}
 	},
 };

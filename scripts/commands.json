@@ -1,15 +1,15 @@
 {
     "ping": {
-        "version": "1.00",
-        "hash": "2a666e3ba88e93fecec7ca0017228cfb"
+        "version": "1.01",
+        "hash": "650acb801d85e584d08d65754daa89f0"
     },
     "r34": {
         "version": "1.00",
         "hash": "1b13a6bc354f03e568d83f75fb0b038f"
     },
     "forcesmashorpass": {
-        "version": "1.00",
-        "hash": "42b001cadd10f93ea4f41f5c2f282491"
+        "version": "1.02",
+        "hash": "3a50a49902c1b1387105399ffb6255d7"
     },
     "getlevel": {
         "version": "1.00",
@@ -20,28 +20,28 @@
         "hash": "a28e0e318c1623132fc9f47998874665"
     },
     "ban": {
-        "version": "1.02",
-        "hash": "14e282df2b68559a9a2fcd778e139909"
+        "version": "1.04",
+        "hash": "1bac83e84c557061fd206faa3fe74b68"
     },
     "renameall": {
-        "version": "1.00",
-        "hash": "2b5ed6d6b9ae5a48cbe54ae5d74fc55d"
+        "version": "1.02",
+        "hash": "abe4b6b018b1b2cabb3a9b61955ac12d"
     },
     "hackban": {
-        "version": "1.00",
-        "hash": "1173905fc892537f45ba4e5e698c9b0a"
+        "version": "1.02",
+        "hash": "057a949e7710bb2ca062ed6301759565"
     },
     "kick": {
-        "version": "1.05",
-        "hash": "f581462bc5d04745f51097372e840989"
+        "version": "1.06",
+        "hash": "144c7ceb537f9e6764136f117839ead8"
     },
     "resetname": {
         "version": "1.00",
         "hash": "b6c61bbc3d327e015c0b18ead80e51dc"
     },
     "warn": {
-        "version": "1.12",
-        "hash": "6784c44fe47e7c0709a9d5e8aeab2be0"
+        "version": "1.15",
+        "hash": "983485045c86fc59f3bcabdfab919549"
     },
     "remove": {
         "version": "1.06",

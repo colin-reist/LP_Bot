@@ -1,4 +1,5 @@
 const { Events, Collection, EmbedBuilder } = require('discord.js');
+const logger = require('../../logger.js');
 /**
  * Capte les interactions
  * @param {Interaction} interaction L'interaction créée par l'utilisateur
@@ -8,7 +9,7 @@ module.exports = (client) => {
     client.on(Events.InteractionCreate, async interaction => {
         if (!interaction.isChatInputCommand()) return;
 
-        console.log('Utilisation d\'une commande !');
+        logger.info('Utilisation d\'une commande !');
 
         const { cooldowns } = client;
         const command = client.commands.get(interaction.commandName);
@@ -16,19 +17,19 @@ module.exports = (client) => {
         const { commandName } = interaction;
 
         if (commandName === 'addtag') {
-            console.log('addtag');
+            logger.info('addtag');
             const tagName = interaction.options.getString('name');
             const tagDescription = interaction.options.getString('description');
 
             try {
-                console.log('-------Création du tag-------');
+                logger.info('-------Création du tag-------');
                 // equivalent to: INSERT INTO tags (name, description, username) values (?, ?, ?);
                 const tag = await Tags.create({
                     messageID: tagName,
                     description: tagDescription,
                     username: interaction.user.username,
                 });
-                console.log(' -> Tag créé \n' + ' Contenu du tag: \n' + 'MessageID: ' + tag.messageID + '\nMessageAuthorName: ');
+                logger.info(' -> Tag créé \n' + ' Contenu du tag: \n' + 'MessageID: ' + tag.messageID + '\nMessageAuthorName: ');
                 return interaction.reply(`Tag ${tag.messageID} added.`);
             }
             catch (error) {
@@ -40,7 +41,7 @@ module.exports = (client) => {
             }
         }
         else if (commandName === 'tag') {
-            console.log('tag');
+            logger.info('tag');
             const tagName = interaction.options.getString('name');
 
             // equivalent to: SELECT * FROM tags WHERE name = 'tagName' LIMIT 1;
@@ -56,7 +57,7 @@ module.exports = (client) => {
             return interaction.reply(`Could not find tag: ${tagName}`);
         }
         else if (commandName === 'edittag') {
-            console.log('edittag');
+            logger.info('edittag');
             const tagName = interaction.options.getString('name');
             const tagDescription = interaction.options.getString('description');
 
@@ -70,7 +71,7 @@ module.exports = (client) => {
             return interaction.reply(`Could not find a tag with name ${tagName}.`);
         }
         else if (commandName == 'taginfo') {
-            console.log('taginfo');
+            logger.info('taginfo');
             const tagName = interaction.options.getString('name');
 
             // equivalent to: SELECT * FROM tags WHERE name = 'tagName' LIMIT 1;
@@ -84,14 +85,14 @@ module.exports = (client) => {
         }
         else if (commandName === 'showtags') {
             // equivalent to: SELECT name FROM tags;
-            console.log('showtags');
+            logger.info('showtags');
             const tagList = await suggestion.findAll({ attributes: ['suggestionId'] });
             const tagString = tagList.map(t => t.suggestionId).join(', ') || 'No tags set.';
 
             return interaction.reply(`List of tags: ${tagString}`);
         }
         else if (commandName === 'deletetag') {
-            console.log('deletetag');
+            logger.info('deletetag');
             const tagName = interaction.options.getString('name');
             // equivalent to: DELETE from tags WHERE name = ?;
             const rowCount = await Tags.destroy({ where: { messageID: tagName } });
@@ -101,18 +102,18 @@ module.exports = (client) => {
             return interaction.reply('Tag deleted.');
         }
         else if (commandName === 'resettag') {
-            console.log('resettag');
+            logger.info('resettag');
             Tags.sync({ force: true });
 
             return interaction.reply('Tags reset.');
         } else if (commandName === 'suggérer') {
             const actualSuggestions = await suggestion.findOne({ where: { suggestionId: interaction.id } });
-            console.log(actualSuggestions);
+            logger.info(actualSuggestions);
             if (actualSuggestions === null) {
                 let messages = null;
                 if (interaction.options.getAttachment('image') === null) {
                     try {
-                        console.log('création de l\'embed sans image');
+                        logger.info('création de l\'embed sans image');
                         const embed = new EmbedBuilder()
                             .setColor('#EBBC4E')
                             .setTitle('✨ Construction de votre suggestion ✨');
@@ -124,7 +125,7 @@ module.exports = (client) => {
                     }
                 } else {
                     try {
-                        console.log('création de l\'embed avec image');
+                        logger.info('création de l\'embed avec image');
                         const embed = new EmbedBuilder()
                             .setColor('#EBBC4E')
                             .setTitle('✨ Construction de votre suggestion ✨');
@@ -135,7 +136,7 @@ module.exports = (client) => {
                     }
                 }
 
-                console.log('Rajout dans la table');
+                logger.info('Rajout dans la table');
                 const suggestionId = messages.id;
                 const suggestionName = interaction.options.getString('nom');
                 const suggestionSuggestion = interaction.options.getString('suggestion');
@@ -150,7 +151,7 @@ module.exports = (client) => {
                 }
 
                 try {
-                    console.log('-------Création de la suggestion-------');
+                    logger.info('-------Création de la suggestion-------');
                     // equivalent to: INSERT INTO tags (name, description, username) values (?, ?, ?);
                     const tag = await suggestion.create({
                         suggestionId: suggestionId,
@@ -161,7 +162,7 @@ module.exports = (client) => {
                         suggestionCountFalse: suggestionCount,
                         suggestionImage: existingImage,
                     });
-                    console.log('Contenu de la suggestion: \n' + 'suggestionId: ' + tag.suggestionId + '\nsuggestionName: '
+                    logger.info('Contenu de la suggestion: \n' + 'suggestionId: ' + tag.suggestionId + '\nsuggestionName: '
                         + tag.suggestionName + '\nsuggestionDescription: ' + tag.suggestionSuggestion
                         + '\nsuggestionSuggerant: ' + tag.suggestionSuggerant + '\nsuggestionCount: ' + tag.suggestionCount + '\nexistingImage: '
                         + tag.suggestionImage + '\n---------------------------');

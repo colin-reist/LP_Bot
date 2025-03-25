@@ -1,14 +1,15 @@
 const { REST, Routes } = require('discord.js');
-const { clientId, guildId, token } = require('../config/MainConfig.json');
+const { clientId, guildId, token } = require('../config/TestConfig.json');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('crypto');
-
 const commands = [];
 const foldersPath = path.join(__dirname, '../src/commands');
 const commandFolders = fs.readdirSync(foldersPath);
-
 const metadataPath = path.join(__dirname, 'commands.json');
+const logger = require('../src/logger.js');
+
+//TODO: Passer au logger
 
 // Charger ou initialiser les métadonnées des versions
 let commandVersions = {};
@@ -56,9 +57,9 @@ for (const folder of commandFolders) {
 
             commands.push(command.data.toJSON());
 
-            console.log(`Commande chargée: ${commandName} v${commandVersions[commandName].version}`);
+            logger.info(`Commande chargée: ${commandName} v${commandVersions[commandName].version}`);
         } else {
-            console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+            logger.info(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
         }
     }
 }
@@ -70,17 +71,17 @@ const rest = new REST().setToken(token);
 
 (async () => {
     try {
-        console.log(`Started refreshing ${commands.length} application (/) commands.`);
+        logger.info(`Started refreshing ${commands.length} application (/) commands.`);
 
         const data = await rest.put(
             Routes.applicationGuildCommands(clientId, guildId),
             { body: commands },
         );
 
-        console.log(`Successfully reloaded ${data.length} application (/) commands.`);
+        logger.info(`Successfully reloaded ${data.length} application (/) commands.`);
     } catch (error) {
         console.error(error);
     } finally {
-        console.log('Finished deploying commands');
+        logger.info('Finished deploying commands');
     }
 })();
