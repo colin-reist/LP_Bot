@@ -20,8 +20,8 @@
         "hash": "a28e0e318c1623132fc9f47998874665"
     },
     "ban": {
-        "version": "1.06",
-        "hash": "66a0b451cda8fecee00f5139538039c4"
+        "version": "1.08",
+        "hash": "fff706ca8b1f4f4b13251a11b9e46177"
     },
     "renameall": {
         "version": "1.03",
@@ -32,20 +32,20 @@
         "hash": "8d8c4b0d982939d327ebc47a1c7b2e73"
     },
     "kick": {
-        "version": "1.08",
-        "hash": "845818edde9535b772cd8ce7e92a84da"
+        "version": "1.09",
+        "hash": "084ad47b74c63974098abd8525df15f1"
     },
     "resetname": {
         "version": "1.00",
         "hash": "b6c61bbc3d327e015c0b18ead80e51dc"
     },
     "warn": {
-        "version": "1.17",
-        "hash": "24344ee1c477603df81fd4eca6057c8b"
+        "version": "1.18",
+        "hash": "915014bd59a01125ca11e07065a2c824"
     },
     "remove": {
-        "version": "1.07",
-        "hash": "6dfada692d94f192b1f03c04ae1da8ba"
+        "version": "1.08",
+        "hash": "ad69935f9b5962866aea78277666dc00"
     },
     "rappel": {
         "version": "1.01",
@@ -112,7 +112,7 @@
         "hash": "d96636c9d71af702e269f2f1e58ea036"
     },
     "top": {
-        "version": "1.03",
-        "hash": "5ea6ba690856dd72f48b26c3b7df8db5"
+        "version": "1.04",
+        "hash": "8e3a6c93b7bc0064283fd66a3692e538"
     }
 }

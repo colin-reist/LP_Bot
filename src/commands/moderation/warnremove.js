@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { Punishment, Users } = require('../../../database/database.js');
+const { Punishments, Users } = require('../../../database/database.js');
 module.exports = {
 	category: 'moderation',
 	data : new SlashCommandBuilder()
@@ -22,13 +22,13 @@ module.exports = {
 		if (!Users) {
 			return interaction.reply({ content: 'This user has not been warned.', ephemeral: true });
 		}
-		const warnCount = await Punishment.count({ where: { fk_user: unWarnedUser.id, type: 'warn' } });
+		const warnCount = await Punishments.count({ where: { fk_user: unWarnedUser.id, type: 'warn' } });
 		if (warnCount === 0) {
 			return interaction.reply({ content: '⚠️This user has not been warned.', ephemeral: true });
 		}
 
 		// Remove the warn
-		await Punishment.destroy({ where: { fk_user: badUser.pk_user, type: 'warn' } });
+		await Punishments.destroy({ where: { fk_user: badUser.pk_user, type: 'warn' } });
 
 		// log the action
 		const adminLogWarnChannel = interaction.guild.channels.cache.get('1239286338256375898'); 

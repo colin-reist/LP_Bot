@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { Users, Punishment } = require('../../../database/database.js');
+const { Users, Punishments } = require('../../../database/database.js');
 
 module.exports = {
     category: 'moderation',
@@ -45,7 +45,7 @@ module.exports = {
                 });
             }
 
-            await Punishment.create({
+            await Punishments.create({
                 fk_user: user.pk_user,
                 fk_punisher: punisher.pk_user,
                 reason: reason,

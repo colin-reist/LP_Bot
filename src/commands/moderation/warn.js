@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { Punishment, Users } = require('../../../database/database.js');
+const { Punishments, Users } = require('../../../database/database.js');
 const logger = require('../../logger.js');
 
 module.exports = {
@@ -52,14 +52,14 @@ module.exports = {
 			}
 
 			logger.debug('user', user);
-			await Punishment.create({
+			await Punishments.create({
 				fk_user: user.pk_user,
 				fk_punisher: punisher.pk_user,
 				reason: reason,
 				type: 'warn',
 			});
 
-			const warnCount = await Punishment.count({ where: { fk_user: user.pk_user, type: 'warn' } });
+			const warnCount = await Punishments.count({ where: { fk_user: user.pk_user, type: 'warn' } });
 			if (warnCount >= 3) {
 				await warnedUser.ban({ reason: 'A été warn 3 fois.' });
 			}

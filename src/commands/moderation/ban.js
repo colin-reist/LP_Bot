@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { Users, Punishment } = require('../../../database/database.js');
+const { Users, Punishments } = require('../../../database/database.js');
 const logger = require('../../logger.js');
 
 module.exports = {
@@ -26,27 +26,39 @@ module.exports = {
 		}
 
 		let user = await Users.findOne({ where: { discord_identifier: bannedUser.id } });
-		if (!user) {
-			user = await Users.create({
-				discord_identifier: bannedUser.id,
-				username: bannedUser.username,
-			});
+		try {
+			if (!user) {
+				user = await Users.create({
+					discord_identifier: bannedUser.id,
+					username: bannedUser.username,
+				});
+			}
+		} catch (error) {
+			logger.error('Erreur lors de la création de l\'utilisateur : ', error);
 		}
 
 		let punisher = await Users.findOne({ where: { discord_identifier: staffMember.id } });
-		if (!punisher) {
-			punisher = await Users.create({
-				discord_identifier: staffMember.id,
-				username: staffMember.username,
-			});
+		try {
+			if (!punisher) {
+				punisher = await Users.create({
+					discord_identifier: staffMember.id,
+					username: staffMember.username,
+				});
+			}
+		} catch (error) {
+			logger.error('Erreur lors d\'un punisher : ', error);
 		}
 
-		await Punishment.create({
-			fk_user: user.pk_user,
-			fk_punisher: punisher.pk_user,
-			reason: reason,
-			type: 'ban',
-		});
+		try {
+			await Punishments.create({
+				fk_user: user.pk_user,
+				fk_punisher: punisher.pk_user,
+				reason: reason,
+				type: 'ban',
+			});
+		} catch (error) {
+			logger.error('Erreur lors de l\'enregistrement de la punition dans la base de données : ', error)
+		}
 
 		deleteAllUserMessages(interaction.guild, bannedUser.id);
 

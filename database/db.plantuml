@@ -8,7 +8,7 @@ class User {
     +is_admin: Boolean
 }
 
-class Punishment {
+class Punishments {
     +pk_punishment: Integer
     +fk_user: Integer
     +fk_punisher: Integer
@@ -43,7 +43,7 @@ class concours {
     +post_link: String
 }
 
-User "1" -- "0..*" Punishment : reçoit
+User "1" -- "0..*" Punishments : reçoit
 User "1" -- "0..*" Suggestion : propose
 User "1" -- "0..*" Boost : booste
 User "1" -- "0..*" concours : participe
