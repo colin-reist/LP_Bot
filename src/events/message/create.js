@@ -1,5 +1,5 @@
 const { Events, EmbedBuilder } = require('discord.js');
-const { Users } = require('../../../database/database.js');
+const { Users, Boosts } = require('../../../database/database.js');
 const logger = require('../../logger.js');
 
 /**
@@ -48,7 +48,14 @@ async function levelHandler(message) {
 		if (message.author.bot) return;
 		let user = await Users.findOne({ where: { discord_identifier: message.author.id } });
 		if (user) {
-			user.increment('experience', { by: 1, where: { discord_identifier: message.author.id } });
+			increment = Math.floor(Math.random() * 10) + 1;
+			let boost = message.member.roles.cache.some(role => role.id === '965755928974618735');
+			if (boost) {
+				logger.debug(`Booster ${message.author.username}`);
+				increment = increment * 1.2;
+			}
+			logger.debug(`Increment ${increment}`);
+			user.increment('experience', { by: increment, where: { discord_identifier: message.author.id } });
 			if (message.member && message.member.roles.cache.some(role => role.name === 'Staff')) {
 				user.update({ is_admin: true }, { where: { discord_identifier: message.author.id } });
 			}
