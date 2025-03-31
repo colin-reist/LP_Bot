@@ -34,7 +34,8 @@ module.exports = {
 				});
 			}
 		} catch (error) {
-			logger.error('Erreur lors de la création de l\'utilisateur : ', error);
+			logger.error('Erreur lors de l\'enregistrement de l\'utilisateur dans la base de données', error);
+			interaction.editReply({ content: 'Erreur lors de l\'enregistrement de l\'utilisateur dans la base de données', ephemeral: true });
 		}
 
 		let punisher = await Users.findOne({ where: { discord_identifier: staffMember.id } });
@@ -46,7 +47,8 @@ module.exports = {
 				});
 			}
 		} catch (error) {
-			logger.error('Erreur lors d\'un punisher : ', error);
+			logger.error(`Erreur lors du rajout du nouveau membre staff dans la base de données.`, error);
+			interaction.editReply({ content: `Erreur lors du rajout du nouveau membre staff dans la base de données.`, ephemeral: true });
 		}
 
 		try {
@@ -58,6 +60,7 @@ module.exports = {
 			});
 		} catch (error) {
 			logger.error('Erreur lors de l\'enregistrement de la punition dans la base de données : ', error)
+			interaction.editReply({ content: 'Erreur lors de l\'enregistrement de la punition dans la base de données', ephemeral: true });
 		}
 
 		deleteAllUserMessages(interaction.guild, bannedUser.id);
@@ -90,7 +93,7 @@ async function logBan(interaction, bannedUser, staffMember, reason) {
 
 	// Public log
 	try {
-		const publicLogChannel = interaction.guild.channels.cache.get('1310662035436077198'); // FIXME: Change channel ID
+		const publicLogChannel = interaction.guild.channels.cache.get('1310662035436077198');
 		const message = 'L\'utilisateur <@'+ bannedUser.id  + '> a été banni pour la raison suivante : ';
 		await publicLogChannel.send(message);
 		await publicLogChannel.send({ embeds: [banEmbed] });

@@ -45,6 +45,7 @@ function bumpHandler(message) {
 
 async function levelHandler(message) {
 	try {
+		if (message.author.bot) return;
 		let user = await Users.findOne({ where: { discord_identifier: message.author.id } });
 		if (user) {
 			user.increment('experience', { by: 1, where: { discord_identifier: message.author.id } });

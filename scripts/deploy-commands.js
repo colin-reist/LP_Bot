@@ -9,8 +9,6 @@ const commandFolders = fs.readdirSync(foldersPath);
 const metadataPath = path.join(__dirname, 'commands.json');
 const logger = require('../src/logger.js');
 
-//TODO: Passer au logger
-
 // Charger ou initialiser les métadonnées des versions
 let commandVersions = {};
 if (fs.existsSync(metadataPath)) {
