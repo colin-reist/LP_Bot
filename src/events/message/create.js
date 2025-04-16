@@ -10,7 +10,7 @@ const logger = require('../../logger.js');
 module.exports = (client) => {
 	client.on(Events.MessageCreate, async (message) => {
 		levelHandler(message);
-
+		
 		bumpHandler(message);
 	});
 };
@@ -48,7 +48,7 @@ async function levelHandler(message) {
 		if (message.author.bot) return;
 		let user = await Users.findOne({ where: { discord_identifier: message.author.id } });
 		if (user) {
-			increment = Math.floor(Math.random() * 10) + 1;
+			increment = Math.floor(Math.random() * 10) + 1; // Entre 1 et 10
 			let boost = message.member.roles.cache.some(role => role.id === '965755928974618735');
 			if (boost) {
 				logger.debug(`Booster ${message.author.username}`);

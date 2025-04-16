@@ -61,7 +61,7 @@ module.exports = {
 
 			const warnCount = await Punishments.count({ where: { fk_user: user.pk_user, type: 'warn' } });
 			if (warnCount >= 3) {
-				await warnedUser.ban({ reason: 'A été warn 3 fois.' });
+				await interaction.guild.members.ban(warnedUser.id, { reason: reason });
 			}
 
 			logWarn(interaction, warnedUser, staffMember, reason);
