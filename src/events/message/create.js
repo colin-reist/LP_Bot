@@ -68,11 +68,11 @@ async function levelHandler(message) {
 				await user.update({ is_admin: true });
 			}
 
-
 			if (newLevel > oldLevel) {
 				logger.debug(`Nouveau niveau pour ${message.author.username} : ${newLevel}`);
 				await handleLevelUp(message, newLevel);
-				await message.channel.send(`🎉 Félicitations <@${message.author.id}> ! Tu as atteint le niveau ${newLevel} !`);
+				const channel = message.guild.channels.cache.get('940355174759821323');
+				await channel.send(`🎉 Félicitations <@${message.author.id}> ! Tu as atteint le niveau ${newLevel} !`);
 			}
 		} else {
 			await Users.create({
