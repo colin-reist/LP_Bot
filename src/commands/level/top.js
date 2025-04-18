@@ -12,7 +12,7 @@ module.exports = {
 				order: [
 					['experience', 'DESC'],
 				],
-				limit: 10,
+				limit: 9,
 			});
 
 			if (!users) {
@@ -31,7 +31,6 @@ module.exports = {
 				embed.addFields({ name: `🥇 #${index + 1}`, value: `** <@${user.discord_identifier}>** \n**${user.experience}** points \n**niveau ${getLevelFromXP(user.experience)}**`, inline: true });
 			});
 
-			// Si l'utilisateur n'est pas dans le top 10
 			let user = users.find(user => user.discord_identifier === interaction.user.id);
 			if (!user) {
 				user = await Users.findOne({
