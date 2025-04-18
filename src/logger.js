@@ -5,19 +5,19 @@ const config = require('../config/MainConfig.json');
 const level = config.loggerLevel || 'debug';
 
 const logFormat = printf(({ level, message, timestamp }) => {
-  return `${timestamp} [${level}]: ${message}`;
+	return `${timestamp} [${level}]: ${message}`;
 });
 
 const logger = createLogger({
-  level: level,
-  format: combine(
-    timestamp(),
-    logFormat
-  ),
-  transports: [
-    new transports.Console(),
-    new transports.File({ filename: 'combined.log' })
-  ],
+	level: level,
+	format: combine(
+		timestamp(),
+		logFormat,
+	),
+	transports: [
+		new transports.Console(),
+		new transports.File({ filename: 'combined.log' }),
+	],
 });
 
 module.exports = logger;
