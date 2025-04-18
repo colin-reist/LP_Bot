@@ -107,7 +107,7 @@ async function handleLevelUp(message, level) {
 		const role = message.guild.roles.cache.get(roleRewards[level]);
 		if (role && !message.member.roles.cache.has(role.id)) {
 			await message.member.roles.add(role);
-			message.channel.send(`🎉 Félicitations ${message.author}, tu as atteint le niveau ${level} et obtenu le rôle **${role.name}** !`);
+			logger.debug(`🎉 Félicitations ${message.author}, tu as atteint le niveau ${level} et obtenu le rôle **${role.name}** !`);
 		}
 	}
 }
