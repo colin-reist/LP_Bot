@@ -92,22 +92,25 @@ function getLevelFromXP(xp) {
 		xp -= requiredXP;
 		level++;
 	}
+	logger.debug(level);
 	return level;
 }
 
 async function handleLevelUp(message, level) {
 	const roleRewards = {
-		5: 'ROLE_ID_LVL_5',
-		10: 'ROLE_ID_LVL_10',
-		20: 'ROLE_ID_LVL_20',
-		40: 'ROLE_ID_LVL_40',
+		5: '916487249695232000',
+		10: '916489810821152788',
+		20: '916489632592560188',
+		40: '916489376555479041',
 	};
 
-	if (roleRewards[level]) {
-		const role = message.guild.roles.cache.get(roleRewards[level]);
-		if (role && !message.member.roles.cache.has(role.id)) {
-			await message.member.roles.add(role);
-			logger.debug(`🎉 Félicitations ${message.author}, tu as atteint le niveau ${level} et obtenu le rôle **${role.name}** !`);
+	for (const [lvl, roleId] of Object.entries(roleRewards)) {
+		if (level >= parseInt(lvl)) {
+			const role = message.guild.roles.cache.get(roleId);
+			if (role && !message.member.roles.cache.has(role.id)) {
+				await message.member.roles.add(role);
+				logger.debug(`🎉 ${message.author.tag} a atteint le niveau ${level} → rôle ajouté : ${role.name}`);
+			}
 		}
 	}
 }
