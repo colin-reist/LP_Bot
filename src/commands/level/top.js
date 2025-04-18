@@ -28,7 +28,7 @@ module.exports = {
 				.setTimestamp();
 
 			users.forEach((user, index) => {
-				embed.addFields({ name: `🥇 #${index + 1}`, value: `** <@${user.discord_identifier}>** \n**${user.experience}** points \n**${getLevelFromXP(user.experience)}**`, inline: true });
+				embed.addFields({ name: `🥇 #${index + 1}`, value: `** <@${user.discord_identifier}>** \n**${user.experience}** points \n**niveau ${getLevelFromXP(user.experience)}**`, inline: true });
 			});
 
 			// Si l'utilisateur n'est pas dans le top 10
