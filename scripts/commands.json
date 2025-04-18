@@ -40,8 +40,8 @@
         "hash": "b6c61bbc3d327e015c0b18ead80e51dc"
     },
     "warn": {
-        "version": "1.19",
-        "hash": "5030c953b963e0969dfb3d87422d7992"
+        "version": "1.20",
+        "hash": "7d730f624aa0aa5df57a5dad8fd88266"
     },
     "remove": {
         "version": "1.08",
@@ -108,8 +108,8 @@
         "hash": "e16a6f7a6283a2b5430af10463357786"
     },
     "rank": {
-        "version": "1.40",
-        "hash": "d96636c9d71af702e269f2f1e58ea036"
+        "version": "1.41",
+        "hash": "2689ff6b52cf12b4dabe196ada06aa78"
     },
     "top": {
         "version": "1.04",

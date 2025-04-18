@@ -68,9 +68,11 @@ async function levelHandler(message) {
 				await user.update({ is_admin: true });
 			}
 
+			await handleLevelUp(message, newLevel);
+
 			if (newLevel > oldLevel) {
 				logger.debug(`Nouveau niveau pour ${message.author.username} : ${newLevel}`);
-				await handleLevelUp(message, newLevel);
+				//  Add potential new features here
 			}
 		} else {
 			await Users.create({
@@ -92,7 +94,6 @@ function getLevelFromXP(xp) {
 		xp -= requiredXP;
 		level++;
 	}
-	logger.debug(level);
 	return level;
 }
 
@@ -106,7 +107,8 @@ async function handleLevelUp(message, level) {
 
 	for (const [lvl, roleId] of Object.entries(roleRewards)) {
 		if (level >= parseInt(lvl)) {
-			const role = message.guild.roles.cache.get(roleId);
+			const role = message.guild.roles.cache.find((r) => r.id === roleId);
+
 			if (role && !message.member.roles.cache.has(role.id)) {
 				await message.member.roles.add(role);
 				logger.debug(`🎉 ${message.author.tag} a atteint le niveau ${level} → rôle ajouté : ${role.name}`);

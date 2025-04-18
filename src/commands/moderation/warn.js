@@ -82,7 +82,7 @@ async function logWarn(interaction, warnedUser, staffMember, reason) {
 		.addFields(
 			{ name: 'Utilisateur', value: `<@${warnedUser.id}>`, inline: true },
 			{ name: 'Raison', value: reason, inline: true },
-			{ name: 'Staff', value: `<@${staffMember.id}>`, inline: true }
+			{ name: 'Staff', value: `<@${staffMember.id}>`, inline: true },
 		)
 		.setTimestamp()
 		.setThumbnail(warnedUser.displayAvatarURL());
