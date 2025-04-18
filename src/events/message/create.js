@@ -11,6 +11,7 @@ module.exports = (client) => {
 	client.on(Events.MessageCreate, async (message) => {
 		levelHandler(message);
 		bumpHandler(message);
+		checkMandatoryRole(message);
 	});
 };
 
@@ -40,6 +41,28 @@ function bumpHandler(message) {
 			message.channel.send({ embeds: [embed] });
 		}, 7200000);
 	}
+}
+
+async function checkMandatoryRole(message) {
+	const user = message.member;
+	const mandatoryRole = {
+		'genre': '976205720871637062',
+		'niveaux': '1075722281038381116',
+		'erp': '975832317413171280',
+		'kinks': '975832304360497153',
+		'informations': '917141813729583184',
+	};
+
+	for (const roleId of Object.entries(mandatoryRole)) {
+		if (!user.roles.cache.has(roleId)) {
+			const role = message.guild.roles.cache.get(roleId);
+			if (role) {
+				await user.roles.add(role);
+				logger.debug(`Role ${role.name} added to ${user.user.tag}`);
+			}
+		}
+	}
+
 }
 
 async function levelHandler(message) {
