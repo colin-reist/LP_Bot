@@ -9,8 +9,10 @@ const logger = require('../../logger.js');
  */
 module.exports = (client) => {
 	client.on(Events.MessageCreate, async (message) => {
-		levelHandler(message);
 		bumpHandler(message);
+
+		if (message.author.bot) return;
+		levelHandler(message);
 		checkMandatoryRole(message);
 	});
 };
@@ -19,9 +21,7 @@ function bumpHandler(message) {
 	const bumbChannelId = '993935433228619886';
 	const commandName = 'bump';
 
-	if (!message.interaction) return;
-
-	if (message.channelId !== bumbChannelId) return;
+	if (!message.interaction && message.channelId !== bumbChannelId) return;
 
 	if (message.interaction.commandName === commandName) {
 		logger.debug('Bump command');
@@ -53,7 +53,7 @@ async function checkMandatoryRole(message) {
 		'informations': '917141813729583184',
 	};
 
-	for (const roleId of Object.entries(mandatoryRole)) {
+	for (const [key, roleId] of Object.entries(mandatoryRole)) {
 		if (!user.roles.cache.has(roleId)) {
 			const role = message.guild.roles.cache.get(roleId);
 			if (role) {
@@ -91,9 +91,10 @@ async function levelHandler(message) {
 				await user.update({ is_admin: true });
 			}
 
+			await handleLevelUp(message, newLevel);
+
 			if (newLevel > oldLevel) {
 				logger.debug(`Nouveau niveau pour ${message.author.username} : ${newLevel}`);
-				await handleLevelUp(message, newLevel);
 				const channel = message.guild.channels.cache.get('940355174759821323');
 				await channel.send(`🎉 Félicitations <@${message.author.id}> ! Tu as atteint le niveau ${newLevel} !`);
 			}
