@@ -62,9 +62,10 @@ module.exports = {
 			const warnCount = await Punishments.count({ where: { fk_user: user.pk_user, type: 'warn' } });
 			if (warnCount >= 3) {
 				await interaction.guild.members.ban(warnedUser.id, { reason: reason });
+				logBan(interaction, warnedUser, staffMember, reason);
+			} else {
+				logWarn(interaction, warnedUser, staffMember, reason);
 			}
-
-			logWarn(interaction, warnedUser, staffMember, reason);
 
 			await interaction.editReply({ content: `L'utilisateur <@${warnedUser.id}> a été averti pour la raison suivante : ${reason}`, ephemeral: true });
 		} catch (error) {
@@ -104,6 +105,38 @@ async function logWarn(interaction, warnedUser, staffMember, reason) {
 	try {
 		const adminLogWarnChannel = interaction.guild.channels.cache.get('1239286338256375898');
 		await adminLogWarnChannel.send({ embeds: [warnEmbed] });
+	} catch (error) {
+		logger.error('Erreur lors du log admin :', error);
+	}
+}
+
+async function logBan(interaction, bannedUser, staffMember, reason) {
+	const banEmbed = new EmbedBuilder()
+		.setColor('#FF0000')
+		.setTitle('Ban')
+		.setDescription('Un utilisateur a été banni')
+		.addFields(
+			{ name: 'Utilisateur', value: `<@${bannedUser.id}>`, inline: true },
+			{ name: 'Raison', value: reason, inline: true },
+			{ name: 'Staff', value: `<@${staffMember.id}>`, inline: true },
+		)
+		.setTimestamp()
+		.setThumbnail(bannedUser.displayAvatarURL());
+
+	// Public log
+	try {
+		const publicLogChannel = interaction.guild.channels.cache.get('1310662035436077198');
+		const message = 'L\'utilisateur <@' + bannedUser.id + '> a été banni pour la raison suivante : ';
+		await publicLogChannel.send(message);
+		await publicLogChannel.send({ embeds: [banEmbed] });
+	} catch (error) {
+		logger.error('Erreur lors du log public :', error);
+	}
+
+	// Admin log
+	try {
+		const adminLogWarnChannel = interaction.guild.channels.cache.get('1238537326427115592');
+		await adminLogWarnChannel.send({ embeds: [banEmbed] });
 	} catch (error) {
 		logger.error('Erreur lors du log admin :', error);
 	}
