@@ -73,7 +73,7 @@ async function levelHandler(message) {
 
 		if (user) {
 			const previousXP = user.experience;
-			let increment = Math.floor(Math.random() * 10) + 1;
+			let increment = Math.floor(Math.random() * 8) + 9; // entre 9 et 16
 			const boost = message.member.roles.cache.some(role => role.id === '965755928974618735');
 			if (boost) {
 				logger.debug(`Booster ${message.author.username}`);
