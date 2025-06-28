@@ -12,18 +12,18 @@ module.exports = (client) => {
 
 		try {
 			const errorEmbed = new EmbedBuilder()
-                    .setColor('#FF0000')
-                    .setTitle('❌ UnCaught Error ❌')
-                    .setDescription(`An uncaugth error has been detected : \n\n\`\`\`${error}\`\`\``)
-                    .addFields({
-						name: '🔧 Stack trace 🔧',
-						value: `\`\`\`${error.stack}\`\`\``,
-					})
-                    .setImage("https://media1.tenor.com/m/sIB-6LgziVIAAAAC/spongebob-squarepants-spongebob.gif")
-                    .setFooter({
-                        text: "Lewd Paradise au service de tout les hornys",
-                        iconURL: "https://i.imgur.com/PQtvZLa.gif",
-                    });
+				.setColor('#FF0000')
+				.setTitle('❌ UnCaught Error ❌')
+				.setDescription(`An uncaugth error has been detected : \n\n\`\`\`${error}\`\`\``)
+				.addFields({
+					name: '🔧 Stack trace 🔧',
+					value: `\`\`\`${error.stack}\`\`\``,
+				})
+				.setImage('https://media1.tenor.com/m/sIB-6LgziVIAAAAC/spongebob-squarepants-spongebob.gif')
+				.setFooter({
+					text: 'Lewd Paradise au service de tout les hornys',
+					iconURL: 'https://i.imgur.com/PQtvZLa.gif',
+				});
 
 			// Remplace "ID_DU_CHANNEL" par l'ID du channel où tu veux envoyer le message
 			const channel = client.channels.cache.get(crashLogsChannelId);
@@ -40,10 +40,10 @@ module.exports = (client) => {
 			.setColor('#00FF00')
 			.setTitle('✅ Bot started ✅')
 			.setDescription('The bot has been started successfully !')
-			.setImage("https://i.imgur.com/3fUmg6N.png")
+			.setImage('https://i.imgur.com/3fUmg6N.png')
 			.setFooter({
-				text: "Lewd Paradise au service de tout les hornys",
-				iconURL: "https://i.imgur.com/PQtvZLa.gif",
+				text: 'Lewd Paradise au service de tout les hornys',
+				iconURL: 'https://i.imgur.com/PQtvZLa.gif',
 			});
 
 		const channel = client.channels.cache.get('1333850350867710073');
@@ -77,7 +77,7 @@ module.exports = (client) => {
      * Event start of the bot
      */
 	client.once(Events.ClientReady, () => {
-		startBotLog()
+		startBotLog();
 
 		setInterval(() => {
 			const index = Math.floor(Math.random() * (status.length - 1) + 1);
@@ -166,12 +166,12 @@ module.exports = (client) => {
 					{
 						name: '🗳️ Phase de votes : Choisissez vos préférés ! 🗳️',
 						value: '- L\'émoji de vote et le suivant : <:LP_vote:1001230627242250392>\n- Aucune limite de vote est appliqué (nombre de vote infini)\n- Toute image dépassant 15 votes sera affichés dans <#1153607344505245736>',
-						inline: false
+						inline: false,
 					},
 					{
 						name: '🏆 Pour le vainquer 🏆',
 						value: '- Le vainqueur est désigné directement par le bot\n- Le gagnant sera récompensé par le rôle <@&1052591643544522782>',
-						inline: false
+						inline: false,
 					},
 				)
 				.setImage('https://i.imgur.com/3fUmg6N.png')
@@ -181,8 +181,8 @@ module.exports = (client) => {
 					iconURL: 'https://i.imgur.com/PQtvZLa.gif',
 				})
 				.setTimestamp();
-			channel.send({ embeds: [sundayEmbed]})
-		})
+			channel.send({ embeds: [sundayEmbed] });
+		});
 
 		// When you want to start it, use:
 		mondayScheduledMessage.start();
@@ -204,7 +204,7 @@ module.exports = (client) => {
 			const channels = guild.channels.cache.filter(channel =>
 				channel.isTextBased() &&
                 channel.parentId &&
-                categoryIds.includes(channel.parentId)
+                categoryIds.includes(channel.parentId),
 			);
 
 			eligibleChannels.push(...channels.values());
@@ -233,7 +233,7 @@ module.exports = (client) => {
 								name: attachment.name,
 								messageUrl: message.url,
 								authorTag: message.author.tag,
-								authorId: message.author.id
+								authorId: message.author.id,
 							});
 						}
 					});
@@ -276,4 +276,4 @@ module.exports = (client) => {
 			logger.error(`Erreur lors de la récupération des messages du salon ${randomChannel.id}:`, error);
 		}
 	}
-}
+};
