@@ -104,7 +104,7 @@ async function logBan(interaction, bannedUser, staffMember, reason) {
 
 	// Public log
 	try {
-		const publicLogChannel = interaction.guild.channels.cache.get('1047244666262802463');
+		const publicLogChannel = interaction.guild.channels.cache.get('1310662035436077198');
 		const message = 'L\'utilisateur <@' + bannedUser.id + '> a été banni pour la raison suivante : ';
 		await publicLogChannel.send(message);
 		await publicLogChannel.send({ embeds: [banEmbed] });
