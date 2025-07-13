@@ -65,7 +65,7 @@ module.exports = {
 
 		deleteAllUserMessages(interaction.guild, bannedUser.id);
 
-		logBan(interaction, bannedUser, staffMember, reason);
+		// logBan(interaction, bannedUser, staffMember, reason);
 
 		// Ban l'utilisateur
 		try {

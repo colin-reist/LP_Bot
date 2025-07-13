@@ -24,7 +24,7 @@ async function handleBanUser(ban) {
 	let reason = ban.reason || 'Aucune raison fournie';
 
 	try {
-		await new Promise(resolve => setTimeout(resolve, 1000)); // évite les race conditions
+		await new Promise(resolve => setTimeout(resolve, 1000));
 		const fetchedLogs = await guild.fetchAuditLogs({
 			limit: 5,
 			type: AuditLogEvent.MemberBanAdd,
