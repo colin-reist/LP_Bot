@@ -121,7 +121,7 @@ module.exports = (client) => {
 		});
 
 		const mondayScheduledMessage = new cron.CronJob('0 10 * * 1', () => {
-			channel.send('<@&1239680929958592524>');
+			// channel.send('<@&1239680929958592524>');
 			let maxReactCount = 0;
 			let winner = 0;
 			async function run() {
