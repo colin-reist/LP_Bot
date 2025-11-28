@@ -8,7 +8,7 @@ module.exports = (client) => {
 	const crashLogsChannelId = '1333850350867710073'; // ID du channel où envoyer les logs de crash
 
 	process.on('uncaughtException', async (error) => {
-		logger.error('An unCaugth error has been detected :', error);
+		logger.error('An unCaugth error has been detected :', error.stack?? error);
 
 		try {
 			const errorEmbed = new EmbedBuilder()
