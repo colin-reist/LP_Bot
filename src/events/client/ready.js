@@ -8,7 +8,8 @@ module.exports = (client) => {
 	const crashLogsChannelId = '1333850350867710073'; // ID du channel où envoyer les logs de crash
 
 	process.on('uncaughtException', async (error) => {
-		logger.error('An unCaugth error has been detected :', error);
+		logger.error('An unCaugth error has been detected :', error.stack?? error);
+		logger.error(error.message?? 'No message available');
 
 		try {
 			const errorEmbed = new EmbedBuilder()
@@ -28,6 +29,7 @@ module.exports = (client) => {
 			// Remplace "ID_DU_CHANNEL" par l'ID du channel où tu veux envoyer le message
 			const channel = client.channels.cache.get(crashLogsChannelId);
 			if (channel && channel.isTextBased()) {
+				await channel.send('<@551091502860730368> Tu sais pas coder')
 				await channel.send({ embeds: [errorEmbed] });
 			}
 		} catch (err) {
