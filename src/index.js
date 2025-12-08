@@ -2,7 +2,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
-const { token } = require('../config/MainConfig.json');
+const { token } = require('../config/config.json');
 const logger = require('./logger.js');
 const { exec } = require('child_process');
 

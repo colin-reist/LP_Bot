@@ -1,7 +1,7 @@
 // filepath: /d:/Projets/Code/LP_Bot/logger.js
 const { createLogger, format, transports } = require('winston');
 const { combine, timestamp, printf } = format;
-const config = require('../config/MainConfig.json');
+const config = require('../config/config.json');
 const level = config.loggerLevel || 'debug';
 
 const logFormat = printf(({ level, message, timestamp }) => {

@@ -1,12 +1,12 @@
+const path = require('node:path');
 const { Sequelize, DataTypes } = require('sequelize');
-const { database, user, password } = require('../config/MainConfig.json');
+const { database, user, password, dialect = 'mysql' } = require('../config/config.json');
 
-const sequelize = new Sequelize(database, user, password, {
-	host: 'eu02-sql.pebblehost.com',
-	dialect: 'mysql',
-	logging: false,
-	storage: 'database.sqlite',
-});
+const useSqlite = dialect === 'sqlite' || !database;
+const sequelize = useSqlite
+  ? new Sequelize({ dialect: 'sqlite', storage: path.join(__dirname, 'database.sqlite'), logging: false })
+  : new Sequelize(database, user, password, { host: 'eu02-sql.pebblehost.com', dialect: 'mysql', logging: false });
+
 
 const Users = sequelize.define('Users', {
 	pk_user: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },

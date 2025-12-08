@@ -130,9 +130,9 @@ module.exports = (client) => {
 				const allTags = await Concours.findAll();
 
 				// Find the max react count among all tags
-				maxReactCount = Math.max(...allTags.map(tag => tag.reactCount));
+				maxReactCount = Math.max(...allTags.map(tag => tag.count));
 
-				winner = await Concours.findOne({ where: { reactCount: maxReactCount } });
+				winner = await Concours.findOne({ where: { count: maxReactCount } });
 
 				logger.debug(winner.messageID);
 
