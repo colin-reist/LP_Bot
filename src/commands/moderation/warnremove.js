@@ -1,8 +1,8 @@
 const { SlashCommandBuilder } = require('discord.js');
 const { Punishments, Users } = require('#database');
 const ids = require('#config/ids');
-const { hasStaffRole } = require('#utils/permissionUtils.js');
-const { logModerationAction } = require('#utils/loggerUtils.js');
+const { hasStaffRole } = require('#utils/permissionUtils');
+const { logModerationAction } = require('#utils/loggerUtils');
 const logger = require('#logger');
 
 module.exports = {

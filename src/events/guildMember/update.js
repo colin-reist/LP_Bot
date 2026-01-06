@@ -1,8 +1,8 @@
 const { AuditLogEvent, Events } = require('discord.js');
 const { EmbedBuilder } = require('discord.js');
-const { Users, Punishments } = require('../../../database/database.js');
-const logger = require('../../logger.js');
-const ids = require('../../../config/ids.json');
+const { Users, Punishments } = require('#database');
+const logger = require('#logger');
+const ids = require('#config/ids');
 
 /**
 * Capte la modification des rôles d'un membre
@@ -55,7 +55,7 @@ async function handleBanUser(ban) {
 
 	// Check if punishment already exists (created by command within last 10s)
 	try {
-		const { ensureUserExists } = require('../../utils/databaseUtils.js');
+		const { ensureUserExists } = require('#utils/databaseUtils');
 		const userDb = await ensureUserExists(user.id, user.username);
 
 		const { Op } = require('sequelize');
@@ -77,7 +77,7 @@ async function handleBanUser(ban) {
 		// If we are here, it's a manual ban (Right click -> Ban)
 		// We need to register it.
 		if (staffMember) {
-			const { logModerationAction } = require('../../utils/loggerUtils.js');
+			const { logModerationAction } = require('#utils/loggerUtils');
 			const punisherDb = await ensureUserExists(staffMember.id, staffMember.user.username);
 
 			await Punishments.create({

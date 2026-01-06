@@ -2,9 +2,9 @@ const { SlashCommandBuilder } = require('discord.js');
 const { Punishments } = require('#database');
 const { Op } = require('sequelize');
 const logger = require('#logger');
-const { ensureUserExists } = require('#utils/databaseUtils.js');
-const { logModerationAction } = require('#utils/loggerUtils.js');
-const { hasStaffRole } = require('#utils/permissionUtils.js');
+const { ensureUserExists } = require('#utils/databaseUtils');
+const { logModerationAction } = require('#utils/loggerUtils');
+const { hasStaffRole } = require('#utils/permissionUtils');
 
 module.exports = {
 	category: 'moderation',
