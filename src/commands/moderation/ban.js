@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { Users, Punishments } = require('../../../database/database.js');
 const logger = require('../../logger.js');
+const ids = require('../../../config/ids.json');
 
 module.exports = {
 	category: 'moderation',
@@ -31,6 +32,7 @@ module.exports = {
 				user = await Users.create({
 					discord_identifier: bannedUser.id,
 					username: bannedUser.username,
+					experience: 1,
 				});
 			}
 		} catch (error) {
@@ -44,6 +46,7 @@ module.exports = {
 				punisher = await Users.create({
 					discord_identifier: staffMember.id,
 					username: staffMember.username,
+					experience: 1,
 				});
 			}
 		} catch (error) {
@@ -93,7 +96,7 @@ async function logBan(interaction, bannedUser, staffMember, reason) {
 
 	// Public log
 	try {
-		const publicLogChannel = interaction.guild.channels.cache.get('1310662035436077198');
+		const publicLogChannel = interaction.guild.channels.cache.get(ids.channels.publicLogs);
 		const message = 'L\'utilisateur <@' + bannedUser.id + '> a été banni pour la raison suivante : ';
 		await publicLogChannel.send(message);
 		await publicLogChannel.send({ embeds: [banEmbed] });
@@ -103,7 +106,7 @@ async function logBan(interaction, bannedUser, staffMember, reason) {
 
 	// Admin log
 	try {
-		const adminLogWarnChannel = interaction.guild.channels.cache.get('1238537326427115592');
+		const adminLogWarnChannel = interaction.guild.channels.cache.get(ids.channels.adminLogs);
 		await adminLogWarnChannel.send({ embeds: [banEmbed] });
 	} catch (error) {
 		logger.error('Erreur lors du log admin :', error);

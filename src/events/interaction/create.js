@@ -1,5 +1,6 @@
 const { Events, Collection, EmbedBuilder } = require('discord.js');
 const logger = require('../../logger.js');
+const ids = require('../../../config/ids.json');
 /**
  * Capte les interactions
  * @param {Interaction} interaction L'interaction créée par l'utilisateur
@@ -66,7 +67,7 @@ module.exports = (client) => {
                         iconURL: "https://i.imgur.com/PQtvZLa.gif",
                     });
 
-                const logChannel = client.channels.cache.get('1333850350867710073');
+                const logChannel = client.channels.cache.get(ids.channels.logs);
                 if (logChannel) {
                     logChannel.send({ embeds: [errorEmbed] });
                 }

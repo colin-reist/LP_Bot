@@ -1,8 +1,9 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { Punishments, Users } = require('../../../database/database.js');
+const ids = require('../../../config/ids.json');
 module.exports = {
 	category: 'moderation',
-	data : new SlashCommandBuilder()
+	data: new SlashCommandBuilder()
 		.setName('remove')
 		.addUserOption(option => option.setName('utilisateur').setDescription('L\'utilisateur qui va perdre son warn').setRequired(true))
 		.addStringOption(option => option.setName('raison').setDescription('La raison').setRequired(true))
@@ -31,7 +32,7 @@ module.exports = {
 		await Punishments.destroy({ where: { fk_user: badUser.pk_user, type: 'warn' } });
 
 		// log the action
-		const adminLogWarnChannel = interaction.guild.channels.cache.get('1239286338256375898'); 
+		const adminLogWarnChannel = interaction.guild.channels.cache.get(ids.channels.adminWarnLogs);
 		const embed = new EmbedBuilder()
 			.setColor('#00FF00')
 			.setTitle('Warn removed')

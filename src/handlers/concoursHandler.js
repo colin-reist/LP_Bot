@@ -1,5 +1,6 @@
 const { Concours } = require('../../database/database.js');
 const logger = require('../logger.js');
+const ids = require('../../config/ids.json');
 
 /**
  * Fonction qui gère le starboard
@@ -13,7 +14,7 @@ async function starboard(reaction) {
 	if (user.bot) return;
 
 	// Check if the reaction is on a message in the right channel
-	if (reaction.message.channel.id !== '1164700276310155264') return;
+	if (reaction.message.channel.id !== ids.channels.concoursSubmission) return;
 
 	checkReaction(reaction);
 	return;
@@ -29,7 +30,7 @@ async function createConcoursParticipation(reaction, user) {
 
 	const participation = await Concours.create({
 		fk_userID: user.id,
-		count : reaction.count,
+		count: reaction.count,
 		post_link: reaction.message.url,
 	});
 	return participation;

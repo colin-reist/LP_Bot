@@ -2,14 +2,15 @@ const { Events, ActivityType, EmbedBuilder } = require('discord.js'); // Importe
 const { Concours } = require('../../../database/database'); // Importer la table Tags
 const cron = require('cron'); // Importer cron
 const logger = require('../../logger.js');
+const ids = require('../../../config/ids.json');
 
 module.exports = (client) => {
 
-	const crashLogsChannelId = '1333850350867710073'; // ID du channel où envoyer les logs de crash
+	const crashLogsChannelId = ids.channels.logs; // ID du channel où envoyer les logs de crash
 
 	process.on('uncaughtException', async (error) => {
-		logger.error('An unCaugth error has been detected :', error.stack?? error);
-		logger.error(error.message?? 'No message available');
+		logger.error('An unCaugth error has been detected :', error.stack ?? error);
+		logger.error(error.message ?? 'No message available');
 
 		try {
 			const errorEmbed = new EmbedBuilder()
@@ -29,7 +30,7 @@ module.exports = (client) => {
 			// Remplace "ID_DU_CHANNEL" par l'ID du channel où tu veux envoyer le message
 			const channel = client.channels.cache.get(crashLogsChannelId);
 			if (channel && channel.isTextBased()) {
-				await channel.send('<@551091502860730368> Tu sais pas coder')
+				await channel.send('<@' + ids.users.dev + '> Tu sais pas coder')
 				await channel.send({ embeds: [errorEmbed] });
 			}
 		} catch (err) {
@@ -48,7 +49,7 @@ module.exports = (client) => {
 				iconURL: 'https://i.imgur.com/PQtvZLa.gif',
 			});
 
-		const channel = client.channels.cache.get('1333850350867710073');
+		const channel = client.channels.cache.get(crashLogsChannelId);
 		if (channel && channel.isTextBased()) {
 			channel.send({ embeds: [startEmbed] });
 		} else {
@@ -57,8 +58,8 @@ module.exports = (client) => {
 	}
 
 	/**
-     * Tableau des status du bot
-     */
+	 * Tableau des status du bot
+	 */
 	const status = [
 		{
 			type: ActivityType.Playing,
@@ -76,8 +77,8 @@ module.exports = (client) => {
 	];
 
 	/**
-     * Event start of the bot
-     */
+	 * Event start of the bot
+	 */
 	client.once(Events.ClientReady, () => {
 		startBotLog();
 
@@ -98,15 +99,15 @@ module.exports = (client) => {
 	});
 
 	/**
-     * Fonction qui gère le concours
-     * @returns
-     */
+	 * Fonction qui gère le concours
+	 * @returns
+	 */
 	async function concours() {
 
-		const channel = client.channels.cache.get('1277507675915157524');
+		const channel = client.channels.cache.get(ids.channels.concours);
 
 		const saturdayScheduledMessage = new cron.CronJob('0 10 * * 6', () => {
-			channel.send('<@&1239680929958592524>');
+			channel.send('<@&' + ids.roles.contestAllowed + '>');
 			const mondayEmbed = new EmbedBuilder()
 				.setColor('#EBBC4E')
 				.setTitle('❗ Dernier jour pour poster ❗')
@@ -123,7 +124,7 @@ module.exports = (client) => {
 		});
 
 		const mondayScheduledMessage = new cron.CronJob('0 10 * * 1', () => {
-			// channel.send('<@&1239680929958592524>');
+			// channel.send('<@&' + ids.roles.contestAllowed + '>');
 			let maxReactCount = 0;
 			let winner = 0;
 			async function run() {
@@ -143,7 +144,7 @@ module.exports = (client) => {
 					.addFields({
 						name: '🏆 Qui est le gagnant 🏆',
 						value: 'La personne ayant le plus de votes est: \n **<@' + winner.messageAuthorId + '>** ! \n\nFélicitations à lui ! Il gagne avec '
-                            + maxReactCount + ' votes et obtient le rôle <@&1052591643544522782> !',
+							+ maxReactCount + ' votes et obtient le rôle <@&' + ids.roles.contestWinner + '> !',
 					})
 					.setImage('https://i.imgur.com/3fUmg6N.png')
 					.setColor('#EBBC4E')
@@ -160,19 +161,19 @@ module.exports = (client) => {
 		});
 
 		const sundayScheduledMessage = new cron.CronJob('0 10 * * 0', () => {
-			channel.send('<@&1239680929958592524>');
+			channel.send('<@&' + ids.roles.contestAllowed + '>');
 			const sundayEmbed = new EmbedBuilder()
 				.setTitle('🌟 Fin des publications 🌟')
 				.setDescription('La phase de publication est terminé !')
 				.addFields(
 					{
 						name: '🗳️ Phase de votes : Choisissez vos préférés ! 🗳️',
-						value: '- L\'émoji de vote et le suivant : <:LP_vote:1001230627242250392>\n- Aucune limite de vote est appliqué (nombre de vote infini)\n- Toute image dépassant 15 votes sera affichés dans <#1153607344505245736>',
+						value: '- L\'émoji de vote et le suivant : <:' + ids.emojis.vote + '>\n- Aucune limite de vote est appliqué (nombre de vote infini)\n- Toute image dépassant 15 votes sera affichés dans <#' + ids.channels.bestOfArts + '>',
 						inline: false,
 					},
 					{
 						name: '🏆 Pour le vainquer 🏆',
-						value: '- Le vainqueur est désigné directement par le bot\n- Le gagnant sera récompensé par le rôle <@&1052591643544522782>',
+						value: '- Le vainqueur est désigné directement par le bot\n- Le gagnant sera récompensé par le rôle <@&' + ids.roles.contestWinner + '>',
 						inline: false,
 					},
 				)
@@ -195,7 +196,7 @@ module.exports = (client) => {
 
 	async function smashOrPass() {
 		// IDs des catégories à scanner
-		const categoryIds = ['917158866943377509', '916879499386294292', '917202603195125780', '993871861811269704', '1039226609623912560', '916089088019427358'];
+		const categoryIds = ids.categories.smashOrPass;
 
 		// Liste pour stocker les salons des catégories spécifiées
 		const eligibleChannels = [];
@@ -205,8 +206,8 @@ module.exports = (client) => {
 			// Filtre les salons appartenant aux catégories spécifiées
 			const channels = guild.channels.cache.filter(channel =>
 				channel.isTextBased() &&
-                channel.parentId &&
-                categoryIds.includes(channel.parentId),
+				channel.parentId &&
+				categoryIds.includes(channel.parentId),
 			);
 
 			eligibleChannels.push(...channels.values());
@@ -252,11 +253,11 @@ module.exports = (client) => {
 			logger.debug(`Image sélectionnée : ${randomImage.url}`);
 
 			// Poste l'image dans un autre salon (par exemple, un salon spécifique)
-			const targetChannelId = '1052597309759828098'; // ID du salon cible
+			const targetChannelId = ids.channels.smashOrPassTarget; // ID du salon cible
 			const targetChannel = client.channels.cache.get(targetChannelId);
 
 			if (targetChannel && targetChannel.isTextBased()) {
-				await targetChannel.send('Nouveau poste ! <@&1163093412812177599>');
+				await targetChannel.send('Nouveau poste ! <@&' + ids.roles.smashOrPassPing + '>');
 				const embed = new EmbedBuilder()
 					.setTitle('✅ Smash or Pass ? ❌')
 					.setDescription(`- Image postée par : **<@${randomImage.authorId}>** \n- Salon d'origine : ${randomImage.messageUrl}`)
@@ -268,8 +269,8 @@ module.exports = (client) => {
 					});
 
 				const message = await targetChannel.send({ embeds: [embed] });
-				await message.react('<a:LP_FoxxoWow:1090350412323901490>');
-				await message.react('<:LP_FoxxoHmph:1090351249360179220>');
+				await message.react('<a:' + ids.emojis.foxxoWow + '>');
+				await message.react('<:' + ids.emojis.foxxoHmph + '>');
 				logger.debug('Image postée avec succès !');
 			} else {
 				logger.error('Le salon cible est introuvable ou non textuel.');

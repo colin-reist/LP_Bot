@@ -1,6 +1,8 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { Punishments, Users } = require('../../../database/database.js');
+const { Op } = require('sequelize');
 const logger = require('../../logger.js');
+const ids = require('../../../config/ids.json');
 
 module.exports = {
 	category: 'moderation',
@@ -59,7 +61,9 @@ module.exports = {
 				type: 'warn',
 			});
 
-			const warnCount = await Punishments.count({ where: { fk_user: user.pk_user, type: 'warn' } });
+			const threeMonthsAgo = new Date();
+			threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+			const warnCount = await Punishments.count({ where: { fk_user: user.pk_user, type: 'warn', createdAt: { [Op.gte]: threeMonthsAgo } } });
 			if (warnCount >= 3) {
 				await interaction.guild.members.ban(warnedUser.id, { reason: reason });
 				logBan(interaction, warnedUser, staffMember, reason);
@@ -90,7 +94,7 @@ async function logWarn(interaction, warnedUser, staffMember, reason) {
 
 	// Public log
 	try {
-		const publicLogChannel = interaction.guild.channels.cache.get('1310662035436077198');
+		const publicLogChannel = interaction.guild.channels.cache.get(ids.channels.publicLogs);
 		if (!publicLogChannel) {
 			throw new Error('Public log channel not found');
 		}
@@ -103,7 +107,7 @@ async function logWarn(interaction, warnedUser, staffMember, reason) {
 
 	// Admin log
 	try {
-		const adminLogWarnChannel = interaction.guild.channels.cache.get('1239286338256375898');
+		const adminLogWarnChannel = interaction.guild.channels.cache.get(ids.channels.adminWarnLogs);
 		await adminLogWarnChannel.send({ embeds: [warnEmbed] });
 	} catch (error) {
 		logger.error('Erreur lors du log admin :', error);
@@ -125,7 +129,7 @@ async function logBan(interaction, bannedUser, staffMember, reason) {
 
 	// Public log
 	try {
-		const publicLogChannel = interaction.guild.channels.cache.get('1310662035436077198');
+		const publicLogChannel = interaction.guild.channels.cache.get(ids.channels.publicLogs);
 		const message = 'L\'utilisateur <@' + bannedUser.id + '> a été banni pour la raison suivante : ';
 		await publicLogChannel.send(message);
 		await publicLogChannel.send({ embeds: [banEmbed] });
@@ -135,7 +139,7 @@ async function logBan(interaction, bannedUser, staffMember, reason) {
 
 	// Admin log
 	try {
-		const adminLogWarnChannel = interaction.guild.channels.cache.get('1238537326427115592');
+		const adminLogWarnChannel = interaction.guild.channels.cache.get(ids.channels.adminLogs);
 		await adminLogWarnChannel.send({ embeds: [banEmbed] });
 	} catch (error) {
 		logger.error('Erreur lors du log admin :', error);

@@ -2,6 +2,7 @@ const { AuditLogEvent, Events } = require('discord.js');
 const { EmbedBuilder } = require('discord.js');
 const { Users, Punishments } = require('../../../database/database.js');
 const logger = require('../../logger.js');
+const ids = require('../../../config/ids.json');
 
 /**
 * Capte la modification des rôles d'un membre
@@ -11,7 +12,7 @@ const logger = require('../../logger.js');
 */
 module.exports = (client) => {
 	client.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
-		if (!oldMember.roles.cache.has('965755928974618735') && newMember.roles.cache.has('965755928974618735')) {
+		if (!oldMember.roles.cache.has(ids.roles.boost) && newMember.roles.cache.has(ids.roles.boost)) {
 			sendBoostBenefitsEmbed(newMember);
 		}
 	});
@@ -104,7 +105,7 @@ async function logBan(interaction, bannedUser, staffMember, reason) {
 
 	// Public log
 	try {
-		const publicLogChannel = interaction.guild.channels.cache.get('1310662035436077198');
+		const publicLogChannel = interaction.guild.channels.cache.get(ids.channels.publicLogs);
 		const message = 'L\'utilisateur <@' + bannedUser.id + '> a été banni pour la raison suivante : ';
 		await publicLogChannel.send(message);
 		await publicLogChannel.send({ embeds: [banEmbed] });
@@ -114,7 +115,7 @@ async function logBan(interaction, bannedUser, staffMember, reason) {
 
 	// Admin log
 	try {
-		const adminLogWarnChannel = interaction.guild.channels.cache.get('1238537326427115592');
+		const adminLogWarnChannel = interaction.guild.channels.cache.get(ids.channels.adminLogs);
 		await adminLogWarnChannel.send({ embeds: [banEmbed] });
 	} catch (error) {
 		logger.error('Erreur lors du log admin :', error);
@@ -122,7 +123,7 @@ async function logBan(interaction, bannedUser, staffMember, reason) {
 }
 
 function sendBoostBenefitsEmbed(member) {
-	const channel = member.guild.channels.cache.get('1061643658723590164');
+	const channel = member.guild.channels.cache.get(ids.channels.boosters);
 	if (!channel) {
 		logger.error('Le salon boost est introuvable.');
 		return;
@@ -136,7 +137,7 @@ function sendBoostBenefitsEmbed(member) {
 		.addFields(
 			{
 				name: '🔹 Un rôle unique',
-				value: 'Tu as maintenant le droit à ton propre rôle ! \nIl te suffit de donner au staff le nom, la couleur et l\'image que tu veux. \nOuvre un ticket dans <#1251070987194077215> pour en discuter.',
+				value: 'Tu as maintenant le droit à ton propre rôle ! \nIl te suffit de donner au staff le nom, la couleur et l\'image que tu veux. \nOuvre un ticket dans <#' + ids.channels.tickets + '> pour en discuter.',
 				inline: false,
 			},
 			{
@@ -146,7 +147,7 @@ function sendBoostBenefitsEmbed(member) {
 			},
 			{
 				name: '🔹 Des salons exclusifs',
-				value: 'Tu as maintenant accès au salon vocal <#1066497879000227951> pour discuter avec les autres boosters ! \nTu as aussi accès au salon textuel <#1066497794799579136> pour discuter de tout et de rien.',
+				value: 'Tu as maintenant accès au salon vocal <#' + ids.channels.voiceBoosters + '> pour discuter avec les autres boosters ! \nTu as aussi accès au salon textuel <#' + ids.channels.textBoosters + '> pour discuter de tout et de rien.',
 				inline: false,
 			},
 		)

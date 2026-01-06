@@ -1,6 +1,7 @@
 const { Events } = require('discord.js');
 const { starboard } = require('../../handlers/concoursHandler.js');
 const logger = require('../../logger.js');
+const ids = require('../../../config/ids.json');
 
 module.exports = (client) => {
 	client.on(Events.MessageReactionRemove, async (reaction) => {
@@ -15,7 +16,7 @@ module.exports = (client) => {
 };
 
 async function checkReaction(reaction, addOrRemove, client) {
-	if (reaction.message.channel.id === '1079499858064441344' || reaction.message.channel.id === '1153607344505245736') {
+	if (reaction.message.channel.id === ids.channels.arts || reaction.message.channel.id === ids.channels.bestOfArts) {
 		starboard(reaction, addOrRemove, client);
 	}
 }

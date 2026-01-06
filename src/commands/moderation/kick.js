@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
 const { Users, Punishments } = require('../../../database/database.js');
+const ids = require('../../../config/ids.json');
 
 module.exports = {
     category: 'moderation',
@@ -72,33 +73,33 @@ module.exports = {
 };
 
 async function logKick(interaction, kickedUser, staffMember, reason) {
-	const warnEmbed = new EmbedBuilder()
-			.setColor('#FF0000')
-			.setTitle('Kick')
-			.setDescription('Un utilisateur a été kick.')
-			.addFields(
-				{ name: 'Utilisateur', value: `<@${kickedUser.id}>`, inline: true },
-				{ name: 'Raison', value: reason, inline: true },
-				{ name: 'Staff', value: `<@${staffMember.id}>`, inline: true }
-			)
-			.setTimestamp()
-			.setThumbnail(kickedUser.displayAvatarURL());
+    const warnEmbed = new EmbedBuilder()
+        .setColor('#FF0000')
+        .setTitle('Kick')
+        .setDescription('Un utilisateur a été kick.')
+        .addFields(
+            { name: 'Utilisateur', value: `<@${kickedUser.id}>`, inline: true },
+            { name: 'Raison', value: reason, inline: true },
+            { name: 'Staff', value: `<@${staffMember.id}>`, inline: true }
+        )
+        .setTimestamp()
+        .setThumbnail(kickedUser.displayAvatarURL());
 
-	// Public log
-	try {
-		const publicLogChannel = interaction.guild.channels.cache.get('1310662035436077198');
-		const message = 'L\'utilisateur <@'+ kickedUser.id  + '> a été averti pour la raison suivante : ';
-		await publicLogChannel.send(message);
-		await publicLogChannel.send({ embeds: [warnEmbed] });
-	} catch (error) {
-		logger.error('Erreur lors du log public :', error);
-	}
+    // Public log
+    try {
+        const publicLogChannel = interaction.guild.channels.cache.get(ids.channels.publicLogs);
+        const message = 'L\'utilisateur <@' + kickedUser.id + '> a été averti pour la raison suivante : ';
+        await publicLogChannel.send(message);
+        await publicLogChannel.send({ embeds: [warnEmbed] });
+    } catch (error) {
+        logger.error('Erreur lors du log public :', error);
+    }
 
-	// Admin log§
-	try{
-		const adminLogWarnChannel = interaction.guild.channels.cache.get('1239286338256375898'); 
-		await adminLogWarnChannel.send({ embeds: [warnEmbed] });
-	} catch (error) {
-		logger.error('Erreur lors du log admin :', error);
-	}
+    // Admin log§
+    try {
+        const adminLogWarnChannel = interaction.guild.channels.cache.get(ids.channels.adminWarnLogs);
+        await adminLogWarnChannel.send({ embeds: [warnEmbed] });
+    } catch (error) {
+        logger.error('Erreur lors du log admin :', error);
+    }
 }
