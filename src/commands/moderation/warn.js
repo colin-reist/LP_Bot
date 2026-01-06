@@ -1,8 +1,10 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { Punishments, Users } = require('../../../database/database.js');
+const { SlashCommandBuilder } = require('discord.js');
+const { Punishments } = require('#database');
 const { Op } = require('sequelize');
-const logger = require('../../logger.js');
-const ids = require('../../../config/ids.json');
+const logger = require('#logger');
+const { ensureUserExists } = require('#utils/databaseUtils.js');
+const { logModerationAction } = require('#utils/loggerUtils.js');
+const { hasStaffRole } = require('#utils/permissionUtils.js');
 
 module.exports = {
 	category: 'moderation',
@@ -25,33 +27,18 @@ module.exports = {
 				return interaction.editReply({ content: 'Impossible de récupérer l\'utilisateur, à t\'il quitté le serveur ?', ephemeral: true });
 			}
 
-
 			const reason = interaction.options.getString('raison');
 			const staffMember = interaction.member.user;
 			if (!staffMember) {
 				return interaction.editReply({ content: 'Impossible de récupérer le responsable', ephemeral: true });
 			}
 
-			const requiredRole = interaction.guild.roles.cache.find(role => role.name === 'Staff');
-			if (!interaction.member.roles.cache.has(requiredRole.id)) {
+			if (!hasStaffRole(interaction)) {
 				return interaction.editReply({ content: 'Vous n\'avez pas les permissions nécessaires pour utiliser cette commande.', ephemeral: true });
 			}
 
-			let user = await Users.findOne({ where: { discord_identifier: warnedUser.id } });
-			if (!user) {
-				user = await Users.create({
-					discord_identifier: warnedUser.id,
-					username: warnedUser.username,
-				});
-			}
-
-			let punisher = await Users.findOne({ where: { discord_identifier: staffMember.id } });
-			if (!punisher) {
-				punisher = await Users.create({
-					discord_identifier: staffMember.id,
-					username: staffMember.username,
-				});
-			}
+			const user = await ensureUserExists(warnedUser.id, warnedUser.username);
+			const punisher = await ensureUserExists(staffMember.id, staffMember.username);
 
 			logger.debug('user', user);
 			await Punishments.create({
@@ -64,11 +51,12 @@ module.exports = {
 			const threeMonthsAgo = new Date();
 			threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
 			const warnCount = await Punishments.count({ where: { fk_user: user.pk_user, type: 'warn', createdAt: { [Op.gte]: threeMonthsAgo } } });
+
 			if (warnCount >= 3) {
 				await interaction.guild.members.ban(warnedUser.id, { reason: reason });
-				logBan(interaction, warnedUser, staffMember, reason);
+				await logModerationAction(interaction, warnedUser, staffMember, reason, 'Ban');
 			} else {
-				logWarn(interaction, warnedUser, staffMember, reason);
+				await logModerationAction(interaction, warnedUser, staffMember, reason, 'Warn');
 			}
 
 			await interaction.editReply({ content: `L'utilisateur <@${warnedUser.id}> a été averti pour la raison suivante : ${reason}`, ephemeral: true });
@@ -78,70 +66,3 @@ module.exports = {
 		}
 	},
 };
-
-async function logWarn(interaction, warnedUser, staffMember, reason) {
-	const warnEmbed = new EmbedBuilder()
-		.setColor('#FF0000')
-		.setTitle('Warn')
-		.setDescription('Un utilisateur a été averti.')
-		.addFields(
-			{ name: 'Utilisateur', value: `<@${warnedUser.id}>`, inline: true },
-			{ name: 'Raison', value: reason, inline: true },
-			{ name: 'Staff', value: `<@${staffMember.id}>`, inline: true },
-		)
-		.setTimestamp()
-		.setThumbnail(warnedUser.displayAvatarURL());
-
-	// Public log
-	try {
-		const publicLogChannel = interaction.guild.channels.cache.get(ids.channels.publicLogs);
-		if (!publicLogChannel) {
-			throw new Error('Public log channel not found');
-		}
-		const message = 'L\'utilisateur <@' + warnedUser.id + '> a été averti pour la raison suivante : ';
-		await publicLogChannel.send(message);
-		await publicLogChannel.send({ embeds: [warnEmbed] });
-	} catch (error) {
-		logger.error('Erreur lors du log public :', error);
-	}
-
-	// Admin log
-	try {
-		const adminLogWarnChannel = interaction.guild.channels.cache.get(ids.channels.adminWarnLogs);
-		await adminLogWarnChannel.send({ embeds: [warnEmbed] });
-	} catch (error) {
-		logger.error('Erreur lors du log admin :', error);
-	}
-}
-
-async function logBan(interaction, bannedUser, staffMember, reason) {
-	const banEmbed = new EmbedBuilder()
-		.setColor('#FF0000')
-		.setTitle('Ban')
-		.setDescription('Un utilisateur a été banni')
-		.addFields(
-			{ name: 'Utilisateur', value: `<@${bannedUser.id}>`, inline: true },
-			{ name: 'Raison', value: reason, inline: true },
-			{ name: 'Staff', value: `<@${staffMember.id}>`, inline: true },
-		)
-		.setTimestamp()
-		.setThumbnail(bannedUser.displayAvatarURL());
-
-	// Public log
-	try {
-		const publicLogChannel = interaction.guild.channels.cache.get(ids.channels.publicLogs);
-		const message = 'L\'utilisateur <@' + bannedUser.id + '> a été banni pour la raison suivante : ';
-		await publicLogChannel.send(message);
-		await publicLogChannel.send({ embeds: [banEmbed] });
-	} catch (error) {
-		logger.error('Erreur lors du log public :', error);
-	}
-
-	// Admin log
-	try {
-		const adminLogWarnChannel = interaction.guild.channels.cache.get(ids.channels.adminLogs);
-		await adminLogWarnChannel.send({ embeds: [banEmbed] });
-	} catch (error) {
-		logger.error('Erreur lors du log admin :', error);
-	}
-}

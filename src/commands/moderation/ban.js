@@ -1,7 +1,9 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { Users, Punishments } = require('../../../database/database.js');
-const logger = require('../../logger.js');
-const ids = require('../../../config/ids.json');
+const { SlashCommandBuilder } = require('discord.js');
+const { Punishments } = require('#database');
+const logger = require('#logger');
+const { ensureUserExists } = require('#utils/databaseUtils.js');
+const { logModerationAction } = require('#utils/loggerUtils.js');
+const { hasStaffRole } = require('#utils/permissionUtils.js');
 
 module.exports = {
 	category: 'moderation',
@@ -21,98 +23,44 @@ module.exports = {
 			return interaction.editReply({ content: 'Impossible de récupérer le responsable', ephemeral: true });
 		}
 
-		const requiredRole = interaction.guild.roles.cache.find(role => role.name === 'Staff');
-		if (!interaction.member.roles.cache.has(requiredRole.id)) {
+		if (!hasStaffRole(interaction)) {
 			return interaction.editReply({ content: 'Vous n\'avez pas les permissions nécessaires pour utiliser cette commande.', ephemeral: true });
 		}
 
-		let user = await Users.findOne({ where: { discord_identifier: bannedUser.id } });
+		// Creating DB entries and logging via Command to ensure reliability
+		// We will need to update the Event handler to not re-log if it's already done.
 		try {
-			if (!user) {
-				user = await Users.create({
-					discord_identifier: bannedUser.id,
-					username: bannedUser.username,
-					experience: 1,
-				});
-			}
-		} catch (error) {
-			logger.error('Erreur lors de l\'enregistrement de l\'utilisateur dans la base de données', error);
-			interaction.editReply({ content: 'Erreur lors de l\'enregistrement de l\'utilisateur dans la base de données', ephemeral: true });
-		}
+			const user = await ensureUserExists(bannedUser.id, bannedUser.username);
+			const punisher = await ensureUserExists(staffMember.id, staffMember.username);
 
-		let punisher = await Users.findOne({ where: { discord_identifier: staffMember.id } });
-		try {
-			if (!punisher) {
-				punisher = await Users.create({
-					discord_identifier: staffMember.id,
-					username: staffMember.username,
-					experience: 1,
-				});
-			}
-		} catch (error) {
-			logger.error('Erreur lors du rajout du nouveau membre staff dans la base de données.', error);
-			interaction.editReply({ content: 'Erreur lors du rajout du nouveau membre staff dans la base de données.', ephemeral: true });
-		}
-
-		try {
 			await Punishments.create({
 				fk_user: user.pk_user,
 				fk_punisher: punisher.pk_user,
 				reason: reason,
 				type: 'ban',
 			});
+
+			deleteAllUserMessages(interaction.guild, bannedUser.id);
+
+			// Log
+			await logModerationAction(interaction, bannedUser, staffMember, reason, 'Ban');
+
+			// Actual Ban
+			try {
+				await interaction.guild.members.ban(bannedUser.id, { reason: reason });
+			} catch (error) {
+				logger.error('Erreur lors du ban de l\'utilisateur' + error);
+				return interaction.editReply({ content: 'Erreur lors de la tentative de ban Discord: ' + error.message, ephemeral: true });
+			}
+
+			await interaction.editReply({ content: `L'utilisateur <@${bannedUser.id}> a été banni pour la raison suivante : ${reason}`, ephemeral: true });
+
 		} catch (error) {
 			logger.error('Erreur lors de l\'enregistrement de la punition dans la base de données : ', error);
 			interaction.editReply({ content: 'Erreur lors de l\'enregistrement de la punition dans la base de données', ephemeral: true });
 		}
-
-		deleteAllUserMessages(interaction.guild, bannedUser.id);
-
-		// logBan(interaction, bannedUser, staffMember, reason);
-
-		// Ban l'utilisateur
-		try {
-			await interaction.guild.members.ban(bannedUser.id, { reason: reason });
-		} catch (error) {
-			logger.error('Erreur lors du ban de l\'utilisateur' + error);
-		}
-
-		await interaction.editReply({ content: `L'utilisateur <@${bannedUser.id}> a été banni pour la raison suivante : ${reason}`, ephemeral: true });
 	},
 };
-
-async function logBan(interaction, bannedUser, staffMember, reason) {
-	const banEmbed = new EmbedBuilder()
-		.setColor('#FF0000')
-		.setTitle('Ban')
-		.setDescription('Un utilisateur a été banni')
-		.addFields(
-			{ name: 'Utilisateur', value: `<@${bannedUser.id}>`, inline: true },
-			{ name: 'Raison', value: reason, inline: true },
-			{ name: 'Staff', value: `<@${staffMember.id}>`, inline: true },
-		)
-		.setTimestamp()
-		.setThumbnail(bannedUser.displayAvatarURL());
-
-	// Public log
-	try {
-		const publicLogChannel = interaction.guild.channels.cache.get(ids.channels.publicLogs);
-		const message = 'L\'utilisateur <@' + bannedUser.id + '> a été banni pour la raison suivante : ';
-		await publicLogChannel.send(message);
-		await publicLogChannel.send({ embeds: [banEmbed] });
-	} catch (error) {
-		logger.error('Erreur lors du log public :', error);
-	}
-
-	// Admin log
-	try {
-		const adminLogWarnChannel = interaction.guild.channels.cache.get(ids.channels.adminLogs);
-		await adminLogWarnChannel.send({ embeds: [banEmbed] });
-	} catch (error) {
-		logger.error('Erreur lors du log admin :', error);
-	}
-}
-
 
 async function deleteAllUserMessages(guild, userId) {
 	const textChannels = guild.channels.cache.filter(

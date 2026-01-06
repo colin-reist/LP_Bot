@@ -24,6 +24,7 @@ async function handleBanUser(ban) {
 	let staffMember = null;
 	let reason = ban.reason || 'Aucune raison fournie';
 
+	// Wait a bit to ensure Audit Logs are generated
 	try {
 		await new Promise(resolve => setTimeout(resolve, 1000));
 		const fetchedLogs = await guild.fetchAuditLogs({
@@ -33,7 +34,7 @@ async function handleBanUser(ban) {
 
 		const banLog = fetchedLogs.entries.find(entry =>
 			entry.target.id === user.id &&
-			Date.now() - entry.createdTimestamp < 5000,
+			Date.now() - entry.createdTimestamp < 10000, // 10s window
 		);
 
 		if (banLog) {
@@ -41,84 +42,61 @@ async function handleBanUser(ban) {
 			try {
 				staffMember = await guild.members.fetch(banLog.executor.id);
 			} catch {
-				staffMember = null;
+				staffMember = null; // Could happen if executor left?
 			}
 		}
 	} catch (error) {
 		logger.error('Erreur lors de la récupération des logs d\'audit :', error);
 	}
 
-	await logBan(ban, user, staffMember, reason);
-	await registerBan(user, staffMember, reason);
-}
+	// Default punishment executor if unknown (e.g. Bot itself if needed, or Unknown)
+	// If staffMember is null, we can't create a 'User' for them easily unless we have at least an ID.
+	// However, if the ban came from the command, the Punishments entry ALREADY exists.
 
-async function registerBan(bannedUser, staffMember, reason) {
-	let user = await Users.findOne({ where: { discord_identifier: bannedUser.id } });
+	// Check if punishment already exists (created by command within last 10s)
 	try {
-		if (!user) {
-			user = await Users.create({
-				discord_identifier: bannedUser.id,
-				username: bannedUser.username,
-			});
-		}
-	} catch (error) {
-		logger.error('Erreur lors de l\'enregistrement de l\'utilisateur dans la base de données', error);
-	}
+		const { ensureUserExists } = require('../../utils/databaseUtils.js');
+		const userDb = await ensureUserExists(user.id, user.username);
 
-	let punisher = await Users.findOne({ where: { discord_identifier: staffMember.id } });
-	try {
-		if (!punisher) {
-			punisher = await Users.create({
-				discord_identifier: staffMember.id,
-				username: staffMember.username,
-			});
-		}
-	} catch (error) {
-		logger.error('Erreur lors du rajout du nouveau membre staff dans la base de données.', error);
-	}
+		const { Op } = require('sequelize');
+		const tenSecondsAgo = new Date(Date.now() - 10000);
 
-	try {
-		await Punishments.create({
-			fk_user: user.pk_user,
-			fk_punisher: punisher.pk_user,
-			reason: reason,
-			type: 'ban',
+		const recentBan = await Punishments.findOne({
+			where: {
+				fk_user: userDb.pk_user,
+				type: 'ban',
+				createdAt: { [Op.gte]: tenSecondsAgo }
+			}
 		});
+
+		if (recentBan) {
+			logger.debug(`Ban check: Punishment already registered for ${user.tag} (likely via command). Skipping event logging.`);
+			return;
+		}
+
+		// If we are here, it's a manual ban (Right click -> Ban)
+		// We need to register it.
+		if (staffMember) {
+			const { logModerationAction } = require('../../utils/loggerUtils.js');
+			const punisherDb = await ensureUserExists(staffMember.id, staffMember.user.username);
+
+			await Punishments.create({
+				fk_user: userDb.pk_user,
+				fk_punisher: punisherDb.pk_user,
+				reason: reason,
+				type: 'ban',
+			});
+
+			// We need a context for logModerationAction that has 'guild'. 
+			// The function expects 'interaction', but uses 'interaction.guild'.
+			// Pass a mock object with guild.
+			await logModerationAction({ guild: guild }, user, staffMember.user, reason, 'Ban');
+		} else {
+			logger.warn(`Manual ban detected for ${user.tag} but could not identify staff member. Skipping DB/Log to avoid bad data.`);
+		}
+
 	} catch (error) {
-		logger.error('Erreur lors de l\'enregistrement de la punition dans la base de données : ', error);
-	}
-}
-
-
-async function logBan(interaction, bannedUser, staffMember, reason) {
-	const banEmbed = new EmbedBuilder()
-		.setColor('#FF0000')
-		.setTitle('Ban')
-		.setDescription('Un utilisateur a été banni')
-		.addFields(
-			{ name: 'Utilisateur', value: `<@${bannedUser.id}>`, inline: true },
-			{ name: 'Raison', value: reason, inline: true },
-			{ name: 'Staff', value: `<@${staffMember.id}>`, inline: true },
-		)
-		.setTimestamp()
-		.setThumbnail(bannedUser.displayAvatarURL());
-
-	// Public log
-	try {
-		const publicLogChannel = interaction.guild.channels.cache.get(ids.channels.publicLogs);
-		const message = 'L\'utilisateur <@' + bannedUser.id + '> a été banni pour la raison suivante : ';
-		await publicLogChannel.send(message);
-		await publicLogChannel.send({ embeds: [banEmbed] });
-	} catch (error) {
-		logger.error('Erreur lors du log public :', error);
-	}
-
-	// Admin log
-	try {
-		const adminLogWarnChannel = interaction.guild.channels.cache.get(ids.channels.adminLogs);
-		await adminLogWarnChannel.send({ embeds: [banEmbed] });
-	} catch (error) {
-		logger.error('Erreur lors du log admin :', error);
+		logger.error('Error handling GuildBanAdd event:', error);
 	}
 }
 

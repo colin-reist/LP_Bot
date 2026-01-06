@@ -2,6 +2,12 @@
     "scripts": {
         "start": "node src/index.js"
     },
+    "imports": {
+        "#database": "./database/database.js",
+        "#config/ids": "./config/ids.json",
+        "#utils/*": "./src/utils/*.js",
+        "#logger": "./src/logger.js"
+    },
     "dependencies": {
         "archiver": "^7.0.1",
         "axios": "^1.7.9",

@@ -1,6 +1,10 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { Punishments, Users } = require('../../../database/database.js');
-const ids = require('../../../config/ids.json');
+const { SlashCommandBuilder } = require('discord.js');
+const { Punishments, Users } = require('#database');
+const ids = require('#config/ids');
+const { hasStaffRole } = require('#utils/permissionUtils.js');
+const { logModerationAction } = require('#utils/loggerUtils.js');
+const logger = require('#logger');
+
 module.exports = {
 	category: 'moderation',
 	data: new SlashCommandBuilder()
@@ -10,8 +14,7 @@ module.exports = {
 		.setDescription('Retire le warn d\'un utilisateur du serveur'),
 	async execute(interaction) {
 		// Check if the user has the required role
-		const requiredRole = interaction.guild.roles.cache.find(role => role.name === 'Staff');
-		if (!interaction.member.roles.cache.has(requiredRole.id)) {
+		if (!hasStaffRole(interaction)) {
 			return interaction.reply({ content: 'You do not have the required role to use this command.', ephemeral: true });
 		}
 
@@ -20,31 +23,28 @@ module.exports = {
 
 		// Check if the user has been warned
 		const user = await Users.findOne({ where: { discord_identifier: unWarnedUser.id } });
-		if (!Users) {
-			return interaction.reply({ content: 'This user has not been warned.', ephemeral: true });
+		if (!user) {
+			return interaction.reply({ content: 'This user has not been warned (user not in DB).', ephemeral: true });
 		}
-		const warnCount = await Punishments.count({ where: { fk_user: unWarnedUser.id, type: 'warn' } });
+		const warnCount = await Punishments.count({ where: { fk_user: user.pk_user, type: 'warn' } });
 		if (warnCount === 0) {
 			return interaction.reply({ content: '⚠️This user has not been warned.', ephemeral: true });
 		}
 
-		// Remove the warn
-		await Punishments.destroy({ where: { fk_user: badUser.pk_user, type: 'warn' } });
+		const lastWarn = await Punishments.findOne({
+			where: { fk_user: user.pk_user, type: 'warn' },
+			order: [['createdAt', 'DESC']]
+		});
+
+		if (lastWarn) {
+			await lastWarn.destroy();
+		} else {
+			return interaction.reply({ content: 'Could not find a warn to delete.', ephemeral: true });
+		}
 
 		// log the action
-		const adminLogWarnChannel = interaction.guild.channels.cache.get(ids.channels.adminWarnLogs);
-		const embed = new EmbedBuilder()
-			.setColor('#00FF00')
-			.setTitle('Warn removed')
-			.setDescription(`The warn of ${unWarnedUser.username} has been removed by ${interaction.user.username}`)
-			.addFields({
-				name: 'Reason',
-				value: reason,
-			})
-			.setFooter({
-				text: 'Lewd Paradise au service de tout les hornys',
-				iconURL: 'https://i.imgur.com/PQtvZLa.gif',
-			});
-		adminLogWarnChannel.send({ embeds: [embed] });
+		await logModerationAction(interaction, unWarnedUser, interaction.user, reason, 'Warn Removed', '#00FF00'); // Green color for removal
+
+		await interaction.reply({ content: `Removed warn for ${unWarnedUser.username}`, ephemeral: true });
 	}
 };

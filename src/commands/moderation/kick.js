@@ -1,6 +1,9 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
-const { Users, Punishments } = require('../../../database/database.js');
-const ids = require('../../../config/ids.json');
+const { SlashCommandBuilder } = require('discord.js');
+const { Punishments } = require('#database');
+const logger = require('#logger');
+const { ensureUserExists } = require('#utils/databaseUtils.js');
+const { logModerationAction } = require('#utils/loggerUtils.js');
+const { hasStaffRole } = require('#utils/permissionUtils.js');
 
 module.exports = {
     category: 'moderation',
@@ -22,29 +25,15 @@ module.exports = {
 
         await interaction.deferReply({ ephemeral: true });
 
-        const requiredRole = interaction.guild.roles.cache.find(role => role.name === 'Staff');
-        if (!interaction.member.roles.cache.has(requiredRole?.id)) {
-            return interaction.reply({ content: 'Vous n\'avez pas les permissions pour utiliser cette commande.', ephemeral: true });
+        if (!hasStaffRole(interaction)) {
+            return interaction.editReply({ content: 'Vous n\'avez pas les permissions pour utiliser cette commande.', ephemeral: true });
         }
 
-        await interaction.reply({ content: 'Traitement du kick en cours...', ephemeral: true });
+        await interaction.editReply({ content: 'Traitement du kick en cours...', ephemeral: true });
 
         try {
-            let user = await Users.findOne({ where: { discord_identifier: kickedUser.id } });
-            if (!user) {
-                user = await Users.create({
-                    discord_identifier: kickedUser.id,
-                    username: kickedUser.username,
-                });
-            }
-
-            let punisher = await Users.findOne({ where: { discord_identifier: staffMember.id } });
-            if (!punisher) {
-                punisher = await Users.create({
-                    discord_identifier: staffMember.id,
-                    username: staffMember.username,
-                });
-            }
+            const user = await ensureUserExists(kickedUser.id, kickedUser.username);
+            const punisher = await ensureUserExists(staffMember.id, staffMember.username);
 
             await Punishments.create({
                 fk_user: user.pk_user,
@@ -52,8 +41,6 @@ module.exports = {
                 reason: reason,
                 type: 'kick',
             });
-
-            logKick(interaction, kickedUser, staffMember, reason);
 
             // Kick l'utilisateur
             try {
@@ -63,6 +50,7 @@ module.exports = {
                 return interaction.editReply({ content: 'Une erreur est survenue lors du kick de l\'utilisateur.', ephemeral: true });
             }
 
+            await logModerationAction(interaction, kickedUser, staffMember, reason, 'Kick');
             return interaction.editReply({ content: `L'utilisateur <@${kickedUser.id}> a été kick pour la raison suivante : ${reason}` });
 
         } catch (error) {
@@ -71,35 +59,3 @@ module.exports = {
         }
     }
 };
-
-async function logKick(interaction, kickedUser, staffMember, reason) {
-    const warnEmbed = new EmbedBuilder()
-        .setColor('#FF0000')
-        .setTitle('Kick')
-        .setDescription('Un utilisateur a été kick.')
-        .addFields(
-            { name: 'Utilisateur', value: `<@${kickedUser.id}>`, inline: true },
-            { name: 'Raison', value: reason, inline: true },
-            { name: 'Staff', value: `<@${staffMember.id}>`, inline: true }
-        )
-        .setTimestamp()
-        .setThumbnail(kickedUser.displayAvatarURL());
-
-    // Public log
-    try {
-        const publicLogChannel = interaction.guild.channels.cache.get(ids.channels.publicLogs);
-        const message = 'L\'utilisateur <@' + kickedUser.id + '> a été averti pour la raison suivante : ';
-        await publicLogChannel.send(message);
-        await publicLogChannel.send({ embeds: [warnEmbed] });
-    } catch (error) {
-        logger.error('Erreur lors du log public :', error);
-    }
-
-    // Admin log§
-    try {
-        const adminLogWarnChannel = interaction.guild.channels.cache.get(ids.channels.adminWarnLogs);
-        await adminLogWarnChannel.send({ embeds: [warnEmbed] });
-    } catch (error) {
-        logger.error('Erreur lors du log admin :', error);
-    }
-}
