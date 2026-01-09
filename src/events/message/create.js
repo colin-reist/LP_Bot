@@ -30,7 +30,7 @@ function bumpHandler(message) {
 		const codeText = '/Bump';
 		message.channel.send('Merci d\'avoir bump le serveur <@' + message.interaction.user.id + '> !' + '\nNous vous rappelerons dans 2 heures de bump le serveur !');
 		setTimeout(() => {
-			message.channel.send('Il est temps de Bump ! <@&' + ids.roles.boost + '> !');
+			message.channel.send('Il est temps de Bump ! <@&' + ids.roles.bumpPing + '> !');
 			const embed = new EmbedBuilder()
 				.setColor('#EBBC4E')
 				.setTitle('Il est temps de Bump !')
