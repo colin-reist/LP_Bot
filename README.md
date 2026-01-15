@@ -14,23 +14,39 @@ Bot Discord pour Lewd Paradise avec commandes slash, gestion des niveaux et tâc
    `npm install`
 
 ## Configuration
-Crée `config/config.json` (le fichier n’est pas versionné) avec tes identifiants Discord et SQL :
-```json
-{
-  "token": "TON_TOKEN_BOT_DISCORD",
-  "clientId": "ID_APPLICATION_DISCORD",
-  "guildId": "ID_DU_SERVEUR_POUR_LES_COMMANDES",
-  "database": "NOM_DE_BASE",
-  "user": "UTILISATEUR_SQL",
-  "password": "MOT_DE_PASSE_SQL",
-  "loggerLevel": "debug"
-}
+
+### Variables d'Environnement
+
+Créez un fichier `.env` à la racine du projet (un template `.env.example` est fourni) :
+
+```env
+# Discord Configuration
+DISCORD_TOKEN=votre_token_bot_discord
+DISCORD_CLIENT_ID=votre_client_id
+DISCORD_GUILD_ID=votre_guild_id
+
+# Database Configuration
+DB_HOST=votre_host_mysql
+DB_NAME=votre_base_de_donnees
+DB_USER=votre_utilisateur_sql
+DB_PASSWORD=votre_mot_de_passe_sql
+DB_DIALECT=mysql
+
+# Logging Configuration
+LOG_LEVEL=debug
+
+# Environment
+NODE_ENV=production
 ```
-- `token` : token du bot.  
-- `clientId` : Application ID (aussi appelé Client ID).  
-- `guildId` : serveur où déployer les commandes slash.  
-- `database`, `user`, `password` : accès MySQL utilisé par Sequelize.  
-- `loggerLevel` : niveau de logs (`debug`, `info`, etc.).
+
+**Variables importantes:**
+- `DISCORD_TOKEN` : Token du bot Discord
+- `DISCORD_CLIENT_ID` : Application ID (Client ID) de votre bot
+- `DISCORD_GUILD_ID` : ID du serveur pour déployer les commandes slash
+- `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` : Accès MySQL utilisé par Sequelize
+- `LOG_LEVEL` : Niveau de logs (`debug`, `info`, `warn`, `error`)
+
+⚠️ **Sécurité:** Le fichier `.env` contient des secrets et ne doit JAMAIS être commité sur Git. Il est déjà listé dans `.gitignore`.
 
 À la première exécution, un fichier `scripts/commands.json` est généré pour versionner les commandes slash.
 

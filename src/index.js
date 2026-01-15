@@ -1,10 +1,18 @@
 /* eslint-disable no-inline-comments */
+require('dotenv').config();
+
 const fs = require('node:fs');
 const path = require('node:path');
 const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
-const { token } = require('../config/config.json');
 const logger = require('./logger.js');
 const { exec } = require('child_process');
+
+// Validation des variables d'environnement critiques
+const token = process.env.DISCORD_TOKEN;
+if (!token) {
+	logger.error('DISCORD_TOKEN manquant dans .env');
+	process.exit(1);
+}
 
 const client = new Client({
 	intents: [
