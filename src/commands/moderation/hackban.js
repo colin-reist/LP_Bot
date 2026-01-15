@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagBits } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const { bans, badUsers: badUserModel, staffMembers } = require('../../../database/database.js');
 const logger = require('../../logger.js');
 
@@ -7,14 +7,14 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('hackban')
 		.setDescription('Ban un utilisateur qui n\'est pas sur le serveur')
-		.setDefaultMemberPermissions(PermissionFlagBits.BanMembers)
+		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 		.addStringOption(option => option.setName('id').setDescription('L\'identifiant de la personne à bannir').setRequired(true))
 		.addStringOption(option => option.setName('raison').setDescription('La raison du ban').setRequired(true)),
 	async execute(interaction) {
 		await interaction.reply({ content: 'Ban en cours...', ephemeral: true });
 
 		// Double vérification des permissions (sécurité renforcée)
-		if (!interaction.memberPermissions.has(PermissionFlagBits.BanMembers)) {
+		if (!interaction.memberPermissions.has(PermissionFlagsBits.BanMembers)) {
 			return interaction.editReply({
 				content: '❌ Vous n\'avez pas la permission `Bannir des membres`.',
 				ephemeral: true

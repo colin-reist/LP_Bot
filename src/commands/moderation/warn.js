@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { Punishments } = require('#database');
 const { Op } = require('sequelize');
 const logger = require('#logger');
@@ -11,7 +11,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('warn')
 		.setDescription('Warn un utilisateur du serveur')
-		.setDefaultMemberPermissions(PermissionFlagBits.ModerateMembers)
+		.setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
 		.addUserOption(option =>
 			option.setName('utilisateur')
 				.setDescription('L\'utilisateur à warnir')
@@ -24,7 +24,7 @@ module.exports = {
 		await interaction.deferReply({ ephemeral: true });
 		try {
 			// Double vérification des permissions (sécurité renforcée)
-			if (!interaction.memberPermissions.has(PermissionFlagBits.ModerateMembers)) {
+			if (!interaction.memberPermissions.has(PermissionFlagsBits.ModerateMembers)) {
 				return interaction.editReply({
 					content: '❌ Vous n\'avez pas la permission `Modérer les membres`.',
 					ephemeral: true

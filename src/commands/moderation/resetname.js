@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { hasStaffRole } = require('#utils/permissionUtils');
 
 module.exports = {
@@ -6,11 +6,11 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('resetname')
 		.setDescription('Réinitialise le nom d\'un utilisateur')
-		.setDefaultMemberPermissions(PermissionFlagBits.ManageNicknames)
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageNicknames)
 		.addUserOption(option => option.setName('user').setDescription('The user to reset the name').setRequired(true)),
 	async execute(interaction) {
 		// Double vérification des permissions (sécurité renforcée)
-		if (!interaction.memberPermissions.has(PermissionFlagBits.ManageNicknames)) {
+		if (!interaction.memberPermissions.has(PermissionFlagsBits.ManageNicknames)) {
 			return interaction.reply({
 				content: '❌ Vous n\'avez pas la permission `Gérer les pseudos`.',
 				ephemeral: true

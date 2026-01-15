@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { Punishments } = require('#database');
 const logger = require('#logger');
 const { ensureUserExists } = require('#utils/databaseUtils');
@@ -10,14 +10,14 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('ban')
 		.setDescription('Ban un utilisateur du serveur')
-		.setDefaultMemberPermissions(PermissionFlagBits.BanMembers)
+		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 		.addUserOption(option => option.setName('utilisateur').setDescription('La personne à bannir').setRequired(true))
 		.addStringOption(option => option.setName('raison').setDescription('La raison du ban').setRequired(true)),
 	async execute(interaction) {
 		await interaction.deferReply({ ephemeral: true });
 
 		// Double vérification des permissions (sécurité renforcée)
-		if (!interaction.memberPermissions.has(PermissionFlagBits.BanMembers)) {
+		if (!interaction.memberPermissions.has(PermissionFlagsBits.BanMembers)) {
 			return interaction.editReply({
 				content: '❌ Vous n\'avez pas la permission `Bannir des membres`.',
 				ephemeral: true

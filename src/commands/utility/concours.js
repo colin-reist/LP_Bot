@@ -18,6 +18,14 @@ module.exports = {
 				.setRequired(true)
 		),
 	async execute(interaction) {
+		// Double vérification des permissions (sécurité renforcée)
+		if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
+			return interaction.reply({
+				content: '❌ Vous n\'avez pas la permission `Administrateur`.',
+				ephemeral: true
+			});
+		}
+
 		// get command options
 		const sujet = interaction.options.getString('sujet');
 		const image = interaction.options.getAttachment('image').url;

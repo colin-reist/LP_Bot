@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { Punishments } = require('#database');
 const logger = require('#logger');
 const { ensureUserExists } = require('#utils/databaseUtils');
@@ -10,7 +10,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('kick')
         .setDescription('Kick un utilisateur du serveur')
-        .setDefaultMemberPermissions(PermissionFlagBits.KickMembers)
+        .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
         .addUserOption(option =>
             option.setName('utilisateur')
                 .setDescription('Mention ou ID de l\'utilisateur à kick')
@@ -23,7 +23,7 @@ module.exports = {
         await interaction.deferReply({ ephemeral: true });
 
         // Double vérification des permissions (sécurité renforcée)
-        if (!interaction.memberPermissions.has(PermissionFlagBits.KickMembers)) {
+        if (!interaction.memberPermissions.has(PermissionFlagsBits.KickMembers)) {
             return interaction.editReply({
                 content: '❌ Vous n\'avez pas la permission `Expulser des membres`.',
                 ephemeral: true

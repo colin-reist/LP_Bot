@@ -1,5 +1,5 @@
 /* eslint-disable no-inline-comments */
-const { SlashCommandBuilder, PermissionFlagBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const logger = require('../../logger.js');
 
 module.exports = {
@@ -7,10 +7,10 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('renameall')
 		.setDescription('Rename all members of the server')
-		.setDefaultMemberPermissions(PermissionFlagBits.Administrator),
+		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 	async execute(interaction) {
 		// Double vérification des permissions (sécurité renforcée)
-		if (!interaction.memberPermissions.has(PermissionFlagBits.Administrator)) {
+		if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
 			return interaction.reply({
 				content: '❌ Vous n\'avez pas la permission `Administrateur`.',
 				ephemeral: true
@@ -24,7 +24,7 @@ module.exports = {
 			const members = await guild.members.fetch();
 
 			members.forEach(async (member) => {
-				if (member.permissions.has(PermissionFlagBits.Administrator)) return logger.debug(' -> ' + member.displayName + ' is an admin, skipping...'); // skip admins
+				if (member.permissions.has(PermissionFlagsBits.Administrator)) return logger.debug(' -> ' + member.displayName + ' is an admin, skipping...'); // skip admins
 				let newName = member.displayName; // get current name
 				if (!newName.includes('!')) return; // remove everything after the first space
 				newName = newName.replaceAll('!', ''); // remove exclamation marks

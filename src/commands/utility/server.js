@@ -1,13 +1,20 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
-const { EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
 
 module.exports = {
 	category: 'utility',
 	data: new SlashCommandBuilder()
 		.setName('server-info')
-		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-		.setDescription('Provides information about the server.'),
+		.setDescription('Provides information about the server.')
+		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 	async execute(interaction) {
+		// Double vérification des permissions (sécurité renforcée)
+		if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
+			return interaction.reply({
+				content: '❌ Vous n\'avez pas la permission `Administrateur`.',
+				ephemeral: true
+			});
+		}
+
 		const guild = interaction.guild;
 		const owner = await interaction.guild.fetchOwner();
 		const exampleEmbed = new EmbedBuilder()
