@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagBits } = require('discord.js');
 const { Punishments, Users } = require('#database');
 const ids = require('#config/ids');
 const { hasStaffRole } = require('#utils/permissionUtils');
@@ -9,13 +9,25 @@ module.exports = {
 	category: 'moderation',
 	data: new SlashCommandBuilder()
 		.setName('remove')
+		.setDescription('Retire le warn d\'un utilisateur du serveur')
+		.setDefaultMemberPermissions(PermissionFlagBits.ModerateMembers)
 		.addUserOption(option => option.setName('utilisateur').setDescription('L\'utilisateur qui va perdre son warn').setRequired(true))
-		.addStringOption(option => option.setName('raison').setDescription('La raison').setRequired(true))
-		.setDescription('Retire le warn d\'un utilisateur du serveur'),
+		.addStringOption(option => option.setName('raison').setDescription('La raison').setRequired(true)),
 	async execute(interaction) {
-		// Check if the user has the required role
+		// Double vérification des permissions (sécurité renforcée)
+		if (!interaction.memberPermissions.has(PermissionFlagBits.ModerateMembers)) {
+			return interaction.reply({
+				content: '❌ Vous n\'avez pas la permission `Modérer les membres`.',
+				ephemeral: true
+			});
+		}
+
+		// Vérification Staff (en plus de Discord permissions)
 		if (!hasStaffRole(interaction)) {
-			return interaction.reply({ content: 'You do not have the required role to use this command.', ephemeral: true });
+			return interaction.reply({
+				content: '❌ Vous devez avoir le rôle Staff.',
+				ephemeral: true
+			});
 		}
 
 		const unWarnedUser = interaction.options.getUser('utilisateur');

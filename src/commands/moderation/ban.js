@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagBits } = require('discord.js');
 const { Punishments } = require('#database');
 const logger = require('#logger');
 const { ensureUserExists } = require('#utils/databaseUtils');
@@ -9,22 +9,35 @@ module.exports = {
 	category: 'moderation',
 	data: new SlashCommandBuilder()
 		.setName('ban')
+		.setDescription('Ban un utilisateur du serveur')
+		.setDefaultMemberPermissions(PermissionFlagBits.BanMembers)
 		.addUserOption(option => option.setName('utilisateur').setDescription('La personne à bannir').setRequired(true))
-		.addStringOption(option => option.setName('raison').setDescription('La raison du ban').setRequired(true))
-		.setDescription('Ban un utilisateur du serveur'),
+		.addStringOption(option => option.setName('raison').setDescription('La raison du ban').setRequired(true)),
 	async execute(interaction) {
+		await interaction.deferReply({ ephemeral: true });
+
+		// Double vérification des permissions (sécurité renforcée)
+		if (!interaction.memberPermissions.has(PermissionFlagBits.BanMembers)) {
+			return interaction.editReply({
+				content: '❌ Vous n\'avez pas la permission `Bannir des membres`.',
+				ephemeral: true
+			});
+		}
+
+		// Vérification Staff (en plus de Discord permissions)
+		if (!hasStaffRole(interaction)) {
+			return interaction.editReply({
+				content: '❌ Vous devez avoir le rôle Staff.',
+				ephemeral: true
+			});
+		}
+
 		const bannedUser = interaction.options.getUser('utilisateur');
 		const reason = interaction.options.getString('raison');
 		const staffMember = interaction.member.user;
 
-		await interaction.deferReply({ ephemeral: true });
-
 		if (!staffMember) {
 			return interaction.editReply({ content: 'Impossible de récupérer le responsable', ephemeral: true });
-		}
-
-		if (!hasStaffRole(interaction)) {
-			return interaction.editReply({ content: 'Vous n\'avez pas les permissions nécessaires pour utiliser cette commande.', ephemeral: true });
 		}
 
 		// Creating DB entries and logging via Command to ensure reliability

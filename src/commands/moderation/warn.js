@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagBits } = require('discord.js');
 const { Punishments } = require('#database');
 const { Op } = require('sequelize');
 const logger = require('#logger');
@@ -11,6 +11,7 @@ module.exports = {
 	data: new SlashCommandBuilder()
 		.setName('warn')
 		.setDescription('Warn un utilisateur du serveur')
+		.setDefaultMemberPermissions(PermissionFlagBits.ModerateMembers)
 		.addUserOption(option =>
 			option.setName('utilisateur')
 				.setDescription('L\'utilisateur à warnir')
@@ -22,6 +23,22 @@ module.exports = {
 	async execute(interaction) {
 		await interaction.deferReply({ ephemeral: true });
 		try {
+			// Double vérification des permissions (sécurité renforcée)
+			if (!interaction.memberPermissions.has(PermissionFlagBits.ModerateMembers)) {
+				return interaction.editReply({
+					content: '❌ Vous n\'avez pas la permission `Modérer les membres`.',
+					ephemeral: true
+				});
+			}
+
+			// Vérification Staff (en plus de Discord permissions)
+			if (!hasStaffRole(interaction)) {
+				return interaction.editReply({
+					content: '❌ Vous devez avoir le rôle Staff.',
+					ephemeral: true
+				});
+			}
+
 			const warnedUser = interaction.options.getUser('utilisateur');
 			if (!warnedUser) {
 				return interaction.editReply({ content: 'Impossible de récupérer l\'utilisateur, à t\'il quitté le serveur ?', ephemeral: true });
@@ -31,10 +48,6 @@ module.exports = {
 			const staffMember = interaction.member.user;
 			if (!staffMember) {
 				return interaction.editReply({ content: 'Impossible de récupérer le responsable', ephemeral: true });
-			}
-
-			if (!hasStaffRole(interaction)) {
-				return interaction.editReply({ content: 'Vous n\'avez pas les permissions nécessaires pour utiliser cette commande.', ephemeral: true });
 			}
 
 			const user = await ensureUserExists(warnedUser.id, warnedUser.username);

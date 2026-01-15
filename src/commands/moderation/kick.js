@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagBits } = require('discord.js');
 const { Punishments } = require('#database');
 const logger = require('#logger');
 const { ensureUserExists } = require('#utils/databaseUtils');
@@ -10,6 +10,7 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('kick')
         .setDescription('Kick un utilisateur du serveur')
+        .setDefaultMemberPermissions(PermissionFlagBits.KickMembers)
         .addUserOption(option =>
             option.setName('utilisateur')
                 .setDescription('Mention ou ID de l\'utilisateur à kick')
@@ -19,15 +20,27 @@ module.exports = {
                 .setDescription('La raison du kick')
                 .setRequired(true)),
     async execute(interaction) {
-        const kickedUser = interaction.options.getUser('utilisateur'); // Récupération de l'option utilisateur
-        const reason = interaction.options.getString('raison');
-        const staffMember = interaction.member.user;
-
         await interaction.deferReply({ ephemeral: true });
 
-        if (!hasStaffRole(interaction)) {
-            return interaction.editReply({ content: 'Vous n\'avez pas les permissions pour utiliser cette commande.', ephemeral: true });
+        // Double vérification des permissions (sécurité renforcée)
+        if (!interaction.memberPermissions.has(PermissionFlagBits.KickMembers)) {
+            return interaction.editReply({
+                content: '❌ Vous n\'avez pas la permission `Expulser des membres`.',
+                ephemeral: true
+            });
         }
+
+        // Vérification Staff (en plus de Discord permissions)
+        if (!hasStaffRole(interaction)) {
+            return interaction.editReply({
+                content: '❌ Vous devez avoir le rôle Staff.',
+                ephemeral: true
+            });
+        }
+
+        const kickedUser = interaction.options.getUser('utilisateur');
+        const reason = interaction.options.getString('raison');
+        const staffMember = interaction.member.user;
 
         await interaction.editReply({ content: 'Traitement du kick en cours...', ephemeral: true });
 
