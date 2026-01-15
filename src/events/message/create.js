@@ -3,6 +3,15 @@ const { Users } = require('../../../database/database.js');
 const logger = require('../../logger.js');
 const ids = require('../../../config/ids.json');
 
+// Rate limiting pour le système XP
+const userXpCooldowns = new Map();
+const XP_COOLDOWN = 60000; // 1 minute en millisecondes
+
+// Constantes pour le système XP
+const XP_MIN = 9;
+const XP_MAX = 16;
+const XP_BOOST_MULTIPLIER = 1.2;
+
 /**
  * Capte l'envoi d'un message
  * @param {Message} message Le message envoyé
@@ -67,17 +76,48 @@ async function levelHandler(message) {
 		if (message.author.bot) return;
 		if (!message.guild) return;
 
+		// Rate limiting par utilisateur
+		const now = Date.now();
+		const cooldownKey = message.author.id;
+
+		if (userXpCooldowns.has(cooldownKey)) {
+			const expirationTime = userXpCooldowns.get(cooldownKey) + XP_COOLDOWN;
+			if (now < expirationTime) {
+				// Utilisateur encore en cooldown, ne pas donner d'XP
+				logger.debug(`User ${message.author.username} in XP cooldown`);
+				return;
+			}
+		}
+
+		// Mise à jour du cooldown
+		userXpCooldowns.set(cooldownKey, now);
+
+		// Nettoyage périodique du Map pour éviter les fuites mémoire
+		// Si plus de 10 000 entrées, nettoyer les anciennes
+		if (userXpCooldowns.size > 10000) {
+			const oldestAllowed = now - XP_COOLDOWN;
+			for (const [key, timestamp] of userXpCooldowns.entries()) {
+				if (timestamp < oldestAllowed) {
+					userXpCooldowns.delete(key);
+				}
+			}
+			logger.debug(`XP cooldown cache cleaned: ${userXpCooldowns.size} entries remaining`);
+		}
+
 		const user = await Users.findOne({ where: { discord_identifier: message.author.id } });
 
 		if (user) {
 			const previousXP = user.experience;
-			let increment = Math.floor(Math.random() * 8) + 9; // entre 9 et 16
+
+			// Calcul de l'incrément XP avec les constantes
+			let increment = Math.floor(Math.random() * (XP_MAX - XP_MIN + 1)) + XP_MIN;
+
 			const boost = message.member.roles.cache.some(role => role.id === ids.roles.boost);
 			if (boost) {
 				logger.debug(`Booster ${message.author.username}`);
-				increment = Math.floor(increment * 1.2);
+				increment = Math.floor(increment * XP_BOOST_MULTIPLIER);
 			}
-			logger.debug(`Increment ${increment}`);
+			logger.debug(`Increment ${increment} XP for ${message.author.username}`);
 
 			const newXP = previousXP + increment;
 			const oldLevel = getLevelFromXP(previousXP);
@@ -101,6 +141,7 @@ async function levelHandler(message) {
 				username: message.author.username,
 				experience: 1,
 			});
+			logger.debug(`New user created: ${message.author.username}`);
 		}
 	} catch (error) {
 		logger.error('Erreur lors de l\'incrémentation de l\'expérience :\n', error);
