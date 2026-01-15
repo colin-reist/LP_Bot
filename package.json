@@ -16,7 +16,8 @@
         "#database": "./database/database.js",
         "#config/ids": "./config/ids.json",
         "#utils/*": "./src/utils/*.js",
-        "#logger": "./src/logger.js"
+        "#logger": "./src/logger.js",
+        "#errorHandler": "./src/utils/errorHandler.js"
     },
     "dependencies": {
         "archiver": "^7.0.1",

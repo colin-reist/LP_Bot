@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require('discord.js');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const logger = require('#logger');
+const { validateSearchTag, ValidationError } = require('#utils/validators');
 
 // Configuration de la commande
 const API_BASE_URL = 'https://api.rule34.xxx/index.php?page=dapi&s=post&q=index';
@@ -24,19 +25,11 @@ module.exports = {
 		await interaction.deferReply();
 
 		try {
-			// 1. Validation et sanitization du tag
-			let tag = interaction.options.getString('tag')
-				.trim()
-				.toLowerCase()
-				.substring(0, MAX_TAG_LENGTH)
-				.replace(/[^a-z0-9_\-\s]/gi, ''); // Supprime tous les caractères dangereux
-
-			if (!tag || tag.length < 2) {
-				return interaction.editReply({
-					content: '❌ Le tag doit contenir au moins 2 caractères valides.',
-					ephemeral: true
-				});
-			}
+			// 1. Validation et sanitization du tag avec validator
+			const tag = validateSearchTag(interaction.options.getString('tag'), {
+				name: 'Tag',
+				maxLength: MAX_TAG_LENGTH
+			});
 
 			// 2. Construction de l'URL sécurisée
 			const tagUrl = `&tags=${encodeURIComponent(tag)} ${BLACKLISTED_TAGS.join(' ')}`;
@@ -129,6 +122,13 @@ module.exports = {
 
 		} catch (error) {
 			// 10. Gestion d'erreurs détaillée
+			if (error instanceof ValidationError) {
+				return interaction.editReply({
+					content: `❌ ${error.message}`,
+					ephemeral: true
+				});
+			}
+
 			if (error.name === 'AbortError') {
 				logger.warn('R34 API timeout');
 				return interaction.editReply({

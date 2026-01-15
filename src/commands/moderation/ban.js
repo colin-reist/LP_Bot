@@ -4,6 +4,7 @@ const logger = require('#logger');
 const { ensureUserExists } = require('#utils/databaseUtils');
 const { logModerationAction } = require('#utils/loggerUtils');
 const { hasStaffRole } = require('#utils/permissionUtils');
+const { CommandOptionsValidator, ValidationError } = require('#utils/validators');
 
 module.exports = {
 	category: 'moderation',
@@ -32,8 +33,13 @@ module.exports = {
 			});
 		}
 
-		const bannedUser = interaction.options.getUser('utilisateur');
-		const reason = interaction.options.getString('raison');
+		const validator = new CommandOptionsValidator(interaction);
+		const bannedUser = validator.getUser('utilisateur');
+		const reason = validator.getString('raison', null, {
+			name: 'Raison',
+			minLength: 3,
+			maxLength: 500
+		});
 		const staffMember = interaction.member.user;
 
 		if (!staffMember) {
@@ -69,6 +75,9 @@ module.exports = {
 			await interaction.editReply({ content: `L'utilisateur <@${bannedUser.id}> a été banni pour la raison suivante : ${reason}`, ephemeral: true });
 
 		} catch (error) {
+			if (error instanceof ValidationError) {
+				return interaction.editReply({ content: `❌ ${error.message}`, ephemeral: true });
+			}
 			logger.error('Erreur lors de l\'enregistrement de la punition dans la base de données : ', error);
 			interaction.editReply({ content: 'Erreur lors de l\'enregistrement de la punition dans la base de données', ephemeral: true });
 		}

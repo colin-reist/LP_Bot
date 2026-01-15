@@ -4,6 +4,7 @@ const ids = require('#config/ids');
 const { hasStaffRole } = require('#utils/permissionUtils');
 const { logModerationAction } = require('#utils/loggerUtils');
 const logger = require('#logger');
+const { CommandOptionsValidator, ValidationError } = require('#utils/validators');
 
 module.exports = {
 	category: 'moderation',
@@ -30,8 +31,21 @@ module.exports = {
 			});
 		}
 
-		const unWarnedUser = interaction.options.getUser('utilisateur');
-		const reason = interaction.options.getString('raison');
+		let unWarnedUser, reason;
+		try {
+			const validator = new CommandOptionsValidator(interaction);
+			unWarnedUser = validator.getUser('utilisateur');
+			reason = validator.getString('raison', null, {
+				name: 'Raison',
+				minLength: 3,
+				maxLength: 500
+			});
+		} catch (error) {
+			if (error instanceof ValidationError) {
+				return interaction.reply({ content: `❌ ${error.message}`, ephemeral: true });
+			}
+			return interaction.reply({ content: 'Erreur lors de la validation des paramètres.', ephemeral: true });
+		}
 
 		// Check if the user has been warned
 		const user = await Users.findOne({ where: { discord_identifier: unWarnedUser.id } });

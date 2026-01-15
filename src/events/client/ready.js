@@ -78,6 +78,7 @@ module.exports = (client) => {
 
 	/**
 	 * Event start of the bot
+	 * Utilise ClientReady au lieu de ready (déprécié en v15)
 	 */
 	client.once(Events.ClientReady, () => {
 		startBotLog();

@@ -4,6 +4,7 @@ const logger = require('#logger');
 const { ensureUserExists } = require('#utils/databaseUtils');
 const { logModerationAction } = require('#utils/loggerUtils');
 const { hasStaffRole } = require('#utils/permissionUtils');
+const { CommandOptionsValidator, ValidationError } = require('#utils/validators');
 
 module.exports = {
     category: 'moderation',
@@ -38,8 +39,13 @@ module.exports = {
             });
         }
 
-        const kickedUser = interaction.options.getUser('utilisateur');
-        const reason = interaction.options.getString('raison');
+        const validator = new CommandOptionsValidator(interaction);
+        const kickedUser = validator.getUser('utilisateur');
+        const reason = validator.getString('raison', null, {
+            name: 'Raison',
+            minLength: 3,
+            maxLength: 500
+        });
         const staffMember = interaction.member.user;
 
         await interaction.editReply({ content: 'Traitement du kick en cours...', ephemeral: true });
@@ -67,6 +73,9 @@ module.exports = {
             return interaction.editReply({ content: `L'utilisateur <@${kickedUser.id}> a été kick pour la raison suivante : ${reason}` });
 
         } catch (error) {
+            if (error instanceof ValidationError) {
+                return interaction.editReply({ content: `❌ ${error.message}`, ephemeral: true });
+            }
             logger.error(error);
             return interaction.editReply({ content: 'Une erreur est survenue lors du kick de l\'utilisateur.', ephemeral: true });
         }

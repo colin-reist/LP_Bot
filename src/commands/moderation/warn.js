@@ -5,6 +5,7 @@ const logger = require('#logger');
 const { ensureUserExists } = require('#utils/databaseUtils');
 const { logModerationAction } = require('#utils/loggerUtils');
 const { hasStaffRole } = require('#utils/permissionUtils');
+const { CommandOptionsValidator, ValidationError } = require('#utils/validators');
 
 module.exports = {
 	category: 'moderation',
@@ -39,12 +40,13 @@ module.exports = {
 				});
 			}
 
-			const warnedUser = interaction.options.getUser('utilisateur');
-			if (!warnedUser) {
-				return interaction.editReply({ content: 'Impossible de récupérer l\'utilisateur, à t\'il quitté le serveur ?', ephemeral: true });
-			}
-
-			const reason = interaction.options.getString('raison');
+			const validator = new CommandOptionsValidator(interaction);
+			const warnedUser = validator.getUser('utilisateur');
+			const reason = validator.getString('raison', null, {
+				name: 'Raison',
+				minLength: 3,
+				maxLength: 500
+			});
 			const staffMember = interaction.member.user;
 			if (!staffMember) {
 				return interaction.editReply({ content: 'Impossible de récupérer le responsable', ephemeral: true });
@@ -74,6 +76,9 @@ module.exports = {
 
 			await interaction.editReply({ content: `L'utilisateur <@${warnedUser.id}> a été averti pour la raison suivante : ${reason}`, ephemeral: true });
 		} catch (error) {
+			if (error instanceof ValidationError) {
+				return interaction.editReply({ content: `❌ ${error.message}`, ephemeral: true });
+			}
 			logger.error('Erreur lors de l\'exécution de la commande warn :', error);
 			await interaction.editReply({ content: 'Une erreur est survenue lors de l\'exécution de la commande.', ephemeral: true });
 		}

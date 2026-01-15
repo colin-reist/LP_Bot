@@ -3,9 +3,11 @@ require('dotenv').config();
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, GatewayIntentBits, Partials } = require('discord.js');
+const { Client, Collection, Events, GatewayIntentBits, Partials } = require('discord.js');
 const logger = require('./logger.js');
 const { exec } = require('child_process');
+const { errorHandler } = require('./utils/errorHandler.js');
+const { HealthCheck } = require('./utils/healthCheck.js');
 
 // Validation des variables d'environnement critiques
 const token = process.env.DISCORD_TOKEN;
@@ -13,6 +15,9 @@ if (!token) {
 	logger.error('DISCORD_TOKEN manquant dans .env');
 	process.exit(1);
 }
+
+// Le gestionnaire d'erreurs global est maintenant actif
+logger.info('Error handler initialized');
 
 const client = new Client({
 	intents: [
@@ -26,6 +31,10 @@ const client = new Client({
 	],
 	partials: [Partials.Message, Partials.Channel, Partials.Reaction],
 });
+
+// Initialise le health check
+client.healthCheck = new HealthCheck(client);
+logger.info('Health check system initialized');
 
 logger.debug('-- loading events --');
 const eventFolderPath = path.join(__dirname, 'events/.');
@@ -79,3 +88,11 @@ exec(`node ${path.join(__dirname, '../scripts/deploy-commands.js')}`, (error, st
 });
 
 client.login(token);
+
+// Démarre les health checks après login
+// Utilise Events.ClientReady pour éviter le warning de dépréciation
+client.once(Events.ClientReady, () => {
+	// Démarre le health check toutes les minutes
+	client.healthCheck.start(60000);
+	logger.info('Health check monitoring started');
+});

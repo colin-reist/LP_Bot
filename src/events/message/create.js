@@ -2,6 +2,9 @@ const { Events, EmbedBuilder } = require('discord.js');
 const { Users } = require('../../../database/database.js');
 const logger = require('../../logger.js');
 const ids = require('../../../config/ids.json');
+const { dbOperations } = require('../../utils/dbRetry.js');
+const { errorHandler } = require('../../utils/errorHandler.js');
+const { wrapEventHandler } = require('../../utils/eventWrapper.js');
 
 // Rate limiting pour le système XP
 const userXpCooldowns = new Map();
@@ -13,21 +16,38 @@ const XP_MAX = 16;
 const XP_BOOST_MULTIPLIER = 1.2;
 
 /**
- * Capte l'envoi d'un message
+ * Handler principal pour les messages créés
  * @param {Message} message Le message envoyé
- * @returns
+ */
+async function handleMessageCreate(message) {
+	// Traiter le bump en premier (peut concerner les bots)
+	await bumpHandler(message);
+
+	// Ignorer les autres actions pour les bots
+	if (message.author.bot) return;
+
+	// Traiter le système d'XP et les rôles obligatoires
+	// Les erreurs individuelles sont gérées dans chaque fonction
+	await Promise.allSettled([
+		levelHandler(message),
+		checkMandatoryRole(message)
+	]);
+}
+
+/**
+ * Module export avec wrapper de gestion d'erreurs
  */
 module.exports = (client) => {
-	client.on(Events.MessageCreate, async (message) => {
-		bumpHandler(message);
+	const wrappedHandler = wrapEventHandler(
+		Events.MessageCreate,
+		handleMessageCreate,
+		{ logExecution: false, timeout: 15000 }
+	);
 
-		if (message.author.bot) return;
-		levelHandler(message);
-		checkMandatoryRole(message);
-	});
+	client.on(Events.MessageCreate, wrappedHandler);
 };
 
-function bumpHandler(message) {
+async function bumpHandler(message) {
 	const bumbChannelId = ids.channels.bump;
 	const commandName = 'bump';
 
@@ -55,20 +75,23 @@ function bumpHandler(message) {
 }
 
 async function checkMandatoryRole(message) {
-	if (!message.guild) return;
-	const user = message.member;
-	const mandatoryRole = ids.roles.mandatory;
+	try {
+		if (!message.guild) return;
+		const user = message.member;
+		const mandatoryRole = ids.roles.mandatory;
 
-	for (const [key, roleId] of Object.entries(mandatoryRole)) {
-		if (!user.roles.cache.has(roleId)) {
-			const role = message.guild.roles.cache.get(roleId);
-			if (role) {
-				await user.roles.add(role);
-				logger.debug(`Role ${role.name} added to ${user.user.tag}`);
+		for (const [key, roleId] of Object.entries(mandatoryRole)) {
+			if (!user.roles.cache.has(roleId)) {
+				const role = message.guild.roles.cache.get(roleId);
+				if (role) {
+					await user.roles.add(role);
+					logger.debug(`Role ${role.name} added to ${user.user.tag}`);
+				}
 			}
 		}
+	} catch (error) {
+		logger.error('Erreur lors de l\'ajout des rôles obligatoires:', error);
 	}
-
 }
 
 async function levelHandler(message) {
@@ -104,7 +127,11 @@ async function levelHandler(message) {
 			logger.debug(`XP cooldown cache cleaned: ${userXpCooldowns.size} entries remaining`);
 		}
 
-		const user = await Users.findOne({ where: { discord_identifier: message.author.id } });
+		// Utilise dbOperations avec retry automatique
+		const user = await dbOperations.findOne(Users,
+			{ where: { discord_identifier: message.author.id } },
+			{ userId: message.author.id, username: message.author.username }
+		);
 
 		if (user) {
 			const previousXP = user.experience;
@@ -123,10 +150,15 @@ async function levelHandler(message) {
 			const oldLevel = getLevelFromXP(previousXP);
 			const newLevel = getLevelFromXP(newXP);
 
-			await user.increment('experience', { by: increment });
+			// Utilise retry pour l'incrémentation
+			await dbOperations.increment(user, { experience: increment },
+				{ userId: message.author.id, field: 'experience' }
+			);
 
 			if (message.member && message.member.roles.cache.some(role => role.name === ids.roles.staff)) {
-				await user.update({ is_admin: true });
+				await dbOperations.update(user, { is_admin: true },
+					{ userId: message.author.id, field: 'is_admin' }
+				);
 			}
 
 			if (newLevel > oldLevel) {
@@ -136,11 +168,12 @@ async function levelHandler(message) {
 				await channel.send(`🎉 Félicitations <@${message.author.id}> ! Tu as atteint le niveau ${newLevel} !`);
 			}
 		} else {
-			await Users.create({
+			// Utilise retry pour la création
+			await dbOperations.create(Users, {
 				discord_identifier: message.author.id,
 				username: message.author.username,
 				experience: 1,
-			});
+			}, { userId: message.author.id, action: 'create_user' });
 			logger.debug(`New user created: ${message.author.username}`);
 		}
 	} catch (error) {

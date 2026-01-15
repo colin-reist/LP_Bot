@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const { bans, badUsers: badUserModel, staffMembers } = require('../../../database/database.js');
 const logger = require('../../logger.js');
+const { CommandOptionsValidator, ValidationError, validateDiscordId } = require('../../utils/validators.js');
 
 module.exports = {
 	category: 'moderation',
@@ -26,8 +27,12 @@ module.exports = {
 
 		let user_to_ban_id = undefined;
 		try {
-			user_to_ban_id = interaction.options.getString('id');
+			const validator = new CommandOptionsValidator(interaction);
+			user_to_ban_id = validator.getString('id', validateDiscordId);
 		} catch (error) {
+			if (error instanceof ValidationError) {
+				return interaction.editReply({ content: `❌ ${error.message}`, ephemeral: true });
+			}
 			interaction.editReply({ content: `Erreur : ${error}`, ephemeral: true });
 			return;
 		}
@@ -59,7 +64,20 @@ module.exports = {
 			}
 		}
 
-		const raison = interaction.options.getString('raison');
+		let raison;
+		try {
+			const validator = new CommandOptionsValidator(interaction);
+			raison = validator.getString('raison', null, {
+				name: 'Raison',
+				minLength: 3,
+				maxLength: 500
+			});
+		} catch (error) {
+			if (error instanceof ValidationError) {
+				return interaction.editReply({ content: `❌ ${error.message}`, ephemeral: true });
+			}
+			return interaction.editReply({ content: `Erreur : ${error}`, ephemeral: true });
+		}
         
 		try {
             // Ban the user by their ID

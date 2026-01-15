@@ -3,20 +3,39 @@ const { EmbedBuilder } = require('discord.js');
 const { Users, Punishments } = require('#database');
 const logger = require('#logger');
 const ids = require('#config/ids');
+const { wrapEventHandler } = require('../../utils/eventWrapper.js');
 
 /**
-* Capte la modification des rôles d'un membre
-* @param {GuildMember} oldMember Le membre avant la modification
-* @param {GuildMember} newMember Le membre après la modification
-* @returns
-*/
+ * Handler pour les mises à jour de membres (boost detection)
+ */
+async function handleGuildMemberUpdate(oldMember, newMember) {
+	// Détection d'un nouveau boost
+	if (!oldMember.roles.cache.has(ids.roles.boost) &&
+		newMember.roles.cache.has(ids.roles.boost)) {
+		await sendBoostBenefitsEmbed(newMember);
+	}
+}
+
+/**
+ * Module export avec wrappers de gestion d'erreurs
+ */
 module.exports = (client) => {
-	client.on(Events.GuildMemberUpdate, async (oldMember, newMember) => {
-		if (!oldMember.roles.cache.has(ids.roles.boost) && newMember.roles.cache.has(ids.roles.boost)) {
-			sendBoostBenefitsEmbed(newMember);
-		}
-	});
-	client.on(Events.GuildBanAdd, handleBanUser);
+	// Wrapper pour GuildMemberUpdate
+	const wrappedMemberUpdate = wrapEventHandler(
+		Events.GuildMemberUpdate,
+		handleGuildMemberUpdate,
+		{ logExecution: false, timeout: 10000 }
+	);
+
+	// Wrapper pour GuildBanAdd
+	const wrappedBanAdd = wrapEventHandler(
+		Events.GuildBanAdd,
+		handleBanUser,
+		{ logExecution: true, timeout: 15000 }
+	);
+
+	client.on(Events.GuildMemberUpdate, wrappedMemberUpdate);
+	client.on(Events.GuildBanAdd, wrappedBanAdd);
 };
 
 async function handleBanUser(ban) {
@@ -100,37 +119,41 @@ async function handleBanUser(ban) {
 	}
 }
 
-function sendBoostBenefitsEmbed(member) {
-	const channel = member.guild.channels.cache.get(ids.channels.boosters);
-	if (!channel) {
-		logger.error('Le salon boost est introuvable.');
-		return;
+async function sendBoostBenefitsEmbed(member) {
+	try {
+		const channel = member.guild.channels.cache.get(ids.channels.boosters);
+		if (!channel) {
+			logger.error('Le salon boost est introuvable.');
+			return;
+		}
+
+		await channel.send(`🎉 Merci à <@${member.id}> d'avoir boosté le serveur !\n⬇️⬇️Tu peux regarder tes avangates en dessous !⬇️⬇️`);
+
+		const embed = new EmbedBuilder()
+			.setTitle('🎉🎉Merci de booster le serveur !🎉🎉')
+			.setDescription('Voici les avantages que tu as débloqué en boostant le serveur :')
+			.addFields(
+				{
+					name: '🔹 Un rôle unique',
+					value: 'Tu as maintenant le droit à ton propre rôle ! \nIl te suffit de donner au staff le nom, la couleur et l\'image que tu veux. \nOuvre un ticket dans <#' + ids.channels.tickets + '> pour en discuter.',
+					inline: false,
+				},
+				{
+					name: '🔹 Boost d\'expérience (en développement)',
+					value: 'Tu gagnes maintenant 1,1x plus d\'expérience à chaque message envoyé !',
+					inline: false,
+				},
+				{
+					name: '🔹 Des salons exclusifs',
+					value: 'Tu as maintenant accès au salon vocal <#' + ids.channels.voiceBoosters + '> pour discuter avec les autres boosters ! \nTu as aussi accès au salon textuel <#' + ids.channels.textBoosters + '> pour discuter de tout et de rien.',
+					inline: false,
+				},
+			)
+			.setColor('#FF69B4')
+			.setTimestamp();
+
+		await channel.send({ embeds: [embed] });
+	} catch (error) {
+		logger.error('Erreur lors de l\'envoi du message de boost:', error);
 	}
-
-	channel.send(`🎉 Merci à <@${member.id}> d'avoir boosté le serveur !\n⬇️⬇️Tu peux regarder tes avangates en dessous !⬇️⬇️`);
-
-	const embed = new EmbedBuilder()
-		.setTitle('🎉🎉Merci de booster le serveur !🎉🎉')
-		.setDescription('Voici les avantages que tu as débloqué en boostant le serveur :')
-		.addFields(
-			{
-				name: '🔹 Un rôle unique',
-				value: 'Tu as maintenant le droit à ton propre rôle ! \nIl te suffit de donner au staff le nom, la couleur et l\'image que tu veux. \nOuvre un ticket dans <#' + ids.channels.tickets + '> pour en discuter.',
-				inline: false,
-			},
-			{
-				name: '🔹 Boost d\'expérience (en développement)',
-				value: 'Tu gagnes maintenant 1,1x plus d\'expérience à chaque message envoyé !',
-				inline: false,
-			},
-			{
-				name: '🔹 Des salons exclusifs',
-				value: 'Tu as maintenant accès au salon vocal <#' + ids.channels.voiceBoosters + '> pour discuter avec les autres boosters ! \nTu as aussi accès au salon textuel <#' + ids.channels.textBoosters + '> pour discuter de tout et de rien.',
-				inline: false,
-			},
-		)
-		.setColor('#FF69B4')
-		.setTimestamp();
-
-	channel.send({ embeds: [embed] });
 }
