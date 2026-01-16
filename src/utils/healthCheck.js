@@ -19,7 +19,7 @@ class HealthCheck {
 
 		this.thresholds = {
 			dbResponseTime: 1000, // 1 seconde max
-			memoryUsage: 0.9, // 90% max
+			memoryUsage: 0.95, // 95% max
 			eventLoopDelay: 100, // 100ms max
 		};
 
@@ -112,7 +112,6 @@ class HealthCheck {
 			const heapUsedPercent = memUsage.heapUsed / memUsage.heapTotal;
 
 			if (heapUsedPercent > this.thresholds.memoryUsage) {
-				logger.warn(`High memory usage: ${(heapUsedPercent * 100).toFixed(2)}%`);
 				return 'degraded';
 			}
 
