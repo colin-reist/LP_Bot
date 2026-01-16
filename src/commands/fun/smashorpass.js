@@ -91,8 +91,8 @@ module.exports = {
                     });
 
                 const message = await targetChannel.send({ embeds: [embed] });
-                await message.react('<a:' + ids.emojis.foxxoWow + '>');
-                await message.react('<:' + ids.emojis.foxxoHmph + '>');
+                await message.react(ids.emojis.foxxoWow);
+                await message.react(ids.emojis.foxxoHmph);
                 logger.debug('Image postée avec succès !');
             } else {
                 logger.error('Le salon cible est introuvable ou non textuel.');
