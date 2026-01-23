@@ -112,7 +112,6 @@ class HealthCheck {
 			const heapUsedPercent = memUsage.heapUsed / memUsage.heapTotal;
 
 			if (heapUsedPercent > this.thresholds.memoryUsage) {
-				logger.warn(`High memory usage: ${(heapUsedPercent * 100).toFixed(2)}%`);
 				return 'degraded';
 			}
 
