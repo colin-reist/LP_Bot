@@ -19,7 +19,7 @@ class HealthCheck {
 
 		this.thresholds = {
 			dbResponseTime: 1000, // 1 seconde max
-			memoryUsage: 0.9, // 90% max
+			memoryUsage: 0.95, // 95% max
 			eventLoopDelay: 100, // 100ms max
 		};
 
