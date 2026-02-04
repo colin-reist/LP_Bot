@@ -3,11 +3,20 @@ const logger = require('../../logger.js');
 const ids = require('../../../config/ids.json');
 
 module.exports = {
+    category: 'fun',
     data: new SlashCommandBuilder()
         .setName('forcesmashorpass')
         .setDescription('Force the smash or pass command to run.')
         .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
     async execute(interaction) {
+		// Double vérification des permissions (sécurité renforcée)
+		if (!interaction.memberPermissions.has(PermissionFlagsBits.BanMembers)) {
+			return interaction.reply({
+				content: '❌ Vous n\'avez pas la permission `Bannir des membres`.',
+				ephemeral: true
+			});
+		}
+
         // IDs des catégories à scanner
         const categoryIds = ids.categories.smashOrPass;
 
@@ -82,8 +91,8 @@ module.exports = {
                     });
 
                 const message = await targetChannel.send({ embeds: [embed] });
-                await message.react('<a:' + ids.emojis.foxxoWow + '>');
-                await message.react('<:' + ids.emojis.foxxoHmph + '>');
+                await message.react(ids.emojis.foxxoWow);
+                await message.react(ids.emojis.foxxoHmph);
                 logger.debug('Image postée avec succès !');
             } else {
                 logger.error('Le salon cible est introuvable ou non textuel.');

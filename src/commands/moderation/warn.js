@@ -1,16 +1,18 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { Punishments } = require('#database');
 const { Op } = require('sequelize');
 const logger = require('#logger');
 const { ensureUserExists } = require('#utils/databaseUtils');
 const { logModerationAction } = require('#utils/loggerUtils');
 const { hasStaffRole } = require('#utils/permissionUtils');
+const { CommandOptionsValidator, ValidationError } = require('#utils/validators');
 
 module.exports = {
 	category: 'moderation',
 	data: new SlashCommandBuilder()
 		.setName('warn')
 		.setDescription('Warn un utilisateur du serveur')
+		.setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
 		.addUserOption(option =>
 			option.setName('utilisateur')
 				.setDescription('L\'utilisateur à warnir')
@@ -22,19 +24,32 @@ module.exports = {
 	async execute(interaction) {
 		await interaction.deferReply({ ephemeral: true });
 		try {
-			const warnedUser = interaction.options.getUser('utilisateur');
-			if (!warnedUser) {
-				return interaction.editReply({ content: 'Impossible de récupérer l\'utilisateur, à t\'il quitté le serveur ?', ephemeral: true });
+			// Double vérification des permissions (sécurité renforcée)
+			if (!interaction.memberPermissions.has(PermissionFlagsBits.ModerateMembers)) {
+				return interaction.editReply({
+					content: '❌ Vous n\'avez pas la permission `Modérer les membres`.',
+					ephemeral: true
+				});
 			}
 
-			const reason = interaction.options.getString('raison');
+			// Vérification Staff (en plus de Discord permissions)
+			if (!hasStaffRole(interaction)) {
+				return interaction.editReply({
+					content: '❌ Vous devez avoir le rôle Staff.',
+					ephemeral: true
+				});
+			}
+
+			const validator = new CommandOptionsValidator(interaction);
+			const warnedUser = validator.getUser('utilisateur');
+			const reason = validator.getString('raison', null, {
+				name: 'Raison',
+				minLength: 3,
+				maxLength: 500
+			});
 			const staffMember = interaction.member.user;
 			if (!staffMember) {
 				return interaction.editReply({ content: 'Impossible de récupérer le responsable', ephemeral: true });
-			}
-
-			if (!hasStaffRole(interaction)) {
-				return interaction.editReply({ content: 'Vous n\'avez pas les permissions nécessaires pour utiliser cette commande.', ephemeral: true });
 			}
 
 			const user = await ensureUserExists(warnedUser.id, warnedUser.username);
@@ -61,6 +76,9 @@ module.exports = {
 
 			await interaction.editReply({ content: `L'utilisateur <@${warnedUser.id}> a été averti pour la raison suivante : ${reason}`, ephemeral: true });
 		} catch (error) {
+			if (error instanceof ValidationError) {
+				return interaction.editReply({ content: `❌ ${error.message}`, ephemeral: true });
+			}
 			logger.error('Erreur lors de l\'exécution de la commande warn :', error);
 			await interaction.editReply({ content: 'Une erreur est survenue lors de l\'exécution de la commande.', ephemeral: true });
 		}

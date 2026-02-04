@@ -1,25 +1,51 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { Punishments, Users } = require('#database');
 const ids = require('#config/ids');
 const { hasStaffRole } = require('#utils/permissionUtils');
 const { logModerationAction } = require('#utils/loggerUtils');
 const logger = require('#logger');
+const { CommandOptionsValidator, ValidationError } = require('#utils/validators');
 
 module.exports = {
 	category: 'moderation',
 	data: new SlashCommandBuilder()
 		.setName('remove')
+		.setDescription('Retire le warn d\'un utilisateur du serveur')
+		.setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
 		.addUserOption(option => option.setName('utilisateur').setDescription('L\'utilisateur qui va perdre son warn').setRequired(true))
-		.addStringOption(option => option.setName('raison').setDescription('La raison').setRequired(true))
-		.setDescription('Retire le warn d\'un utilisateur du serveur'),
+		.addStringOption(option => option.setName('raison').setDescription('La raison').setRequired(true)),
 	async execute(interaction) {
-		// Check if the user has the required role
-		if (!hasStaffRole(interaction)) {
-			return interaction.reply({ content: 'You do not have the required role to use this command.', ephemeral: true });
+		// Double vérification des permissions (sécurité renforcée)
+		if (!interaction.memberPermissions.has(PermissionFlagsBits.ModerateMembers)) {
+			return interaction.reply({
+				content: '❌ Vous n\'avez pas la permission `Modérer les membres`.',
+				ephemeral: true
+			});
 		}
 
-		const unWarnedUser = interaction.options.getUser('utilisateur');
-		const reason = interaction.options.getString('raison');
+		// Vérification Staff (en plus de Discord permissions)
+		if (!hasStaffRole(interaction)) {
+			return interaction.reply({
+				content: '❌ Vous devez avoir le rôle Staff.',
+				ephemeral: true
+			});
+		}
+
+		let unWarnedUser, reason;
+		try {
+			const validator = new CommandOptionsValidator(interaction);
+			unWarnedUser = validator.getUser('utilisateur');
+			reason = validator.getString('raison', null, {
+				name: 'Raison',
+				minLength: 3,
+				maxLength: 500
+			});
+		} catch (error) {
+			if (error instanceof ValidationError) {
+				return interaction.reply({ content: `❌ ${error.message}`, ephemeral: true });
+			}
+			return interaction.reply({ content: 'Erreur lors de la validation des paramètres.', ephemeral: true });
+		}
 
 		// Check if the user has been warned
 		const user = await Users.findOne({ where: { discord_identifier: unWarnedUser.id } });

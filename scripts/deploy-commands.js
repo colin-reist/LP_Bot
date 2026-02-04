@@ -1,8 +1,20 @@
+require('dotenv').config();
+
 const { REST, Routes } = require('discord.js');
-const { clientId, guildId, token } = require('../config/config.json');
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('crypto');
+
+// Configuration depuis variables d'environnement
+const clientId = process.env.DISCORD_CLIENT_ID;
+const guildId = process.env.DISCORD_GUILD_ID;
+const token = process.env.DISCORD_TOKEN;
+
+if (!clientId || !guildId || !token) {
+    console.error('Variables d\'environnement manquantes (DISCORD_CLIENT_ID, DISCORD_GUILD_ID, DISCORD_TOKEN)');
+    process.exit(1);
+}
+
 const commands = [];
 const foldersPath = path.join(__dirname, '../src/commands');
 const commandFolders = fs.readdirSync(foldersPath);

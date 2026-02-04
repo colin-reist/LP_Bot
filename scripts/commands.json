@@ -1,15 +1,15 @@
 {
     "ping": {
-        "version": "1.01",
-        "hash": "650acb801d85e584d08d65754daa89f0"
+        "version": "1.02",
+        "hash": "9f4754470b157afab2c0455830cbb146"
     },
     "r34": {
-        "version": "1.00",
-        "hash": "1b13a6bc354f03e568d83f75fb0b038f"
+        "version": "1.02",
+        "hash": "29a91c3626a0fc3bbf2def55cbb86513"
     },
     "forcesmashorpass": {
-        "version": "1.03",
-        "hash": "1ef085cf690393e959b3b32087f87278"
+        "version": "1.04",
+        "hash": "f019e0a4a8227a8d30b7a5f70655cb58"
     },
     "getlevel": {
         "version": "1.00",
@@ -20,36 +20,36 @@
         "hash": "a28e0e318c1623132fc9f47998874665"
     },
     "ban": {
-        "version": "1.11",
-        "hash": "db520aaf320f737aac908da0cc313587"
+        "version": "1.13",
+        "hash": "5ef702f6e1408d44b2c63cffac013772"
     },
     "renameall": {
-        "version": "1.03",
-        "hash": "c9210c071b178845f8f08100ffc1e10a"
+        "version": "1.04",
+        "hash": "7bbf5e42ed5a50edbcd5287f92dc7dad"
     },
     "hackban": {
-        "version": "1.04",
-        "hash": "8d8c4b0d982939d327ebc47a1c7b2e73"
+        "version": "1.06",
+        "hash": "0ab83488c30dfb8ca50ae010e646c359"
     },
     "kick": {
-        "version": "1.09",
-        "hash": "084ad47b74c63974098abd8525df15f1"
+        "version": "1.11",
+        "hash": "d2b2960f42abc4b381cb6bfa1f0a3678"
     },
     "resetname": {
-        "version": "1.00",
-        "hash": "b6c61bbc3d327e015c0b18ead80e51dc"
+        "version": "1.01",
+        "hash": "7005ceb66d2992d1847459d60f53a3bf"
     },
     "warn": {
-        "version": "1.21",
-        "hash": "37b1cee0bd89798f2b3f3f7ac3271e23"
+        "version": "1.23",
+        "hash": "02948db05bb40cbb8a94b6b88ed271b2"
     },
     "remove": {
-        "version": "1.08",
-        "hash": "ad69935f9b5962866aea78277666dc00"
+        "version": "1.10",
+        "hash": "41241659c706fc493a99cace9734140b"
     },
     "rappel": {
-        "version": "1.01",
-        "hash": "bead2a1cbb46d8b603c56c92e2a8e14a"
+        "version": "1.02",
+        "hash": "178e1a8ba1cc057a966fa386eac14835"
     },
     "addtag": {
         "version": "1.00",
@@ -80,39 +80,43 @@
         "hash": "88622c017ad25b4d0e93d82eef43f220"
     },
     "concours": {
-        "version": "1.00",
-        "hash": "71b875120fe9f460be7df2b47bbe7306"
+        "version": "1.01",
+        "hash": "ff06b30c04acbc8059d3e4e7383169de"
     },
     "downloadimages": {
-        "version": "1.01",
-        "hash": "dd24b421de75222e3e586fa934e03f31"
+        "version": "1.02",
+        "hash": "a3a00108f809d0f6931cdceac8019ff6"
     },
     "pub": {
-        "version": "1.01",
-        "hash": "86cdd26b87f413daccb1fcbc39184bff"
+        "version": "1.02",
+        "hash": "915f0cb08a108b38d1f12c5f87682053"
     },
     "reload": {
-        "version": "1.01",
-        "hash": "95be45c5dc260adf902149804b3cd65d"
+        "version": "1.02",
+        "hash": "66dae6da901d8a4704fb8e89acc10407"
     },
     "server-info": {
-        "version": "1.00",
-        "hash": "9bec0716662672840bb248e10ca97c91"
+        "version": "1.01",
+        "hash": "6d51b485ac8d567212c5505ef33ae9f1"
     },
     "suggérer": {
-        "version": "1.00",
-        "hash": "e21d5faffbde51aada2d3af495d4e0ac"
+        "version": "1.01",
+        "hash": "5f199fc92455c787b91e39f9d479f69d"
     },
     "user": {
-        "version": "1.01",
-        "hash": "e16a6f7a6283a2b5430af10463357786"
+        "version": "1.02",
+        "hash": "2ee9cb6c96f93d02d41669f20b91cc56"
     },
     "rank": {
-        "version": "1.41",
-        "hash": "2689ff6b52cf12b4dabe196ada06aa78"
+        "version": "1.42",
+        "hash": "59d8f1f94dbb6a24ff640cbeeb21f264"
     },
     "top": {
-        "version": "1.05",
-        "hash": "871c85c686268cc2bed6b667dc6b1591"
+        "version": "1.06",
+        "hash": "d2fb477cc860a5ec12c34bff98744e3f"
+    },
+    "health": {
+        "version": "1.00",
+        "hash": "f47fcbad32e2e718222eb9ef1abff03e"
     }
 }

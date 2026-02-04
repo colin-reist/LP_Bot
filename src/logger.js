@@ -1,8 +1,9 @@
 // filepath: /d:/Projets/Code/LP_Bot/logger.js
+require('dotenv').config();
+
 const { createLogger, format, transports } = require('winston');
 const { combine, timestamp, printf } = format;
-const config = require('../config/config.json');
-const level = config.loggerLevel || 'debug';
+const level = process.env.LOG_LEVEL || 'debug';
 
 const logFormat = printf(({ level, message, timestamp }) => {
 	return `${timestamp} [${level}]: ${message}`;

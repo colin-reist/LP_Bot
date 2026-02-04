@@ -1,30 +1,49 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { Punishments } = require('#database');
 const logger = require('#logger');
 const { ensureUserExists } = require('#utils/databaseUtils');
 const { logModerationAction } = require('#utils/loggerUtils');
 const { hasStaffRole } = require('#utils/permissionUtils');
+const { CommandOptionsValidator, ValidationError } = require('#utils/validators');
 
 module.exports = {
 	category: 'moderation',
 	data: new SlashCommandBuilder()
 		.setName('ban')
+		.setDescription('Ban un utilisateur du serveur')
+		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 		.addUserOption(option => option.setName('utilisateur').setDescription('La personne à bannir').setRequired(true))
-		.addStringOption(option => option.setName('raison').setDescription('La raison du ban').setRequired(true))
-		.setDescription('Ban un utilisateur du serveur'),
+		.addStringOption(option => option.setName('raison').setDescription('La raison du ban').setRequired(true)),
 	async execute(interaction) {
-		const bannedUser = interaction.options.getUser('utilisateur');
-		const reason = interaction.options.getString('raison');
-		const staffMember = interaction.member.user;
-
 		await interaction.deferReply({ ephemeral: true });
+
+		// Double vérification des permissions (sécurité renforcée)
+		if (!interaction.memberPermissions.has(PermissionFlagsBits.BanMembers)) {
+			return interaction.editReply({
+				content: '❌ Vous n\'avez pas la permission `Bannir des membres`.',
+				ephemeral: true
+			});
+		}
+
+		// Vérification Staff (en plus de Discord permissions)
+		if (!hasStaffRole(interaction)) {
+			return interaction.editReply({
+				content: '❌ Vous devez avoir le rôle Staff.',
+				ephemeral: true
+			});
+		}
+
+		const validator = new CommandOptionsValidator(interaction);
+		const bannedUser = validator.getUser('utilisateur');
+		const reason = validator.getString('raison', null, {
+			name: 'Raison',
+			minLength: 3,
+			maxLength: 500
+		});
+		const staffMember = interaction.member.user;
 
 		if (!staffMember) {
 			return interaction.editReply({ content: 'Impossible de récupérer le responsable', ephemeral: true });
-		}
-
-		if (!hasStaffRole(interaction)) {
-			return interaction.editReply({ content: 'Vous n\'avez pas les permissions nécessaires pour utiliser cette commande.', ephemeral: true });
 		}
 
 		// Creating DB entries and logging via Command to ensure reliability
@@ -56,6 +75,9 @@ module.exports = {
 			await interaction.editReply({ content: `L'utilisateur <@${bannedUser.id}> a été banni pour la raison suivante : ${reason}`, ephemeral: true });
 
 		} catch (error) {
+			if (error instanceof ValidationError) {
+				return interaction.editReply({ content: `❌ ${error.message}`, ephemeral: true });
+			}
 			logger.error('Erreur lors de l\'enregistrement de la punition dans la base de données : ', error);
 			interaction.editReply({ content: 'Erreur lors de l\'enregistrement de la punition dans la base de données', ephemeral: true });
 		}

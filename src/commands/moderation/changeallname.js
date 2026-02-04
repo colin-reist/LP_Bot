@@ -6,9 +6,17 @@ module.exports = {
 	category: 'moderation',
 	data: new SlashCommandBuilder()
 		.setName('renameall')
-		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-		.setDescription('Rename all members of the server'),
+		.setDescription('Rename all members of the server')
+		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 	async execute(interaction) {
+		// Double vérification des permissions (sécurité renforcée)
+		if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
+			return interaction.reply({
+				content: '❌ Vous n\'avez pas la permission `Administrateur`.',
+				ephemeral: true
+			});
+		}
+
 		await interaction.reply({ content: 'Renaming all members of the server...', ephemeral: true });
 		try {
 			logger.debug('-------Renaming all members of the server-------');
@@ -16,7 +24,7 @@ module.exports = {
 			const members = await guild.members.fetch();
 
 			members.forEach(async (member) => {
-				if (member.permissions.has('Administrator')) return logger.debug(' -> ' + member.displayName + ' is an admin, skipping...'); // skip admins
+				if (member.permissions.has(PermissionFlagsBits.Administrator)) return logger.debug(' -> ' + member.displayName + ' is an admin, skipping...'); // skip admins
 				let newName = member.displayName; // get current name
 				if (!newName.includes('!')) return; // remove everything after the first space
 				newName = newName.replaceAll('!', ''); // remove exclamation marks

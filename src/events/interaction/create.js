@@ -1,6 +1,8 @@
 const { Events, Collection, EmbedBuilder } = require('discord.js');
 const logger = require('../../logger.js');
 const ids = require('../../../config/ids.json');
+const { errorHandler } = require('../../utils/errorHandler.js');
+
 /**
  * Capte les interactions
  * @param {Interaction} interaction L'interaction créée par l'utilisateur
@@ -40,23 +42,29 @@ module.exports = (client) => {
 
         try {
             await command.execute(interaction);
+
+            // Track successful command execution
+            if (interaction.client.healthCheck) {
+                interaction.client.healthCheck.incrementMetric('commandsExecuted');
+            }
         }
         catch (error) {
-            logger.error(error);
-            if (interaction.replied || interaction.deferred) {
-                await interaction.followUp({ content: 'There was an error while executing this command!', ephemeral: true });
+            // Track errors
+            if (interaction.client.healthCheck) {
+                interaction.client.healthCheck.incrementMetric('errors');
             }
-            else {
-                await interaction.reply({ content: 'There was an error while executing this command!', ephemeral: true });
-            }
+            // Utilise le gestionnaire d'erreurs centralisé
+            await errorHandler.handleCommandError(error, interaction);
 
+            // Envoie l'embed d'erreur dans le canal de logs
             try {
                 const errorEmbed = new EmbedBuilder()
                     .setColor('#FF0000')
-                    .setTitle('Error while executing command ')
+                    .setTitle('Error while executing command')
                     .setDescription(`There was an error while executing the command \`${command.data.name}\``)
                     .addFields(
-                        { name: 'Error', value: error.message },
+                        { name: 'Error', value: error.message || 'Unknown error' },
+                        { name: 'Error Type', value: error.name || 'Error' },
                         { name: 'Last user', value: `<@${interaction.user.id}>` },
                         { name: 'Command name', value: command.data.name },
                         { name: 'Time', value: `The error happened at : <t:${Math.floor(Date.now() / 1000)}:f>` }
@@ -69,10 +77,10 @@ module.exports = (client) => {
 
                 const logChannel = client.channels.cache.get(ids.channels.logs);
                 if (logChannel) {
-                    logChannel.send({ embeds: [errorEmbed] });
+                    await logChannel.send({ embeds: [errorEmbed] });
                 }
-            } catch (error) {
-                logger.error('Error while sending error message:', error);
+            } catch (logError) {
+                logger.error('Error while sending error message to log channel:', logError);
             }
         }
     });

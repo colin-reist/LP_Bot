@@ -1,15 +1,28 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { hasStaffRole } = require('#utils/permissionUtils');
+
 module.exports = {
 	category: 'moderation',
 	data: new SlashCommandBuilder()
 		.setName('resetname')
-		.addUserOption(option => option.setName('user').setDescription('The user to reset the name').setRequired(true))
-		.setDescription('Rename all members of the server'),
+		.setDescription('Réinitialise le nom d\'un utilisateur')
+		.setDefaultMemberPermissions(PermissionFlagsBits.ManageNicknames)
+		.addUserOption(option => option.setName('user').setDescription('The user to reset the name').setRequired(true)),
 	async execute(interaction) {
-		// Check if the user has the required role
-		const requiredRole = interaction.guild.roles.cache.find(role => role.name === 'Staff');
-		if (!interaction.member.roles.cache.has(requiredRole.id)) {
-			return interaction.reply({ content: 'Tu n\'est pas un membre du staff', ephemeral: true });
+		// Double vérification des permissions (sécurité renforcée)
+		if (!interaction.memberPermissions.has(PermissionFlagsBits.ManageNicknames)) {
+			return interaction.reply({
+				content: '❌ Vous n\'avez pas la permission `Gérer les pseudos`.',
+				ephemeral: true
+			});
+		}
+
+		// Vérification Staff (en plus de Discord permissions)
+		if (!hasStaffRole(interaction)) {
+			return interaction.reply({
+				content: '❌ Vous devez avoir le rôle Staff.',
+				ephemeral: true
+			});
 		}
 	
 		// Rest of your code here...

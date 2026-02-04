@@ -1,24 +1,38 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
 const { bans, badUsers: badUserModel, staffMembers } = require('../../../database/database.js');
 const logger = require('../../logger.js');
+const { CommandOptionsValidator, ValidationError, validateDiscordId } = require('../../utils/validators.js');
 
 module.exports = {
 	category: 'moderation',
 	data: new SlashCommandBuilder()
 		.setName('hackban')
-		.addStringOption(option => option.setName('raison').setDescription('La raison du ban').setRequired(true))
+		.setDescription('Ban un utilisateur qui n\'est pas sur le serveur')
+		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers)
 		.addStringOption(option => option.setName('id').setDescription('L\'identifiant de la personne à bannir').setRequired(true))
-		.setDescription('Ban un utilisateur du serveur'),
+		.addStringOption(option => option.setName('raison').setDescription('La raison du ban').setRequired(true)),
 	async execute(interaction) {
 		await interaction.reply({ content: 'Ban en cours...', ephemeral: true });
+
+		// Double vérification des permissions (sécurité renforcée)
+		if (!interaction.memberPermissions.has(PermissionFlagsBits.BanMembers)) {
+			return interaction.editReply({
+				content: '❌ Vous n\'avez pas la permission `Bannir des membres`.',
+				ephemeral: true
+			});
+		}
 
 		const staff = interaction.member.user;
 		const staffId = staff.id;
 
 		let user_to_ban_id = undefined;
 		try {
-			user_to_ban_id = interaction.options.getString('id');
+			const validator = new CommandOptionsValidator(interaction);
+			user_to_ban_id = validator.getString('id', validateDiscordId);
 		} catch (error) {
+			if (error instanceof ValidationError) {
+				return interaction.editReply({ content: `❌ ${error.message}`, ephemeral: true });
+			}
 			interaction.editReply({ content: `Erreur : ${error}`, ephemeral: true });
 			return;
 		}
@@ -50,7 +64,20 @@ module.exports = {
 			}
 		}
 
-		const raison = interaction.options.getString('raison');
+		let raison;
+		try {
+			const validator = new CommandOptionsValidator(interaction);
+			raison = validator.getString('raison', null, {
+				name: 'Raison',
+				minLength: 3,
+				maxLength: 500
+			});
+		} catch (error) {
+			if (error instanceof ValidationError) {
+				return interaction.editReply({ content: `❌ ${error.message}`, ephemeral: true });
+			}
+			return interaction.editReply({ content: `Erreur : ${error}`, ephemeral: true });
+		}
         
 		try {
             // Ban the user by their ID

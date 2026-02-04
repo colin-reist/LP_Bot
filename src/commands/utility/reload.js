@@ -11,6 +11,14 @@ module.exports = {
 				.setDescription('The command to reload.')
 				.setRequired(true)),
 	async execute(interaction) {
+		// Double vérification des permissions (sécurité renforcée)
+		if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
+			return interaction.reply({
+				content: '❌ Vous n\'avez pas la permission `Administrateur`.',
+				ephemeral: true
+			});
+		}
+
 		const commandName = interaction.options.getString('command', true).toLowerCase();
 		const command = interaction.client.commands.get(commandName);
 

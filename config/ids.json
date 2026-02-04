@@ -7,7 +7,7 @@
         "concoursSubmission": "1164700276310155264",
         "arts": "1079499858064441344",
         "bestOfArts": "1153607344505245736",
-        "publicLogs": "1310662035436077198",
+        "publicLogs": "1464379720450703400",
         "adminLogs": "1238537326427115592",
         "adminWarnLogs": "1239286338256375898",
         "boosters": "1061643658723590164",
@@ -34,7 +34,8 @@
         "staff": "Staff",
         "contestAllowed": "1239680929958592524",
         "contestWinner": "1052591643544522782",
-        "smashOrPassPing": "1163093412812177599"
+        "smashOrPassPing": "1163093412812177599",
+        "bumpPing": "1044348995901861908"
     },
     "users": {
         "bumpBot": "302050872383242240",

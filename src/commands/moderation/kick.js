@@ -1,15 +1,17 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { Punishments } = require('#database');
 const logger = require('#logger');
 const { ensureUserExists } = require('#utils/databaseUtils');
 const { logModerationAction } = require('#utils/loggerUtils');
 const { hasStaffRole } = require('#utils/permissionUtils');
+const { CommandOptionsValidator, ValidationError } = require('#utils/validators');
 
 module.exports = {
     category: 'moderation',
     data: new SlashCommandBuilder()
         .setName('kick')
         .setDescription('Kick un utilisateur du serveur')
+        .setDefaultMemberPermissions(PermissionFlagsBits.KickMembers)
         .addUserOption(option =>
             option.setName('utilisateur')
                 .setDescription('Mention ou ID de l\'utilisateur à kick')
@@ -19,15 +21,32 @@ module.exports = {
                 .setDescription('La raison du kick')
                 .setRequired(true)),
     async execute(interaction) {
-        const kickedUser = interaction.options.getUser('utilisateur'); // Récupération de l'option utilisateur
-        const reason = interaction.options.getString('raison');
-        const staffMember = interaction.member.user;
-
         await interaction.deferReply({ ephemeral: true });
 
-        if (!hasStaffRole(interaction)) {
-            return interaction.editReply({ content: 'Vous n\'avez pas les permissions pour utiliser cette commande.', ephemeral: true });
+        // Double vérification des permissions (sécurité renforcée)
+        if (!interaction.memberPermissions.has(PermissionFlagsBits.KickMembers)) {
+            return interaction.editReply({
+                content: '❌ Vous n\'avez pas la permission `Expulser des membres`.',
+                ephemeral: true
+            });
         }
+
+        // Vérification Staff (en plus de Discord permissions)
+        if (!hasStaffRole(interaction)) {
+            return interaction.editReply({
+                content: '❌ Vous devez avoir le rôle Staff.',
+                ephemeral: true
+            });
+        }
+
+        const validator = new CommandOptionsValidator(interaction);
+        const kickedUser = validator.getUser('utilisateur');
+        const reason = validator.getString('raison', null, {
+            name: 'Raison',
+            minLength: 3,
+            maxLength: 500
+        });
+        const staffMember = interaction.member.user;
 
         await interaction.editReply({ content: 'Traitement du kick en cours...', ephemeral: true });
 
@@ -54,6 +73,9 @@ module.exports = {
             return interaction.editReply({ content: `L'utilisateur <@${kickedUser.id}> a été kick pour la raison suivante : ${reason}` });
 
         } catch (error) {
+            if (error instanceof ValidationError) {
+                return interaction.editReply({ content: `❌ ${error.message}`, ephemeral: true });
+            }
             logger.error(error);
             return interaction.editReply({ content: 'Une erreur est survenue lors du kick de l\'utilisateur.', ephemeral: true });
         }

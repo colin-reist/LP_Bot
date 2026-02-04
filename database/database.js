@@ -1,11 +1,33 @@
+require('dotenv').config();
+
 const path = require('node:path');
 const { Sequelize, DataTypes } = require('sequelize');
-const { database, user, password, dialect = 'mysql' } = require('../config/config.json');
+
+// Configuration depuis variables d'environnement
+const database = process.env.DB_NAME;
+const user = process.env.DB_USER;
+const password = process.env.DB_PASSWORD;
+const host = process.env.DB_HOST;
+const dialect = process.env.DB_DIALECT || 'mysql';
 
 const useSqlite = dialect === 'sqlite' || !database;
 const sequelize = useSqlite
-  ? new Sequelize({ dialect: 'sqlite', storage: path.join(__dirname, 'database.sqlite'), logging: false })
-  : new Sequelize(database, user, password, { host: 'eu02-sql.pebblehost.com', dialect: 'mysql', logging: false });
+  ? new Sequelize({
+      dialect: 'sqlite',
+      storage: path.join(__dirname, 'database.sqlite'),
+      logging: false
+    })
+  : new Sequelize(database, user, password, {
+      host: host,
+      dialect: dialect,
+      logging: false,
+      pool: {
+        max: 5,
+        min: 0,
+        acquire: 30000,
+        idle: 10000
+      }
+    });
 
 
 const Users = sequelize.define('Users', {
