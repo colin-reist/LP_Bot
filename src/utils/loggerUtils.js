@@ -44,15 +44,13 @@ async function logModerationAction(interaction, targetUser, staffUser, reason, t
         }
     };
 
-    // Public Log
-    await sendToChannel(ids.channels.publicLogs, 'Public Log');
-
     // Admin Log
     // Note: warn/kick used different admin log channels in previous code sometimes.
     // warns -> adminWarnLogs, bans -> adminLogs. 
     // We need to distinguish based on type.
     let adminChannelId = ids.channels.adminLogs;
     if (type === 'Warn' || type === 'Warn Removed') {
+        await sendToChannel(ids.channels.publicLogs, 'Public Log');
         adminChannelId = ids.channels.adminWarnLogs;
     }
 
