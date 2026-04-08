@@ -17,16 +17,17 @@ module.exports = {
         .addStringOption(option =>
             option.setName('description')
                 .setDescription('Description de l\'embed')
-                .setRequired(true)),
+                .setRequired(true))
+        .addStringOption(option =>                          // ← Nouveau
+            option.setName('banniere')
+                .setDescription('URL de la bannière à afficher dans l\'embed')
+                .setRequired(false)),
 
     async execute(interaction) {
-        if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
-            return interaction.reply({ content: '❌ Permission insuffisante.', ephemeral: true });
-        }
-
         const role = interaction.options.getRole('role');
         const titre = interaction.options.getString('titre');
         const description = interaction.options.getString('description');
+        const banniere = interaction.options.getString('banniere'); // ← Nouveau
 
         const embed = new EmbedBuilder()
             .setColor('#9013fe')
@@ -35,8 +36,13 @@ module.exports = {
             .addFields({ name: 'Rôle', value: `<@&${role.id}>` })
             .setTimestamp();
 
+        // Ajout de la bannière si une URL est fournie
+        if (banniere) {
+            embed.setImage(banniere);
+        }
+
         const button = new ButtonBuilder()
-            .setCustomId(`toggle_role_${role.id}`)  // L'ID du rôle est encodé dans le customId
+            .setCustomId(`toggle_role_${role.id}`)
             .setLabel('Obtenir / Retirer le rôle')
             .setStyle(ButtonStyle.Primary)
             .setEmoji('🎭');
