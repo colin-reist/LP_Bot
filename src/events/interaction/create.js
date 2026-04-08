@@ -10,6 +10,46 @@ const { errorHandler } = require('../../utils/errorHandler.js');
  */
 module.exports = (client) => {
     client.on(Events.InteractionCreate, async interaction => {
+
+        // ── Gestion des boutons ──────────────────────────────────────────────
+        if (interaction.isButton()) {
+            if (interaction.customId.startsWith('toggle_role_')) {
+                const roleId = interaction.customId.replace('toggle_role_', '');
+                const role = interaction.guild.roles.cache.get(roleId);
+
+                if (!role) {
+                    return interaction.reply({ content: '❌ Rôle introuvable.', ephemeral: true });
+                }
+
+                const member = interaction.member;
+                const hasRole = member.roles.cache.has(roleId);
+
+                try {
+                    if (hasRole) {
+                        await member.roles.remove(role);
+                        return interaction.reply({
+                            content: `✅ Le rôle **${role.name}** t'a été retiré.`,
+                            ephemeral: true
+                        });
+                    } else {
+                        await member.roles.add(role);
+                        return interaction.reply({
+                            content: `✅ Tu as obtenu le rôle **${role.name}** !`,
+                            ephemeral: true
+                        });
+                    }
+                } catch (error) {
+                    logger.error('Erreur toggle rôle:', error);
+                    return interaction.reply({
+                        content: '❌ Je n\'ai pas les permissions pour modifier ce rôle.',
+                        ephemeral: true
+                    });
+                }
+            }
+            return; // Ignorer les autres boutons non gérés
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         if (!interaction.isChatInputCommand()) return;
 
         logger.debug('Utilisation d\'une commande !');
@@ -43,20 +83,16 @@ module.exports = (client) => {
         try {
             await command.execute(interaction);
 
-            // Track successful command execution
             if (interaction.client.healthCheck) {
                 interaction.client.healthCheck.incrementMetric('commandsExecuted');
             }
         }
         catch (error) {
-            // Track errors
             if (interaction.client.healthCheck) {
                 interaction.client.healthCheck.incrementMetric('errors');
             }
-            // Utilise le gestionnaire d'erreurs centralisé
             await errorHandler.handleCommandError(error, interaction);
 
-            // Envoie l'embed d'erreur dans le canal de logs
             try {
                 const errorEmbed = new EmbedBuilder()
                     .setColor('#FF0000')
