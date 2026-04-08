@@ -13,39 +13,57 @@ module.exports = (client) => {
 
         // ── Gestion des boutons ──────────────────────────────────────────────
         if (interaction.isButton()) {
-            if (interaction.customId.startsWith('toggle_role_')) {
-                const roleId = interaction.customId.replace('toggle_role_', '');
+
+            // Bouton : Obtenir le rôle
+            if (interaction.customId.startsWith('add_role_')) {
+                const roleId = interaction.customId.replace('add_role_', '');
                 const role = interaction.guild.roles.cache.get(roleId);
 
                 if (!role) {
                     return interaction.reply({ content: '❌ Rôle introuvable.', ephemeral: true });
                 }
 
-                const member = interaction.member;
-                const hasRole = member.roles.cache.has(roleId);
+                if (interaction.member.roles.cache.has(roleId)) {
+                    return interaction.reply({ content: `⚠️ Tu as déjà le rôle **${role.name}**.`, ephemeral: true });
+                }
 
                 try {
-                    if (hasRole) {
-                        await member.roles.remove(role);
-                        return interaction.reply({
-                            content: `✅ Le rôle **${role.name}** t'a été retiré.`,
-                            ephemeral: true
-                        });
-                    } else {
-                        await member.roles.add(role);
-                        return interaction.reply({
-                            content: `✅ Tu as obtenu le rôle **${role.name}** !`,
-                            ephemeral: true
-                        });
-                    }
+                    await interaction.member.roles.add(role);
+                    return interaction.reply({ content: `✅ Tu as obtenu le rôle **${role.name}** !`, ephemeral: true });
                 } catch (error) {
-                    logger.error('Erreur toggle rôle:', error);
-                    return interaction.reply({
-                        content: '❌ Je n\'ai pas les permissions pour modifier ce rôle.',
-                        ephemeral: true
-                    });
+                    logger.error('Erreur add_role:', error);
+                    const message = error.code === 50013
+                        ? '❌ Je n\'ai pas les permissions pour modifier ce rôle. Vérifie que mon rôle est au-dessus du rôle cible.'
+                        : '❌ Une erreur est survenue lors de l\'ajout du rôle.';
+                    return interaction.reply({ content: message, ephemeral: true });
                 }
             }
+
+            // Bouton : Retirer le rôle
+            if (interaction.customId.startsWith('remove_role_')) {
+                const roleId = interaction.customId.replace('remove_role_', '');
+                const role = interaction.guild.roles.cache.get(roleId);
+
+                if (!role) {
+                    return interaction.reply({ content: '❌ Rôle introuvable.', ephemeral: true });
+                }
+
+                if (!interaction.member.roles.cache.has(roleId)) {
+                    return interaction.reply({ content: `⚠️ Tu n'as pas le rôle **${role.name}**.`, ephemeral: true });
+                }
+
+                try {
+                    await interaction.member.roles.remove(role);
+                    return interaction.reply({ content: `🗑️ Le rôle **${role.name}** t'a été retiré.`, ephemeral: true });
+                } catch (error) {
+                    logger.error('Erreur remove_role:', error);
+                    const message = error.code === 50013
+                        ? '❌ Je n\'ai pas les permissions pour modifier ce rôle. Vérifie que mon rôle est au-dessus du rôle cible.'
+                        : '❌ Une erreur est survenue lors du retrait du rôle.';
+                    return interaction.reply({ content: message, ephemeral: true });
+                }
+            }
+
             return; // Ignorer les autres boutons non gérés
         }
         // ────────────────────────────────────────────────────────────────────

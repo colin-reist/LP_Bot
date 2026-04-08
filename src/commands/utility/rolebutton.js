@@ -18,7 +18,7 @@ module.exports = {
             option.setName('description')
                 .setDescription('Description de l\'embed')
                 .setRequired(true))
-        .addStringOption(option =>                          // ← Nouveau
+        .addStringOption(option =>
             option.setName('banniere')
                 .setDescription('URL de la bannière à afficher dans l\'embed')
                 .setRequired(false)),
@@ -27,29 +27,38 @@ module.exports = {
         const role = interaction.options.getRole('role');
         const titre = interaction.options.getString('titre');
         const description = interaction.options.getString('description');
-        const banniere = interaction.options.getString('banniere'); // ← Nouveau
+        const banniere = interaction.options.getString('banniere');
 
         const embed = new EmbedBuilder()
             .setColor('#9013fe')
-            .setTitle(titre)
-            .setDescription(description)
-            .addFields({ name: 'Rôle', value: `<@&${role.id}>` })
+            .setTitle(`🎨 ${titre}`)
+            .setDescription(`${description}\n\n━━━━━━━━━━━━━━━━━━━━━━`)
+            .addFields(
+                { name: '🎭 Rôle attribué', value: `<@&${role.id}>`, inline: true },
+                { name: '👥 Membres', value: `${role.members.size} membres`, inline: true },
+            )
+            .setFooter({ text: '🔔 Clique sur un bouton pour obtenir ou retirer le rôle' })
             .setTimestamp();
 
-        // Ajout de la bannière si une URL est fournie
         if (banniere) {
             embed.setImage(banniere);
         }
 
-        const button = new ButtonBuilder()
-            .setCustomId(`toggle_role_${role.id}`)
-            .setLabel('Obtenir / Retirer le rôle')
-            .setStyle(ButtonStyle.Primary)
-            .setEmoji('🎭');
+        const buttonAdd = new ButtonBuilder()
+            .setCustomId(`add_role_${role.id}`)
+            .setLabel('Obtenir le rôle')
+            .setStyle(ButtonStyle.Success)
+            .setEmoji('✅');
 
-        const row = new ActionRowBuilder().addComponents(button);
+        const buttonRemove = new ButtonBuilder()
+            .setCustomId(`remove_role_${role.id}`)
+            .setLabel('Retirer le rôle')
+            .setStyle(ButtonStyle.Danger)
+            .setEmoji('❌');
 
-        await interaction.reply({ content: 'Embed envoyé !', ephemeral: true });
+        const row = new ActionRowBuilder().addComponents(buttonAdd, buttonRemove);
+
+        await interaction.reply({ content: '✅ Embed envoyé !', ephemeral: true });
         await interaction.channel.send({ embeds: [embed], components: [row] });
     },
 };
