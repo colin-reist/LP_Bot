@@ -68,6 +68,19 @@ module.exports = (client) => {
         }
         // ────────────────────────────────────────────────────────────────────
 
+        // ── Gestion de l'autocomplétion ──────────────────────────────────────
+        if (interaction.isAutocomplete()) {
+            const command = client.commands.get(interaction.commandName);
+            if (!command?.autocomplete) return;
+            try {
+                await command.autocomplete(interaction);
+            } catch (error) {
+                logger.error('Erreur lors de l\'autocomplétion:', error);
+            }
+            return;
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         if (!interaction.isChatInputCommand()) return;
 
         logger.debug('Utilisation d\'une commande !');
