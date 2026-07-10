@@ -20,7 +20,22 @@ module.exports = {
 		.addStringOption(option =>
 			option.setName('raison')
 				.setDescription('La raison du warn')
-				.setRequired(true)),
+				.setRequired(true)
+				.setAutocomplete(true)),
+	async autocomplete(interaction) {
+		const focused = interaction.options.getFocused().toLowerCase();
+		const predefinedReasons = [
+			'Non respect des règles du serveur',
+			'Comportement toxique / harcèlement',
+			'Spam / publicité non autorisée',
+			'Contenu inapproprié',
+			'Menaces / intimidation',
+			'Usurpation d\'identité',
+			'Flood / perturbation du chat',
+		];
+		const filtered = predefinedReasons.filter(r => r.toLowerCase().includes(focused));
+		await interaction.respond(filtered.map(r => ({ name: r, value: r })));
+	},
 	async execute(interaction) {
 		await interaction.deferReply({ ephemeral: true });
 		try {
