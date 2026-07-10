@@ -88,7 +88,7 @@ module.exports = (client) => {
 			client.user.setActivity(status[index].name, { type: status[index].type });
 		}, 600000);
 
-		concours();
+		// concours(); // En pause du au manque de participant
 
 		const dailyScheduledMessage = new cron.CronJob('0 11 * * *', () => {
 			smashOrPass();

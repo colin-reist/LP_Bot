@@ -2,6 +2,8 @@ TestConfig.json
 MainConfig.json
 config.json
 .env
+.env.production
+.env.development
 node_modules
 .idea
 combined.log
