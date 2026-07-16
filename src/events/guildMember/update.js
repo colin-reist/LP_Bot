@@ -14,6 +14,15 @@ async function handleGuildMemberUpdate(oldMember, newMember) {
 		newMember.roles.cache.has(ids.roles.boost)) {
 		await sendBoostBenefitsEmbed(newMember);
 	}
+
+	// Annonce de rôle : envoie un message dans un salon dédié quand un rôle configuré est obtenu
+	const addedRoles = newMember.roles.cache.filter(role => !oldMember.roles.cache.has(role.id));
+	for (const roleId of addedRoles.keys()) {
+		const announcement = ids.roleAnnouncements?.[roleId];
+		if (announcement) {
+			await sendRoleAnnouncement(newMember, announcement);
+		}
+	}
 }
 
 /**
@@ -116,6 +125,21 @@ async function handleBanUser(ban) {
 
 	} catch (error) {
 		logger.error('Error handling GuildBanAdd event:', error);
+	}
+}
+
+async function sendRoleAnnouncement(member, announcement) {
+	try {
+		const channel = member.guild.channels.cache.get(announcement.channel);
+		if (!channel) {
+			logger.error(`Le salon d'annonce de rôle est introuvable (channel: ${announcement.channel}).`);
+			return;
+		}
+
+		const message = announcement.message.replace('{mention}', `<@${member.id}>`);
+		await channel.send(message);
+	} catch (error) {
+		logger.error('Erreur lors de l\'envoi de l\'annonce de rôle:', error);
 	}
 }
 

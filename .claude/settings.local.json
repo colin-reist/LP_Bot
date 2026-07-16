@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(timeout 10 npm start)",
-      "Bash(timeout 8 npm start)"
+      "Bash(timeout 8 npm start)",
+      "Bash(node --check src/events/guildMember/update.js)",
+      "Bash(node -e \"require\\('./config/ids.json'\\); console.log\\('json ok'\\)\")"
     ]
   }
 }
