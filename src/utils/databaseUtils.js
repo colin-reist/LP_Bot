@@ -25,4 +25,22 @@ async function ensureUserExists(discordId, username) {
     }
 }
 
-module.exports = { ensureUserExists };
+/**
+ * Anonymise un utilisateur suite à un ban : supprime les données personnelles
+ * (pseudo, identifiant Discord) tout en conservant la ligne (et donc l'historique
+ * de punitions/suggestions/etc. qui y est lié via fk_user) pour l'audit trail.
+ * @param {Model} user L'instance Sequelize du user à anonymiser.
+ */
+async function anonymizeUser(user) {
+    try {
+        await user.update({
+            discord_identifier: -user.pk_user,
+            username: 'Utilisateur banni',
+        });
+        logger.debug(`Utilisateur anonymisé suite à un ban (pk_user: ${user.pk_user})`);
+    } catch (error) {
+        logger.error(`Erreur lors de l'anonymisation de l'utilisateur (pk_user: ${user.pk_user}):`, error);
+    }
+}
+
+module.exports = { ensureUserExists, anonymizeUser };

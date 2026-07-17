@@ -37,12 +37,7 @@
         "smashOrPassPing": "1163093412812177599",
         "bumpPing": "1044348995901861908"
     },
-    "roleAnnouncements": {
-        "1404865683354947654": {
-            "channel": "1527305838782582956",
-            "message": "🎉 Félicitations {mention}, tu as obtenu un nouveau rôle !"
-        }
-    },
+    "roleAnnouncements": {},
     "users": {
         "bumpBot": "302050872383242240",
         "dev": "551091502860730368"

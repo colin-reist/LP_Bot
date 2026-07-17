@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { Punishments } = require('#database');
 const logger = require('#logger');
-const { ensureUserExists } = require('#utils/databaseUtils');
+const { ensureUserExists, anonymizeUser } = require('#utils/databaseUtils');
 const { logModerationAction } = require('#utils/loggerUtils');
 const { hasStaffRole } = require('#utils/permissionUtils');
 const { CommandOptionsValidator, ValidationError } = require('#utils/validators');
@@ -85,6 +85,8 @@ module.exports = {
 				logger.error('Erreur lors du ban de l\'utilisateur' + error);
 				return interaction.editReply({ content: 'Erreur lors de la tentative de ban Discord: ' + error.message, ephemeral: true });
 			}
+
+			await anonymizeUser(user);
 
 			await interaction.editReply({ content: `L'utilisateur <@${bannedUser.id}> a été banni pour la raison suivante : ${reason}`, ephemeral: true });
 
