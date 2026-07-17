@@ -8,7 +8,9 @@ const database = process.env.DB_NAME;
 const user = process.env.DB_USER;
 const password = process.env.DB_PASSWORD;
 const host = process.env.DB_HOST;
+const port = process.env.DB_PORT;
 const dialect = process.env.DB_DIALECT || 'mysql';
+const useSsl = process.env.DB_SSL === 'true';
 
 const useSqlite = dialect === 'sqlite' || !database;
 const sequelize = useSqlite
@@ -19,8 +21,10 @@ const sequelize = useSqlite
     })
   : new Sequelize(database, user, password, {
       host: host,
+      port: port ? Number(port) : undefined,
       dialect: dialect,
       logging: false,
+      dialectOptions: useSsl ? { ssl: { require: true, rejectUnauthorized: true } } : undefined,
       pool: {
         max: 5,
         min: 0,
