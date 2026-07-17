@@ -106,6 +106,7 @@ async function handleBanUser(ban) {
 		// We need to register it.
 		if (staffMember) {
 			const { logModerationAction } = require('#utils/loggerUtils');
+			const { anonymizeUser } = require('#utils/databaseUtils');
 			const punisherDb = await ensureUserExists(staffMember.id, staffMember.user.username);
 
 			await Punishments.create({
@@ -115,10 +116,12 @@ async function handleBanUser(ban) {
 				type: 'ban',
 			});
 
-			// We need a context for logModerationAction that has 'guild'. 
+			// We need a context for logModerationAction that has 'guild'.
 			// The function expects 'interaction', but uses 'interaction.guild'.
 			// Pass a mock object with guild.
 			await logModerationAction({ guild: guild }, user, staffMember.user, reason, 'Ban');
+
+			await anonymizeUser(userDb);
 		} else {
 			logger.warn(`Manual ban detected for ${user.tag} but could not identify staff member. Skipping DB/Log to avoid bad data.`);
 		}
