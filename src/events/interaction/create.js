@@ -14,28 +14,46 @@ module.exports = (client) => {
         // ── Gestion des boutons ──────────────────────────────────────────────
         if (interaction.isButton()) {
 
+            // Réponse sécurisée : une interaction expire après 3s si elle n'est
+            // ni "replied" ni "deferred" (DiscordAPIError[10062] Unknown interaction).
+            // On defer tout de suite pour avoir 15 min, et on avale les erreurs de
+            // réponse si le token a quand même expiré entre-temps.
+            const safeReply = async (content) => {
+                try {
+                    if (interaction.deferred || interaction.replied) {
+                        await interaction.editReply({ content });
+                    } else {
+                        await interaction.reply({ content, flags: MessageFlags.Ephemeral });
+                    }
+                } catch (error) {
+                    logger.warn(`Impossible de répondre à l'interaction (probablement expirée): ${error.message}`);
+                }
+            };
+
             // Bouton : Obtenir le rôle
             if (interaction.customId.startsWith('add_role_')) {
                 const roleId = interaction.customId.replace('add_role_', '');
                 const role = interaction.guild.roles.cache.get(roleId);
 
                 if (!role) {
-                    return interaction.reply({ content: '❌ Rôle introuvable.', flags: MessageFlags.Ephemeral });
+                    return safeReply('❌ Rôle introuvable.');
                 }
 
                 if (interaction.member.roles.cache.has(roleId)) {
-                    return interaction.reply({ content: `⚠️ Tu as déjà le rôle **${role.name}**.`, flags: MessageFlags.Ephemeral });
+                    return safeReply(`⚠️ Tu as déjà le rôle **${role.name}**.`);
                 }
+
+                await interaction.deferReply({ flags: MessageFlags.Ephemeral }).catch(() => {});
 
                 try {
                     await interaction.member.roles.add(role);
-                    return interaction.reply({ content: `✅ Tu as obtenu le rôle **${role.name}** !`, flags: MessageFlags.Ephemeral });
+                    return safeReply(`✅ Tu as obtenu le rôle **${role.name}** !`);
                 } catch (error) {
                     logger.error('Erreur add_role:', error);
                     const message = error.code === 50013
                         ? '❌ Je n\'ai pas les permissions pour modifier ce rôle. Vérifie que mon rôle est au-dessus du rôle cible.'
                         : '❌ Une erreur est survenue lors de l\'ajout du rôle.';
-                    return interaction.reply({ content: message, flags: MessageFlags.Ephemeral });
+                    return safeReply(message);
                 }
             }
 
@@ -45,22 +63,24 @@ module.exports = (client) => {
                 const role = interaction.guild.roles.cache.get(roleId);
 
                 if (!role) {
-                    return interaction.reply({ content: '❌ Rôle introuvable.', flags: MessageFlags.Ephemeral });
+                    return safeReply('❌ Rôle introuvable.');
                 }
 
                 if (!interaction.member.roles.cache.has(roleId)) {
-                    return interaction.reply({ content: `⚠️ Tu n'as pas le rôle **${role.name}**.`, flags: MessageFlags.Ephemeral });
+                    return safeReply(`⚠️ Tu n'as pas le rôle **${role.name}**.`);
                 }
+
+                await interaction.deferReply({ flags: MessageFlags.Ephemeral }).catch(() => {});
 
                 try {
                     await interaction.member.roles.remove(role);
-                    return interaction.reply({ content: `🗑️ Le rôle **${role.name}** t'a été retiré.`, flags: MessageFlags.Ephemeral });
+                    return safeReply(`🗑️ Le rôle **${role.name}** t'a été retiré.`);
                 } catch (error) {
                     logger.error('Erreur remove_role:', error);
                     const message = error.code === 50013
                         ? '❌ Je n\'ai pas les permissions pour modifier ce rôle. Vérifie que mon rôle est au-dessus du rôle cible.'
                         : '❌ Une erreur est survenue lors du retrait du rôle.';
-                    return interaction.reply({ content: message, flags: MessageFlags.Ephemeral });
+                    return safeReply(message);
                 }
             }
 
