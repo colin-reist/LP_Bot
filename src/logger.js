@@ -2,7 +2,7 @@
 require('dotenv').config();
 
 const { createLogger, format, transports } = require('winston');
-const { combine, timestamp, printf } = format;
+const { combine, timestamp, printf, splat } = format;
 const level = process.env.LOG_LEVEL || 'debug';
 
 const logFormat = printf(({ level, message, timestamp }) => {
@@ -12,6 +12,7 @@ const logFormat = printf(({ level, message, timestamp }) => {
 const logger = createLogger({
 	level: level,
 	format: combine(
+		splat(),
 		timestamp(),
 		logFormat,
 	),
