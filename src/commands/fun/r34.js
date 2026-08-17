@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, MessageFlags } = require('discord.js');
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
+// Node >= 21 fournit fetch nativement, pas besoin de node-fetch (qui n'était
+// de toute façon pas déclaré en dépendance et faisait planter la commande).
 const logger = require('#logger');
 const { validateSearchTag, ValidationError } = require('#utils/validators');
 
@@ -9,6 +10,15 @@ const API_TIMEOUT = 5000; // 5 secondes
 const MAX_TAG_LENGTH = 100;
 const MAX_RESULTS = 900;
 const BLACKLISTED_TAGS = ['-feral', '-scat', '-gore', '-ai_generated'];
+
+// Depuis peu, l'API Rule34 exige des identifiants (obtenus sur
+// https://rule34.xxx/index.php?page=account&s=options sous "API Access Credentials").
+// Sans ces variables d'environnement, l'API répond "Missing authentication".
+const R34_USER_ID = process.env.R34_USER_ID;
+const R34_API_KEY = process.env.R34_API_KEY;
+const AUTH_PARAMS = (R34_USER_ID && R34_API_KEY)
+	? `&user_id=${encodeURIComponent(R34_USER_ID)}&api_key=${encodeURIComponent(R34_API_KEY)}`
+	: '';
 
 module.exports = {
 	category: 'fun',
@@ -42,7 +52,7 @@ module.exports = {
 
 			// 2. Construction de l'URL sécurisée
 			const tagUrl = `&tags=${encodeURIComponent(tag)} ${BLACKLISTED_TAGS.join(' ')}`;
-			const url = `${API_BASE_URL}&json=1&limit=${MAX_RESULTS}${tagUrl}`;
+			const url = `${API_BASE_URL}&json=1&limit=${MAX_RESULTS}${tagUrl}${AUTH_PARAMS}`;
 
 			logger.debug(`R34 API call: ${url}`);
 
@@ -69,22 +79,29 @@ module.exports = {
 			// 5. Parse JSON
 			const data = await response.json();
 
-			// 6. Vérification des résultats
+			// 6. L'API renvoie un statut 200 avec une simple chaîne de texte
+			// quand les identifiants (user_id/api_key) sont manquants ou invalides.
+			if (typeof data === 'string') {
+				logger.error(`R34 API authentication error: ${data}`);
+				return replyError('❌ Configuration de l\'API Rule34 manquante ou invalide. Contactez un administrateur.');
+			}
+
+			// 7. Vérification des résultats
 			if (!Array.isArray(data) || data.length === 0) {
 				return replyError(`❌ Aucun résultat trouvé pour le tag: \`${tag}\``);
 			}
 
-			// 7. Sélection aléatoire
+			// 8. Sélection aléatoire
 			const randomIndex = Math.floor(Math.random() * data.length);
 			const result = data[randomIndex];
 
-			// 8. Validation du résultat
+			// 9. Validation du résultat
 			if (!result.file_url || typeof result.file_url !== 'string') {
 				logger.error('R34 API returned invalid data structure');
 				return replyError('❌ Format de réponse invalide de l\'API.');
 			}
 
-			// 9. Construction de la réponse
+			// 10. Construction de la réponse
 			if (result.file_url.includes('.mp4') || result.file_url.includes('.webm')) {
 				// Vidéo
 				await interaction.editReply({
@@ -121,7 +138,7 @@ module.exports = {
 			logger.debug(`R34 command success for tag: ${tag}`);
 
 		} catch (error) {
-			// 10. Gestion d'erreurs détaillée
+			// 11. Gestion d'erreurs détaillée
 			if (error instanceof ValidationError) {
 				return replyError(`❌ ${error.message}`);
 			}
