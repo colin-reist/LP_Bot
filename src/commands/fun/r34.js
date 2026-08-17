@@ -24,6 +24,15 @@ module.exports = {
 	async execute(interaction) {
 		await interaction.deferReply();
 
+		// La réponse différée ci-dessus est publique : impossible de la rendre
+		// ephemeral via editReply (Discord fixe le flag à la création de la
+		// réponse). Pour les erreurs, on supprime donc la réponse "en attente"
+		// et on envoie un followUp ephemeral à la place.
+		const replyError = async (content) => {
+			await interaction.deleteReply().catch(() => {});
+			return interaction.followUp({ content, flags: MessageFlags.Ephemeral });
+		};
+
 		try {
 			// 1. Validation et sanitization du tag avec validator
 			const tag = validateSearchTag(interaction.options.getString('tag'), {
@@ -54,10 +63,7 @@ module.exports = {
 			// 4. Vérification du statut HTTP
 			if (!response.ok) {
 				logger.warn(`R34 API error: ${response.status} ${response.statusText}`);
-				return interaction.editReply({
-					content: '❌ L\'API Rule34 est temporairement indisponible.',
-					flags: MessageFlags.Ephemeral
-				});
+				return replyError('❌ L\'API Rule34 est temporairement indisponible.');
 			}
 
 			// 5. Parse JSON
@@ -65,10 +71,7 @@ module.exports = {
 
 			// 6. Vérification des résultats
 			if (!Array.isArray(data) || data.length === 0) {
-				return interaction.editReply({
-					content: `❌ Aucun résultat trouvé pour le tag: \`${tag}\``,
-					flags: MessageFlags.Ephemeral
-				});
+				return replyError(`❌ Aucun résultat trouvé pour le tag: \`${tag}\``);
 			}
 
 			// 7. Sélection aléatoire
@@ -78,10 +81,7 @@ module.exports = {
 			// 8. Validation du résultat
 			if (!result.file_url || typeof result.file_url !== 'string') {
 				logger.error('R34 API returned invalid data structure');
-				return interaction.editReply({
-					content: '❌ Format de réponse invalide de l\'API.',
-					flags: MessageFlags.Ephemeral
-				});
+				return replyError('❌ Format de réponse invalide de l\'API.');
 			}
 
 			// 9. Construction de la réponse
@@ -123,25 +123,16 @@ module.exports = {
 		} catch (error) {
 			// 10. Gestion d'erreurs détaillée
 			if (error instanceof ValidationError) {
-				return interaction.editReply({
-					content: `❌ ${error.message}`,
-					flags: MessageFlags.Ephemeral
-				});
+				return replyError(`❌ ${error.message}`);
 			}
 
 			if (error.name === 'AbortError') {
 				logger.warn('R34 API timeout');
-				return interaction.editReply({
-					content: '❌ L\'API a mis trop de temps à répondre. Réessayez.',
-					flags: MessageFlags.Ephemeral
-				});
+				return replyError('❌ L\'API a mis trop de temps à répondre. Réessayez.');
 			}
 
 			logger.error('R34 command error:', error);
-			return interaction.editReply({
-				content: '❌ Une erreur est survenue lors de la recherche.',
-				flags: MessageFlags.Ephemeral
-			});
+			return replyError('❌ Une erreur est survenue lors de la recherche.');
 		}
 	},
 };
