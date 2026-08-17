@@ -1,3 +1,4 @@
+const { MessageFlags } = require('discord.js');
 const logger = require('#logger');
 
 /**
@@ -169,12 +170,12 @@ class ErrorHandler {
 			if (interaction.deferred || interaction.replied) {
 				await interaction.editReply({
 					content: userMessage,
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				}).catch(() => {});
 			} else {
 				await interaction.reply({
 					content: userMessage,
-					ephemeral: true,
+					flags: MessageFlags.Ephemeral,
 				}).catch(() => {});
 			}
 		} catch (replyError) {

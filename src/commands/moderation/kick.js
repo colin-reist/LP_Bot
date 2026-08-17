@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const { Punishments } = require('#database');
 const logger = require('#logger');
 const { ensureUserExists } = require('#utils/databaseUtils');
@@ -21,13 +21,13 @@ module.exports = {
                 .setDescription('La raison du kick')
                 .setRequired(true)),
     async execute(interaction) {
-        await interaction.deferReply({ ephemeral: true });
+        await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
         // Double vérification des permissions (sécurité renforcée)
         if (!interaction.memberPermissions.has(PermissionFlagsBits.KickMembers)) {
             return interaction.editReply({
                 content: '❌ Vous n\'avez pas la permission `Expulser des membres`.',
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -35,7 +35,7 @@ module.exports = {
         if (!hasStaffRole(interaction)) {
             return interaction.editReply({
                 content: '❌ Vous devez avoir le rôle Staff.',
-                ephemeral: true
+                flags: MessageFlags.Ephemeral
             });
         }
 
@@ -48,7 +48,7 @@ module.exports = {
         });
         const staffMember = interaction.member.user;
 
-        await interaction.editReply({ content: 'Traitement du kick en cours...', ephemeral: true });
+        await interaction.editReply({ content: 'Traitement du kick en cours...', flags: MessageFlags.Ephemeral });
 
         try {
             const user = await ensureUserExists(kickedUser.id, kickedUser.username);
@@ -66,7 +66,7 @@ module.exports = {
                 await interaction.guild.members.kick(kickedUser.id, { reason: reason });
             } catch (error) {
                 logger.error('Erreur lors du kick de l\'utilisateur :', error);
-                return interaction.editReply({ content: 'Une erreur est survenue lors du kick de l\'utilisateur.', ephemeral: true });
+                return interaction.editReply({ content: 'Une erreur est survenue lors du kick de l\'utilisateur.', flags: MessageFlags.Ephemeral });
             }
 
             await logModerationAction(interaction, kickedUser, staffMember, reason, 'Kick');
@@ -74,10 +74,10 @@ module.exports = {
 
         } catch (error) {
             if (error instanceof ValidationError) {
-                return interaction.editReply({ content: `❌ ${error.message}`, ephemeral: true });
+                return interaction.editReply({ content: `❌ ${error.message}`, flags: MessageFlags.Ephemeral });
             }
             logger.error(error);
-            return interaction.editReply({ content: 'Une erreur est survenue lors du kick de l\'utilisateur.', ephemeral: true });
+            return interaction.editReply({ content: 'Une erreur est survenue lors du kick de l\'utilisateur.', flags: MessageFlags.Ephemeral });
         }
     }
 };

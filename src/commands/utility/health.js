@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const logger = require('#logger');
 
 module.exports = {
@@ -13,11 +13,11 @@ module.exports = {
 		if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
 			return interaction.reply({
 				content: '❌ Vous n\'avez pas la permission `Administrateur`.',
-				ephemeral: true
+				flags: MessageFlags.Ephemeral
 			});
 		}
 
-		await interaction.deferReply({ ephemeral: true });
+		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 		try {
 			// Récupère le healthCheck depuis le client
@@ -26,7 +26,7 @@ module.exports = {
 			if (!healthCheck) {
 				return interaction.editReply({
 					content: '❌ Le système de health check n\'est pas initialisé.',
-					ephemeral: true
+					flags: MessageFlags.Ephemeral
 				});
 			}
 
@@ -101,13 +101,13 @@ module.exports = {
 				}
 			}
 
-			await interaction.editReply({ embeds: [embed], ephemeral: true });
+			await interaction.editReply({ embeds: [embed], flags: MessageFlags.Ephemeral });
 
 		} catch (error) {
 			logger.error('Erreur lors de l\'exécution de la commande health:', error);
 			await interaction.editReply({
 				content: '❌ Une erreur est survenue lors du health check.',
-				ephemeral: true
+				flags: MessageFlags.Ephemeral
 			});
 		}
 	},

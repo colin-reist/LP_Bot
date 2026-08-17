@@ -1,5 +1,5 @@
 /* eslint-disable no-inline-comments */
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const logger = require('../../logger.js');
 
 module.exports = {
@@ -13,11 +13,11 @@ module.exports = {
 		if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
 			return interaction.reply({
 				content: '❌ Vous n\'avez pas la permission `Administrateur`.',
-				ephemeral: true
+				flags: MessageFlags.Ephemeral
 			});
 		}
 
-		await interaction.reply({ content: 'Renaming all members of the server...', ephemeral: true });
+		await interaction.reply({ content: 'Renaming all members of the server...', flags: MessageFlags.Ephemeral });
 		try {
 			logger.debug('-------Renaming all members of the server-------');
 			const guild = interaction.guild;
@@ -38,7 +38,7 @@ module.exports = {
 			});
 			logger.debug('-------All members have been renamed!-------');
 
-			await interaction.editReply({ content: 'All members have been renamed!', ephemeral: true });
+			await interaction.editReply({ content: 'All members have been renamed!', flags: MessageFlags.Ephemeral });
 		}
 		catch (error) {
 			logger.error(error);

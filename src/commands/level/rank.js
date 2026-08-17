@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const logger = require('../../logger.js');
 const { Users, sequelize } = require('../../../database/database.js');
 
@@ -13,7 +13,7 @@ module.exports = {
 			});
 
 			if (!user) {
-				return await interaction.reply({ content: '❌ Tu n\'es pas encore enregistré dans le système.', ephemeral: true });
+				return await interaction.reply({ content: '❌ Tu n\'es pas encore enregistré dans le système.', flags: MessageFlags.Ephemeral });
 			}
 
 			const level = getLevelFromXP(user.experience);
@@ -32,10 +32,10 @@ module.exports = {
 				.setFooter({ text: 'Continue à participer pour gagner plus d\'XP !' })
 				.setTimestamp();
 
-			await interaction.reply({ embeds: [embed], ephemeral: false });
+			await interaction.reply({ embeds: [embed] });
 
 		} catch (error) {
-			await interaction.reply({ content: '⚠️ Erreur lors de l\'exécution de la commande.\nMerci de prévenir le staff.', ephemeral: true });
+			await interaction.reply({ content: '⚠️ Erreur lors de l\'exécution de la commande.\nMerci de prévenir le staff.', flags: MessageFlags.Ephemeral });
 			logger.error('Erreur lors de la récupération de l\'expérience de l\'utilisateur :\n', error);
 		}
 	},

@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const { Punishments } = require('#database');
 const logger = require('#logger');
 const { ensureUserExists, anonymizeUser } = require('#utils/databaseUtils');
@@ -29,13 +29,13 @@ module.exports = {
 		await interaction.respond(filtered.map(r => ({ name: r, value: r })));
 	},
 	async execute(interaction) {
-		await interaction.deferReply({ ephemeral: true });
+		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
 		// Double vérification des permissions (sécurité renforcée)
 		if (!interaction.memberPermissions.has(PermissionFlagsBits.BanMembers)) {
 			return interaction.editReply({
 				content: '❌ Vous n\'avez pas la permission `Bannir des membres`.',
-				ephemeral: true
+				flags: MessageFlags.Ephemeral
 			});
 		}
 
@@ -43,7 +43,7 @@ module.exports = {
 		if (!hasStaffRole(interaction)) {
 			return interaction.editReply({
 				content: '❌ Vous devez avoir le rôle Staff.',
-				ephemeral: true
+				flags: MessageFlags.Ephemeral
 			});
 		}
 
@@ -57,7 +57,7 @@ module.exports = {
 		const staffMember = interaction.member.user;
 
 		if (!staffMember) {
-			return interaction.editReply({ content: 'Impossible de récupérer le responsable', ephemeral: true });
+			return interaction.editReply({ content: 'Impossible de récupérer le responsable', flags: MessageFlags.Ephemeral });
 		}
 
 		// Creating DB entries and logging via Command to ensure reliability
@@ -83,19 +83,19 @@ module.exports = {
 				await interaction.guild.members.ban(bannedUser.id, { reason: reason });
 			} catch (error) {
 				logger.error('Erreur lors du ban de l\'utilisateur' + error);
-				return interaction.editReply({ content: 'Erreur lors de la tentative de ban Discord: ' + error.message, ephemeral: true });
+				return interaction.editReply({ content: 'Erreur lors de la tentative de ban Discord: ' + error.message, flags: MessageFlags.Ephemeral });
 			}
 
 			await anonymizeUser(user);
 
-			await interaction.editReply({ content: `L'utilisateur <@${bannedUser.id}> a été banni pour la raison suivante : ${reason}`, ephemeral: true });
+			await interaction.editReply({ content: `L'utilisateur <@${bannedUser.id}> a été banni pour la raison suivante : ${reason}`, flags: MessageFlags.Ephemeral });
 
 		} catch (error) {
 			if (error instanceof ValidationError) {
-				return interaction.editReply({ content: `❌ ${error.message}`, ephemeral: true });
+				return interaction.editReply({ content: `❌ ${error.message}`, flags: MessageFlags.Ephemeral });
 			}
 			logger.error('Erreur lors de l\'enregistrement de la punition dans la base de données : ', error);
-			interaction.editReply({ content: 'Erreur lors de l\'enregistrement de la punition dans la base de données', ephemeral: true });
+			interaction.editReply({ content: 'Erreur lors de l\'enregistrement de la punition dans la base de données', flags: MessageFlags.Ephemeral });
 		}
 	},
 };

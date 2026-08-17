@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const { bans, badUsers: badUserModel, staffMembers } = require('../../../database/database.js');
 const logger = require('../../logger.js');
 const { CommandOptionsValidator, ValidationError, validateDiscordId } = require('../../utils/validators.js');
@@ -12,13 +12,13 @@ module.exports = {
 		.addStringOption(option => option.setName('id').setDescription('L\'identifiant de la personne à bannir').setRequired(true))
 		.addStringOption(option => option.setName('raison').setDescription('La raison du ban').setRequired(true)),
 	async execute(interaction) {
-		await interaction.reply({ content: 'Ban en cours...', ephemeral: true });
+		await interaction.reply({ content: 'Ban en cours...', flags: MessageFlags.Ephemeral });
 
 		// Double vérification des permissions (sécurité renforcée)
 		if (!interaction.memberPermissions.has(PermissionFlagsBits.BanMembers)) {
 			return interaction.editReply({
 				content: '❌ Vous n\'avez pas la permission `Bannir des membres`.',
-				ephemeral: true
+				flags: MessageFlags.Ephemeral
 			});
 		}
 
@@ -31,9 +31,9 @@ module.exports = {
 			user_to_ban_id = validator.getString('id', validateDiscordId);
 		} catch (error) {
 			if (error instanceof ValidationError) {
-				return interaction.editReply({ content: `❌ ${error.message}`, ephemeral: true });
+				return interaction.editReply({ content: `❌ ${error.message}`, flags: MessageFlags.Ephemeral });
 			}
-			interaction.editReply({ content: `Erreur : ${error}`, ephemeral: true });
+			interaction.editReply({ content: `Erreur : ${error}`, flags: MessageFlags.Ephemeral });
 			return;
 		}
 
@@ -48,7 +48,7 @@ module.exports = {
 		// Check if the executing user is a staff member
 		const staffMember = await staffMembers.findOne({ where: { sm_user_id: staffId } });
 		if (!staffMember) {
-			return interaction.editReply({ content: 'Tu n\'es pas un staff', ephemeral: true });
+			return interaction.editReply({ content: 'Tu n\'es pas un staff', flags: MessageFlags.Ephemeral });
 		}
 
 		// Check if the user is already in the badUsers list
@@ -74,9 +74,9 @@ module.exports = {
 			});
 		} catch (error) {
 			if (error instanceof ValidationError) {
-				return interaction.editReply({ content: `❌ ${error.message}`, ephemeral: true });
+				return interaction.editReply({ content: `❌ ${error.message}`, flags: MessageFlags.Ephemeral });
 			}
-			return interaction.editReply({ content: `Erreur : ${error}`, ephemeral: true });
+			return interaction.editReply({ content: `Erreur : ${error}`, flags: MessageFlags.Ephemeral });
 		}
         
 		try {
@@ -84,7 +84,7 @@ module.exports = {
             logger.debug(user_to_ban_id);
 			await interaction.guild.members.ban(user_to_ban_id, { reason: raison });
 		} catch (error) {
-            await interaction.editReply({ content: `Erreur lors du ban de l\'utilisateur ${error}`, ephemeral: true });
+            await interaction.editReply({ content: `Erreur lors du ban de l\'utilisateur ${error}`, flags: MessageFlags.Ephemeral });
             return;
 		}
         

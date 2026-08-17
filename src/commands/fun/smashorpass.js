@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const logger = require('../../logger.js');
 const ids = require('../../../config/ids.json');
 
@@ -13,7 +13,7 @@ module.exports = {
 		if (!interaction.memberPermissions.has(PermissionFlagsBits.BanMembers)) {
 			return interaction.reply({
 				content: '❌ Vous n\'avez pas la permission `Bannir des membres`.',
-				ephemeral: true
+				flags: MessageFlags.Ephemeral
 			});
 		}
 

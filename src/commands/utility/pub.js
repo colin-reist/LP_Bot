@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 
 // In-memory storage for reminders
 const reminders = [];
@@ -26,7 +26,7 @@ module.exports = {
         if (!requiredRole || !interaction.member.roles.cache.has(requiredRole.id)) {
             return interaction.reply({
                 content: 'Tu n\'as pas le rôle nécessaire pour utiliser cette commande.',
-                ephemeral: true,
+                flags: MessageFlags.Ephemeral,
             });
         }
 
@@ -52,7 +52,7 @@ module.exports = {
             .setFooter({ text: `Rappel créé le : ${dateCreation.toLocaleDateString()} - ${dateCreation.toLocaleTimeString()}` })
             .setTimestamp();
 
-        await interaction.reply({ embeds: [rappelEmbed], ephemeral: false });
+        await interaction.reply({ embeds: [rappelEmbed] });
     },
 };
 

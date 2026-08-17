@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, ButtonBuilder, ButtonStyle, ActionRowBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 
 module.exports = {
     category: 'utility',
@@ -58,7 +58,7 @@ module.exports = {
 
         const row = new ActionRowBuilder().addComponents(buttonAdd, buttonRemove);
 
-        await interaction.reply({ content: '✅ Embed envoyé !', ephemeral: true });
+        await interaction.reply({ content: '✅ Embed envoyé !', flags: MessageFlags.Ephemeral });
         await interaction.channel.send({ embeds: [embed], components: [row] });
     },
 };

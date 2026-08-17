@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const { hasStaffRole } = require('#utils/permissionUtils');
 
 module.exports = {
@@ -13,7 +13,7 @@ module.exports = {
 		if (!interaction.memberPermissions.has(PermissionFlagsBits.ManageNicknames)) {
 			return interaction.reply({
 				content: '❌ Vous n\'avez pas la permission `Gérer les pseudos`.',
-				ephemeral: true
+				flags: MessageFlags.Ephemeral
 			});
 		}
 
@@ -21,17 +21,17 @@ module.exports = {
 		if (!hasStaffRole(interaction)) {
 			return interaction.reply({
 				content: '❌ Vous devez avoir le rôle Staff.',
-				ephemeral: true
+				flags: MessageFlags.Ephemeral
 			});
 		}
 	
 		// Rest of your code here...
-		await interaction.reply({ content: 'Réinitialisation du nom de l\'utilisateur...', ephemeral: true });
+		await interaction.reply({ content: 'Réinitialisation du nom de l\'utilisateur...', flags: MessageFlags.Ephemeral });
 	
 		const user = interaction.options.getUser('user');
 		const member = await interaction.guild.members.fetch(user.id);
 		await member.setNickname(user.username);
 	
-		await interaction.editReply({ content: 'Le nom de l\'utilisateur a été réinitialisé', ephemeral: true });	
+		await interaction.editReply({ content: 'Le nom de l\'utilisateur a été réinitialisé', flags: MessageFlags.Ephemeral });	
 	},
 };

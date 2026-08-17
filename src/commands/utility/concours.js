@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const ids = require('../../../config/ids.json');
 
 module.exports = {
@@ -22,7 +22,7 @@ module.exports = {
 		if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
 			return interaction.reply({
 				content: '❌ Vous n\'avez pas la permission `Administrateur`.',
-				ephemeral: true
+				flags: MessageFlags.Ephemeral
 			});
 		}
 

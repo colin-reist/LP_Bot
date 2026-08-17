@@ -1,4 +1,4 @@
-const { Events, Collection, EmbedBuilder } = require('discord.js');
+const { Events, Collection, EmbedBuilder, MessageFlags } = require('discord.js');
 const logger = require('../../logger.js');
 const ids = require('../../../config/ids.json');
 const { errorHandler } = require('../../utils/errorHandler.js');
@@ -20,22 +20,22 @@ module.exports = (client) => {
                 const role = interaction.guild.roles.cache.get(roleId);
 
                 if (!role) {
-                    return interaction.reply({ content: '❌ Rôle introuvable.', ephemeral: true });
+                    return interaction.reply({ content: '❌ Rôle introuvable.', flags: MessageFlags.Ephemeral });
                 }
 
                 if (interaction.member.roles.cache.has(roleId)) {
-                    return interaction.reply({ content: `⚠️ Tu as déjà le rôle **${role.name}**.`, ephemeral: true });
+                    return interaction.reply({ content: `⚠️ Tu as déjà le rôle **${role.name}**.`, flags: MessageFlags.Ephemeral });
                 }
 
                 try {
                     await interaction.member.roles.add(role);
-                    return interaction.reply({ content: `✅ Tu as obtenu le rôle **${role.name}** !`, ephemeral: true });
+                    return interaction.reply({ content: `✅ Tu as obtenu le rôle **${role.name}** !`, flags: MessageFlags.Ephemeral });
                 } catch (error) {
                     logger.error('Erreur add_role:', error);
                     const message = error.code === 50013
                         ? '❌ Je n\'ai pas les permissions pour modifier ce rôle. Vérifie que mon rôle est au-dessus du rôle cible.'
                         : '❌ Une erreur est survenue lors de l\'ajout du rôle.';
-                    return interaction.reply({ content: message, ephemeral: true });
+                    return interaction.reply({ content: message, flags: MessageFlags.Ephemeral });
                 }
             }
 
@@ -45,22 +45,22 @@ module.exports = (client) => {
                 const role = interaction.guild.roles.cache.get(roleId);
 
                 if (!role) {
-                    return interaction.reply({ content: '❌ Rôle introuvable.', ephemeral: true });
+                    return interaction.reply({ content: '❌ Rôle introuvable.', flags: MessageFlags.Ephemeral });
                 }
 
                 if (!interaction.member.roles.cache.has(roleId)) {
-                    return interaction.reply({ content: `⚠️ Tu n'as pas le rôle **${role.name}**.`, ephemeral: true });
+                    return interaction.reply({ content: `⚠️ Tu n'as pas le rôle **${role.name}**.`, flags: MessageFlags.Ephemeral });
                 }
 
                 try {
                     await interaction.member.roles.remove(role);
-                    return interaction.reply({ content: `🗑️ Le rôle **${role.name}** t'a été retiré.`, ephemeral: true });
+                    return interaction.reply({ content: `🗑️ Le rôle **${role.name}** t'a été retiré.`, flags: MessageFlags.Ephemeral });
                 } catch (error) {
                     logger.error('Erreur remove_role:', error);
                     const message = error.code === 50013
                         ? '❌ Je n\'ai pas les permissions pour modifier ce rôle. Vérifie que mon rôle est au-dessus du rôle cible.'
                         : '❌ Une erreur est survenue lors du retrait du rôle.';
-                    return interaction.reply({ content: message, ephemeral: true });
+                    return interaction.reply({ content: message, flags: MessageFlags.Ephemeral });
                 }
             }
 
@@ -104,7 +104,7 @@ module.exports = (client) => {
 
             if (now < expirationTime) {
                 const expiredTimestamp = Math.round(expirationTime / 1000);
-                return interaction.reply({ content: `Please wait, you are on a cooldown for \`${command.data.name}\`. You can use it again <t:${expiredTimestamp}:R>.`, ephemeral: true });
+                return interaction.reply({ content: `Please wait, you are on a cooldown for \`${command.data.name}\`. You can use it again <t:${expiredTimestamp}:R>.`, flags: MessageFlags.Ephemeral });
             }
         }
 

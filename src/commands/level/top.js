@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const logger = require('../../logger.js');
 const { Users, sequelize } = require('../../../database/database.js');
 
@@ -16,7 +16,7 @@ module.exports = {
 			});
 
 			if (!users) {
-				return await interaction.reply({ content: '❌ Aucun utilisateur n\'est enregistré dans le système.', ephemeral: true });
+				return await interaction.reply({ content: '❌ Aucun utilisateur n\'est enregistré dans le système.', flags: MessageFlags.Ephemeral });
 			}
 
 			// Création de l'embed
@@ -42,10 +42,10 @@ module.exports = {
 				}
 			}
 
-			await interaction.reply({ embeds: [embed], ephemeral: false });
+			await interaction.reply({ embeds: [embed] });
 		} catch (error) {
 			logger.error('Erreur lors de la récupération du classement des membres :\n', error);
-			await interaction.reply({ content: '⚠️ Erreur lors de l\'exécution de la commande.\nMerci de prévenir le staff.', ephemeral: true });
+			await interaction.reply({ content: '⚠️ Erreur lors de l\'exécution de la commande.\nMerci de prévenir le staff.', flags: MessageFlags.Ephemeral });
 		}
 	},
 };

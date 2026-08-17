@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, EmbedBuilder, MessageFlags } = require('discord.js');
 
 module.exports = {
 	category: 'utility',
@@ -11,7 +11,7 @@ module.exports = {
 		if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
 			return interaction.reply({
 				content: '❌ Vous n\'avez pas la permission `Administrateur`.',
-				ephemeral: true
+				flags: MessageFlags.Ephemeral
 			});
 		}
 

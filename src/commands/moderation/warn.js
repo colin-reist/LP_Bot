@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
+const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const { Punishments } = require('#database');
 const { Op } = require('sequelize');
 const logger = require('#logger');
@@ -37,13 +37,13 @@ module.exports = {
 		await interaction.respond(filtered.map(r => ({ name: r, value: r })));
 	},
 	async execute(interaction) {
-		await interaction.deferReply({ ephemeral: true });
+		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 		try {
 			// Double vérification des permissions (sécurité renforcée)
 			if (!interaction.memberPermissions.has(PermissionFlagsBits.ModerateMembers)) {
 				return interaction.editReply({
 					content: '❌ Vous n\'avez pas la permission `Modérer les membres`.',
-					ephemeral: true
+					flags: MessageFlags.Ephemeral
 				});
 			}
 
@@ -51,7 +51,7 @@ module.exports = {
 			if (!hasStaffRole(interaction)) {
 				return interaction.editReply({
 					content: '❌ Vous devez avoir le rôle Staff.',
-					ephemeral: true
+					flags: MessageFlags.Ephemeral
 				});
 			}
 
@@ -64,7 +64,7 @@ module.exports = {
 			});
 			const staffMember = interaction.member.user;
 			if (!staffMember) {
-				return interaction.editReply({ content: 'Impossible de récupérer le responsable', ephemeral: true });
+				return interaction.editReply({ content: 'Impossible de récupérer le responsable', flags: MessageFlags.Ephemeral });
 			}
 
 			const user = await ensureUserExists(warnedUser.id, warnedUser.username);
@@ -89,13 +89,13 @@ module.exports = {
 				await logModerationAction(interaction, warnedUser, staffMember, reason, 'Warn');
 			}
 
-			await interaction.editReply({ content: `L'utilisateur <@${warnedUser.id}> a été averti pour la raison suivante : ${reason}`, ephemeral: true });
+			await interaction.editReply({ content: `L'utilisateur <@${warnedUser.id}> a été averti pour la raison suivante : ${reason}`, flags: MessageFlags.Ephemeral });
 		} catch (error) {
 			if (error instanceof ValidationError) {
-				return interaction.editReply({ content: `❌ ${error.message}`, ephemeral: true });
+				return interaction.editReply({ content: `❌ ${error.message}`, flags: MessageFlags.Ephemeral });
 			}
 			logger.error('Erreur lors de l\'exécution de la commande warn :', error);
-			await interaction.editReply({ content: 'Une erreur est survenue lors de l\'exécution de la commande.', ephemeral: true });
+			await interaction.editReply({ content: 'Une erreur est survenue lors de l\'exécution de la commande.', flags: MessageFlags.Ephemeral });
 		}
 	},
 };

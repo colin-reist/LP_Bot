@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require('discord.js');
+const { SlashCommandBuilder, MessageFlags } = require('discord.js');
 const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const logger = require('#logger');
 const { validateSearchTag, ValidationError } = require('#utils/validators');
@@ -56,7 +56,7 @@ module.exports = {
 				logger.warn(`R34 API error: ${response.status} ${response.statusText}`);
 				return interaction.editReply({
 					content: '❌ L\'API Rule34 est temporairement indisponible.',
-					ephemeral: true
+					flags: MessageFlags.Ephemeral
 				});
 			}
 
@@ -67,7 +67,7 @@ module.exports = {
 			if (!Array.isArray(data) || data.length === 0) {
 				return interaction.editReply({
 					content: `❌ Aucun résultat trouvé pour le tag: \`${tag}\``,
-					ephemeral: true
+					flags: MessageFlags.Ephemeral
 				});
 			}
 
@@ -80,7 +80,7 @@ module.exports = {
 				logger.error('R34 API returned invalid data structure');
 				return interaction.editReply({
 					content: '❌ Format de réponse invalide de l\'API.',
-					ephemeral: true
+					flags: MessageFlags.Ephemeral
 				});
 			}
 
@@ -125,7 +125,7 @@ module.exports = {
 			if (error instanceof ValidationError) {
 				return interaction.editReply({
 					content: `❌ ${error.message}`,
-					ephemeral: true
+					flags: MessageFlags.Ephemeral
 				});
 			}
 
@@ -133,14 +133,14 @@ module.exports = {
 				logger.warn('R34 API timeout');
 				return interaction.editReply({
 					content: '❌ L\'API a mis trop de temps à répondre. Réessayez.',
-					ephemeral: true
+					flags: MessageFlags.Ephemeral
 				});
 			}
 
 			logger.error('R34 command error:', error);
 			return interaction.editReply({
 				content: '❌ Une erreur est survenue lors de la recherche.',
-				ephemeral: true
+				flags: MessageFlags.Ephemeral
 			});
 		}
 	},
