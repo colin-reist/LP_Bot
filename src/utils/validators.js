@@ -275,6 +275,7 @@ function sanitizeHtml(value) {
 }
 
 module.exports = {
+	ValidationError,
 	validateString,
 	validateNumber,
 	validateDiscordId,
