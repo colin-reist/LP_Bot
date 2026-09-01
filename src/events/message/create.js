@@ -66,8 +66,7 @@ async function bumpHandler(message) {
 				.addFields({
 					name: ' ',
 					value: 'Utilisez la commande de ' + codeText + ' de <@' + ids.users.bumpBot + '>',
-				})
-				.setImage('https://images2.imgbox.com/05/c5/b2vOiqS4_o.gif');
+				});
 
 			message.channel.send({ embeds: [embed] });
 		}, 7200000);
