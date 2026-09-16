@@ -183,7 +183,7 @@ async function levelHandler(message) {
 function getLevelFromXP(xp) {
 	let level = 0;
 	while (true) {
-		const requiredXP = 50 * level ** 2 + 50 * level + 100;
+		const requiredXP = 2.5 * level ** 2 + 50 * level + 100;
 		if (xp < requiredXP) break;
 		xp -= requiredXP;
 		level++;
