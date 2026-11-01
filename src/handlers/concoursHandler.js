@@ -1,6 +1,6 @@
 const { Concours } = require('../../database/database.js');
 const logger = require('../logger.js');
-const ids = require('../../config/ids.json');
+const { getChannelId } = require('../utils/channelConfig.js');
 
 /**
  * Fonction qui gère le starboard
@@ -14,7 +14,7 @@ async function starboard(reaction) {
 	if (user.bot) return;
 
 	// Check if the reaction is on a message in the right channel
-	if (reaction.message.channel.id !== ids.channels.concoursSubmission) return;
+	if (reaction.message.channel.id !== getChannelId('concoursSubmission')) return;
 
 	checkReaction(reaction);
 	return;

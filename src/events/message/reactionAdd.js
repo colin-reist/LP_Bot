@@ -1,7 +1,7 @@
 const { Events } = require('discord.js');
 const logger = require('../../logger.js');
 const { starboard } = require('../../handlers/concoursHandler.js');
-const ids = require('../../../config/ids.json');
+const { getChannelId } = require('../../utils/channelConfig.js');
 const { createEventHandler } = require('../../utils/eventWrapper.js');
 
 async function handleReactionAdd(reaction) {
@@ -19,8 +19,8 @@ async function handleReactionAdd(reaction) {
 	logger.debug('MessageReactionAdd event processed');
 
 	// Vérification des channels
-	const lewdParadiseChannelId = ids.channels.arts;
-	const testChannelId = ids.channels.concoursSubmission;
+	const lewdParadiseChannelId = getChannelId('arts');
+	const testChannelId = getChannelId('concoursSubmission');
 
 	if (reaction.message.channel.id === lewdParadiseChannelId ||
 		reaction.message.channel.id === testChannelId) {

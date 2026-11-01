@@ -1,6 +1,6 @@
 const { Events, Collection, EmbedBuilder, MessageFlags } = require('discord.js');
 const logger = require('../../logger.js');
-const ids = require('../../../config/ids.json');
+const { getChannelId } = require('../../utils/channelConfig.js');
 const { errorHandler } = require('../../utils/errorHandler.js');
 
 /**
@@ -162,7 +162,7 @@ module.exports = (client) => {
                         iconURL: "https://i.imgur.com/PQtvZLa.gif",
                     });
 
-                const logChannel = client.channels.cache.get(ids.channels.logs);
+                const logChannel = client.channels.cache.get(getChannelId('logs'));
                 if (logChannel) {
                     await logChannel.send({ embeds: [errorEmbed] });
                 }

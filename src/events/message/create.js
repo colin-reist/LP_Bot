@@ -2,6 +2,7 @@ const { Events, EmbedBuilder } = require('discord.js');
 const { Users } = require('../../../database/database.js');
 const logger = require('../../logger.js');
 const ids = require('../../../config/ids.json');
+const { getChannelId } = require('../../utils/channelConfig.js');
 const { dbOperations } = require('../../utils/dbRetry.js');
 const { errorHandler } = require('../../utils/errorHandler.js');
 const { wrapEventHandler } = require('../../utils/eventWrapper.js');
@@ -48,7 +49,7 @@ module.exports = (client) => {
 };
 
 async function bumpHandler(message) {
-	const bumbChannelId = ids.channels.bump;
+	const bumbChannelId = getChannelId('bump');
 	const commandName = 'bump';
 
 	if (!message.interaction && message.channelId !== bumbChannelId) return;
@@ -163,7 +164,7 @@ async function levelHandler(message) {
 			if (newLevel > oldLevel) {
 				logger.debug(`Nouveau niveau pour ${message.author.username} : ${newLevel}`);
 				await handleLevelUp(message, newLevel);
-				const channel = message.guild.channels.cache.get(ids.channels.levelUp);
+				const channel = message.guild.channels.cache.get(getChannelId('levelUp'));
 				await channel.send(`🎉 Félicitations <@${message.author.id}> ! Tu as atteint le niveau ${newLevel} !`);
 			}
 		} else {

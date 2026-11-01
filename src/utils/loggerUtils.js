@@ -1,5 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
-const ids = require('#config/ids');
+const { getChannelId } = require('./channelConfig.js');
 const logger = require('#logger');
 
 /**
@@ -48,10 +48,10 @@ async function logModerationAction(interaction, targetUser, staffUser, reason, t
     // Note: warn/kick used different admin log channels in previous code sometimes.
     // warns -> adminWarnLogs, bans -> adminLogs. 
     // We need to distinguish based on type.
-    let adminChannelId = ids.channels.adminLogs;
+    let adminChannelId = getChannelId('adminLogs');
     if (type === 'Warn' || type === 'Warn Removed') {
-        await sendToChannel(ids.channels.publicLogs, 'Public Log');
-        adminChannelId = ids.channels.adminWarnLogs;
+        await sendToChannel(getChannelId('publicLogs'), 'Public Log');
+        adminChannelId = getChannelId('adminWarnLogs');
     }
 
     await sendToChannel(adminChannelId, 'Admin Log');

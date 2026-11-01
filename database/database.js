@@ -97,7 +97,14 @@ const Concours = sequelize.define('Concours', {
 	post_link: { type: DataTypes.STRING, allowNull: false },
 }, { timestamps: true });
 
+// Paramètres du bot modifiables à chaud (ex: salons configurés via /config)
+const BotSettings = sequelize.define('BotSettings', {
+	setting_key: { type: DataTypes.STRING(100), primaryKey: true },
+	setting_value: { type: DataTypes.STRING, allowNull: false },
+	updated_by: { type: DataTypes.STRING(32), allowNull: true }, // ID Discord de la dernière personne ayant modifié
+}, { timestamps: true, tableName: 'BotSettings' });
+
 // Synchronisation de la base de données
 sequelize.sync({ force: false }); // Ne pas forcer la synchronisation à chaque démarrage
 
-module.exports = { Users, Punishments, Suggestions, Boosts, Concours, sequelize };
+module.exports = { Users, Punishments, Suggestions, Boosts, Concours, BotSettings, sequelize };

@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const logger = require('../../logger.js');
 const ids = require('../../../config/ids.json');
+const { getChannelId } = require('../../utils/channelConfig.js');
 
 module.exports = {
     category: 'fun',
@@ -75,7 +76,7 @@ module.exports = {
             logger.debug(`Image sélectionnée : ${randomImage.url}`);
 
             // Poste l'image dans un autre salon (par exemple, un salon spécifique)
-            const targetChannelId = ids.channels.smashOrPassTarget; // ID du salon cible
+            const targetChannelId = getChannelId('smashOrPassTarget');
             const targetChannel = interaction.client.channels.cache.get(targetChannelId);
 
             if (targetChannel && targetChannel.isTextBased()) {

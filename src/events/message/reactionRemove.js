@@ -1,7 +1,7 @@
 const { Events } = require('discord.js');
 const { starboard } = require('../../handlers/concoursHandler.js');
 const logger = require('../../logger.js');
-const ids = require('../../../config/ids.json');
+const { getChannelId } = require('../../utils/channelConfig.js');
 const { createEventHandler } = require('../../utils/eventWrapper.js');
 
 async function handleReactionRemove(reaction) {
@@ -13,8 +13,8 @@ async function handleReactionRemove(reaction) {
 	logger.debug('MessageReactionRemove event processed');
 
 	// Vérification des channels
-	if (reaction.message.channel.id === ids.channels.arts ||
-		reaction.message.channel.id === ids.channels.bestOfArts) {
+	if (reaction.message.channel.id === getChannelId('arts') ||
+		reaction.message.channel.id === getChannelId('bestOfArts')) {
 		await starboard(reaction, 'remove', reaction.client);
 	}
 }

@@ -3,6 +3,7 @@ const { EmbedBuilder } = require('discord.js');
 const { Users, Punishments } = require('#database');
 const logger = require('#logger');
 const ids = require('#config/ids');
+const { getChannelId } = require('../../utils/channelConfig.js');
 const { wrapEventHandler } = require('../../utils/eventWrapper.js');
 
 /**
@@ -148,7 +149,7 @@ async function sendRoleAnnouncement(member, announcement) {
 
 async function sendBoostBenefitsEmbed(member) {
 	try {
-		const channel = member.guild.channels.cache.get(ids.channels.boosters);
+		const channel = member.guild.channels.cache.get(getChannelId('boosters'));
 		if (!channel) {
 			logger.error('Le salon boost est introuvable.');
 			return;
@@ -162,7 +163,7 @@ async function sendBoostBenefitsEmbed(member) {
 			.addFields(
 				{
 					name: '🔹 Un rôle unique',
-					value: 'Tu as maintenant le droit à ton propre rôle ! \nIl te suffit de donner au staff le nom, la couleur et l\'image que tu veux. \nOuvre un ticket dans <#' + ids.channels.tickets + '> pour en discuter.',
+					value: 'Tu as maintenant le droit à ton propre rôle ! \nIl te suffit de donner au staff le nom, la couleur et l\'image que tu veux. \nOuvre un ticket dans <#' + getChannelId('tickets') + '> pour en discuter.',
 					inline: false,
 				},
 				{
@@ -172,7 +173,7 @@ async function sendBoostBenefitsEmbed(member) {
 				},
 				{
 					name: '🔹 Des salons exclusifs',
-					value: 'Tu as maintenant accès au salon vocal <#' + ids.channels.voiceBoosters + '> pour discuter avec les autres boosters ! \nTu as aussi accès au salon textuel <#' + ids.channels.textBoosters + '> pour discuter de tout et de rien.',
+					value: 'Tu as maintenant accès au salon vocal <#' + getChannelId('voiceBoosters') + '> pour discuter avec les autres boosters ! \nTu as aussi accès au salon textuel <#' + getChannelId('textBoosters') + '> pour discuter de tout et de rien.',
 					inline: false,
 				},
 			)
