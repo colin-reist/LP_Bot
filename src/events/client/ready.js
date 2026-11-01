@@ -3,10 +3,9 @@ const { Concours } = require('../../../database/database'); // Importer la table
 const cron = require('cron'); // Importer cron
 const logger = require('../../logger.js');
 const ids = require('../../../config/ids.json');
+const { getChannelId } = require('../../utils/channelConfig.js');
 
 module.exports = (client) => {
-
-	const crashLogsChannelId = ids.channels.logs; // ID du channel où envoyer les logs de crash
 
 	process.on('uncaughtException', async (error) => {
 		logger.error('An unCaugth error has been detected :', error.stack ?? error);
@@ -27,8 +26,7 @@ module.exports = (client) => {
 					iconURL: 'https://i.imgur.com/PQtvZLa.gif',
 				});
 
-			// Remplace "ID_DU_CHANNEL" par l'ID du channel où tu veux envoyer le message
-			const channel = client.channels.cache.get(crashLogsChannelId);
+			const channel = client.channels.cache.get(getChannelId('logs'));
 			if (channel && channel.isTextBased()) {
 				await channel.send('<@' + ids.users.dev + '> Tu sais pas coder')
 				await channel.send({ embeds: [errorEmbed] });
@@ -49,7 +47,7 @@ module.exports = (client) => {
 				iconURL: 'https://i.imgur.com/PQtvZLa.gif',
 			});
 
-		const channel = client.channels.cache.get(crashLogsChannelId);
+		const channel = client.channels.cache.get(getChannelId('logs'));
 		if (channel && channel.isTextBased()) {
 			channel.send({ embeds: [startEmbed] });
 		} else {
@@ -105,7 +103,7 @@ module.exports = (client) => {
 	 */
 	async function concours() {
 
-		const channel = client.channels.cache.get(ids.channels.concours);
+		const channel = client.channels.cache.get(getChannelId('concours'));
 
 		const saturdayScheduledMessage = new cron.CronJob('0 10 * * 6', () => {
 			channel.send('<@&' + ids.roles.contestAllowed + '>');
@@ -169,7 +167,7 @@ module.exports = (client) => {
 				.addFields(
 					{
 						name: '🗳️ Phase de votes : Choisissez vos préférés ! 🗳️',
-						value: '- L\'émoji de vote et le suivant : <:' + ids.emojis.vote + '>\n- Aucune limite de vote est appliqué (nombre de vote infini)\n- Toute image dépassant 15 votes sera affichés dans <#' + ids.channels.bestOfArts + '>',
+						value: '- L\'émoji de vote et le suivant : <:' + ids.emojis.vote + '>\n- Aucune limite de vote est appliqué (nombre de vote infini)\n- Toute image dépassant 15 votes sera affichés dans <#' + getChannelId('bestOfArts') + '>',
 						inline: false,
 					},
 					{
@@ -254,7 +252,7 @@ module.exports = (client) => {
 			logger.debug(`Image sélectionnée : ${randomImage.url}`);
 
 			// Poste l'image dans un autre salon (par exemple, un salon spécifique)
-			const targetChannelId = ids.channels.smashOrPassTarget; // ID du salon cible
+			const targetChannelId = getChannelId('smashOrPassTarget');
 			const targetChannel = client.channels.cache.get(targetChannelId);
 
 			if (targetChannel && targetChannel.isTextBased()) {

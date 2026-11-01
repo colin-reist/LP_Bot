@@ -1,5 +1,6 @@
 const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const ids = require('../../../config/ids.json');
+const { getChannelId } = require('../../utils/channelConfig.js');
 
 module.exports = {
 	category: 'utility',
@@ -43,7 +44,7 @@ module.exports = {
 						'✔️ **Utilisez l’émoji suivant :** 🗳️ <:' + ids.emojis.vote + '>\n' +
 						'✔️ **Tous les styles sont acceptés !**\n' +
 						'✔️ **Réagissez** à votre propre image et à votre préférée pour plus d’interaction.\n' +
-						'✔️ **Postez vos œuvres dans** 🏆 <#' + ids.channels.arts + '>.',
+						'✔️ **Postez vos œuvres dans** 🏆 <#' + getChannelId('arts') + '>.',
 				},
 				{
 					name: '🕒 Déroulement', value:
