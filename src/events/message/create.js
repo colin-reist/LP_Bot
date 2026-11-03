@@ -6,6 +6,7 @@ const { getChannelId } = require('../../utils/channelConfig.js');
 const { dbOperations } = require('../../utils/dbRetry.js');
 const { errorHandler } = require('../../utils/errorHandler.js');
 const { wrapEventHandler } = require('../../utils/eventWrapper.js');
+const { imageSpamWatch } = require('../../handlers/imageSpamWatch.js');
 
 // Rate limiting pour le système XP
 const userXpCooldowns = new Map();
@@ -31,7 +32,8 @@ async function handleMessageCreate(message) {
 	// Les erreurs individuelles sont gérées dans chaque fonction
 	await Promise.allSettled([
 		levelHandler(message),
-		checkMandatoryRole(message)
+		checkMandatoryRole(message),
+		imageSpamWatch(message),
 	]);
 }
 
