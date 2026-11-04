@@ -1,29 +1,25 @@
 const { EmbedBuilder } = require('discord.js');
 const logger = require('../logger.js');
+const ids = require('../../config/ids.json');
 const { getChannelId } = require('../utils/channelConfig.js');
+const { getSetting } = require('../utils/imageSpamSettings.js');
 
 /**
- * Surveillance du salon de discussion : si plus de MAX_IMAGES_IN_A_ROW images sont
- * envoyées à la suite sans aucun message texte entre elles, le bot rappelle que
- * c'est un salon de discussion et non un salon d'images.
+ * Surveillance des salons de discussion : si plus de `threshold` images sont envoyées
+ * à la suite sans aucun message texte entre elles (et sans pause de plus de `windowMin`),
+ * le bot rappelle que c'est un salon de discussion et non un salon d'images.
  *
- * Le salon surveillé se règle via /config → « Discussion (anti-spam d'images) ».
- * Tant qu'il n'est pas défini, la fonctionnalité est inactive.
+ * Salons et réglages : /antispam. Salon de redirection : /config → « Salon images ».
  * Appelé depuis src/events/message/create.js (un seul listener MessageCreate).
  */
-const CHANNEL_KEY = 'chatImageWatch';
-// L'annonce part à la 5e image consécutive
-const MAX_IMAGES_IN_A_ROW = 4;
-// Pas plus d'une annonce toutes les 2 minutes
-const ANNOUNCE_COOLDOWN = 2 * 60 * 1000;
 
-/** @type {Map<string, { count: number, lastAnnounce: number }>} état par salon */
+/** @type {Map<string, { count: number, lastImageAt: number, lastAnnounce: number }>} état par salon */
 const channelStates = new Map();
 
 function getState(channelId) {
 	let state = channelStates.get(channelId);
 	if (!state) {
-		state = { count: 0, lastAnnounce: 0 };
+		state = { count: 0, lastImageAt: 0, lastAnnounce: 0 };
 		channelStates.set(channelId, state);
 	}
 	return state;
@@ -36,6 +32,8 @@ const IMAGE_HOSTS = /(^|\.)imgur\.com$/i;
 // ils ne comptent pas comme image et ne cassent pas la série non plus
 const IGNORED_GIF_HOSTS = /(^|\.)(tenor\.com|giphy\.com|klipy\.com)$/i;
 const URL_REGEX = /https?:\/\/\S+/gi;
+// Emojis Unicode (avec modificateurs, drapeaux, ZWJ) et emojis custom <:nom:id> / <a:nom:id>
+const EMOJI_REGEX = /<a?:\w+:\d+>|\p{Extended_Pictographic}|\p{Emoji_Modifier}|\p{Regional_Indicator}|\u200d|\ufe0f|\u20e3/gu;
 
 /** @returns {URL|null} */
 function parseUrl(raw) {
@@ -81,7 +79,8 @@ function analyse({ attachments, embeds, content }) {
 	return {
 		// Embed et URL décrivent la même image : on garde le plus grand des deux
 		images: attachmentImages + Math.max(embedImages, urlImages),
-		hasText: textOnly.trim().length > 0,
+		// Un message composé uniquement d'emojis n'est pas de la discussion
+		hasText: textOnly.replace(EMOJI_REGEX, '').trim().length > 0,
 	};
 }
 
@@ -100,43 +99,65 @@ function countImages(message) {
 	return result;
 }
 
+/** Staff (et boosters si activé) : leurs images ne comptent pas */
+function isExempt(member) {
+	if (!member) return false;
+	if (member.roles.cache.some(role => role.name === ids.roles.staff)) return true;
+	return getSetting('exemptBoosters') && member.roles.cache.has(ids.roles.boost);
+}
+
+function buildReminder() {
+	const redirectId = getChannelId('imageRedirect');
+	const description = getSetting('message')
+		.replaceAll('{salon}', redirectId ? `<#${redirectId}>` : 'les salons prévus pour ça');
+
+	return new EmbedBuilder()
+		.setColor('#9013fe')
+		.setTitle('💬 Petit rappel')
+		.setDescription(description);
+}
+
 /**
  * @param {import('discord.js').Message} message
  */
 async function imageSpamWatch(message) {
 	try {
 		if (!message.guild) return;
-		const watchedId = getChannelId(CHANNEL_KEY);
-		if (!watchedId || message.channelId !== watchedId) return;
+		if (!getSetting('channels').includes(message.channelId)) return;
 
 		const state = getState(message.channelId);
 		const { images, hasText } = countImages(message);
 
 		if (images === 0) {
-			// Un vrai message texte casse la série
+			// Un vrai message texte casse la série (staff compris : c'est de la discussion)
 			if (hasText) state.count = 0;
 			return;
 		}
+		if (isExempt(message.member)) return;
+
+		const now = Date.now();
+		// Trop longtemps depuis la dernière image : ce n'est plus une rafale
+		if (now - state.lastImageAt > getSetting('windowMin') * 60 * 1000) state.count = 0;
+		state.lastImageAt = now;
 
 		state.count += images;
 		logger.debug(`Anti-spam d'images : ${state.count} image(s) d'affilée dans #${message.channel.name}`);
-		if (state.count <= MAX_IMAGES_IN_A_ROW) return;
+		if (state.count <= getSetting('threshold')) return;
 
 		state.count = 0;
-		const now = Date.now();
-		if (now - state.lastAnnounce < ANNOUNCE_COOLDOWN) return;
+		if (now - state.lastAnnounce < getSetting('cooldownSec') * 1000) return;
 		state.lastAnnounce = now;
 
-		const embed = new EmbedBuilder()
-			.setColor('#9013fe')
-			.setTitle('💬 Petit rappel')
-			.setDescription('Ce salon est un **salon de discussion**, pas un salon de spam d\'images.\nMerci de poster vos images dans les salons prévus pour ça !');
-
-		await message.channel.send({ embeds: [embed] });
+		const reminder = await message.channel.send({ embeds: [buildReminder()] });
 		logger.debug(`Annonce anti-spam d'images envoyée dans #${message.channel.name}`);
+
+		const deleteAfter = getSetting('deleteAfterSec');
+		if (deleteAfter > 0) {
+			setTimeout(() => reminder.delete().catch(() => null), deleteAfter * 1000).unref?.();
+		}
 	} catch (error) {
 		logger.error('Erreur dans la surveillance anti-spam d\'images :', error);
 	}
 }
 
-module.exports = { imageSpamWatch };
+module.exports = { imageSpamWatch, buildReminder };

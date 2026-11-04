@@ -9,6 +9,7 @@ const { exec } = require('child_process');
 const { errorHandler } = require('./utils/errorHandler.js');
 const { HealthCheck } = require('./utils/healthCheck.js');
 const { loadChannelConfig } = require('./utils/channelConfig.js');
+const { loadImageSpamSettings } = require('./utils/imageSpamSettings.js');
 
 // Validation des variables d'environnement critiques
 const token = process.env.DISCORD_TOKEN;
@@ -88,8 +89,8 @@ exec(`node ${path.join(__dirname, '../scripts/deploy-commands.js')}`, (error, st
 	logger.debug(`Déploiement des commandes réussi: ${stdout}`);
 });
 
-// Charge les salons configurés via /config avant de se connecter
-loadChannelConfig().finally(() => client.login(token));
+// Charge les salons (/config) et les réglages anti-spam (/antispam) avant de se connecter
+Promise.allSettled([loadChannelConfig(), loadImageSpamSettings()]).finally(() => client.login(token));
 
 // Démarre les health checks après login
 // Utilise Events.ClientReady pour éviter le warning de dépréciation

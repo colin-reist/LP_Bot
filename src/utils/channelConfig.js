@@ -27,7 +27,7 @@ const CHANNEL_DEFINITIONS = {
 	concours: { label: 'Concours', description: 'Annonces du concours', types: TEXT },
 	concoursSubmission: { label: 'Participations concours', description: 'Salon où les votes sont comptés', types: TEXT },
 	smashOrPassTarget: { label: 'Smash or Pass', description: 'Salon où les postes sont republiés', types: TEXT },
-	chatImageWatch: { label: 'Discussion (anti-spam d\'images)', description: 'Rappel automatique après plus de 4 images d\'affilée sans texte', types: TEXT },
+	imageRedirect: { label: 'Salon images', description: 'Mentionné dans le rappel anti-spam d\'images ({salon})', types: TEXT },
 };
 
 /** @type {Map<string, string>} Valeurs définies en base (prioritaires sur ids.json) */
