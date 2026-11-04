@@ -30,41 +30,58 @@ function getState(channelId) {
 }
 
 const IMAGE_EXT = /\.(png|jpe?g|gif|webp|avif)$/i;
-// Hébergeurs de GIFs (sélecteur de GIFs Discord, liens collés)
-const GIF_HOSTS = /(^|\.)(tenor\.com|giphy\.com|klipy\.com|imgur\.com)$/i;
+// Hébergeurs d'images collées en lien
+const IMAGE_HOSTS = /(^|\.)imgur\.com$/i;
+// GIFs volontairement ignorés (sélecteur de GIFs Discord, liens collés) :
+// ils ne comptent pas comme image et ne cassent pas la série non plus
+const IGNORED_GIF_HOSTS = /(^|\.)(tenor\.com|giphy\.com|klipy\.com)$/i;
 const URL_REGEX = /https?:\/\/\S+/gi;
 
-/** Une URL pointe-t-elle vers une image / un GIF ? */
-function isImageUrl(raw) {
+/** @returns {URL|null} */
+function parseUrl(raw) {
 	try {
-		const url = new URL(raw);
-		return IMAGE_EXT.test(url.pathname) || GIF_HOSTS.test(url.hostname);
+		return new URL(raw);
 	} catch {
-		return false;
+		return null;
 	}
+}
+
+function isIgnoredGifUrl(raw) {
+	const url = parseUrl(raw);
+	return !!url && IGNORED_GIF_HOSTS.test(url.hostname);
+}
+
+function isImageUrl(raw) {
+	const url = parseUrl(raw);
+	if (!url || IGNORED_GIF_HOSTS.test(url.hostname)) return false;
+	return IMAGE_EXT.test(url.pathname) || IMAGE_HOSTS.test(url.hostname);
 }
 
 /**
  * Analyse un message (ou un message transféré).
- * Les GIFs et images collés en lien arrivent souvent SANS embed au moment du
- * MessageCreate (Discord l'ajoute ensuite via un MessageUpdate) : on regarde donc aussi
- * les URLs du texte. Un message qui ne contient que des liens d'images n'est pas du texte.
+ * Les images collées en lien arrivent souvent SANS embed au moment du MessageCreate
+ * (Discord l'ajoute ensuite via un MessageUpdate) : on regarde donc aussi les URLs du texte.
+ * Un message qui ne contient que des liens d'images / GIFs n'est pas du texte.
  * @returns {{ images: number, hasText: boolean }}
  */
 function analyse({ attachments, embeds, content }) {
 	const attachmentImages = attachments.filter(a =>
 		a.contentType?.startsWith('image/') || IMAGE_EXT.test(a.name ?? ''),
 	).size;
-	const embedImages = embeds.filter(e => e.data?.type === 'image' || e.data?.type === 'gifv').length;
+	const embedImages = embeds.filter(e =>
+		(e.data?.type === 'image' || e.data?.type === 'gifv') && !isIgnoredGifUrl(e.data?.url ?? ''),
+	).length;
 
 	const urls = content.match(URL_REGEX) ?? [];
 	const urlImages = urls.filter(isImageUrl).length;
-	const textWithoutImageUrls = urls.filter(isImageUrl).reduce((txt, u) => txt.replace(u, ''), content);
+	const textOnly = urls
+		.filter(u => isImageUrl(u) || isIgnoredGifUrl(u))
+		.reduce((txt, u) => txt.replace(u, ''), content);
 
 	return {
 		// Embed et URL décrivent la même image : on garde le plus grand des deux
 		images: attachmentImages + Math.max(embedImages, urlImages),
-		hasText: textWithoutImageUrls.trim().length > 0,
+		hasText: textOnly.trim().length > 0,
 	};
 }
 
