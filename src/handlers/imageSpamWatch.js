@@ -29,16 +29,58 @@ function getState(channelId) {
 	return state;
 }
 
+const IMAGE_EXT = /\.(png|jpe?g|gif|webp|avif)$/i;
+// Hébergeurs de GIFs (sélecteur de GIFs Discord, liens collés)
+const GIF_HOSTS = /(^|\.)(tenor\.com|giphy\.com|klipy\.com|imgur\.com)$/i;
+const URL_REGEX = /https?:\/\/\S+/gi;
+
+/** Une URL pointe-t-elle vers une image / un GIF ? */
+function isImageUrl(raw) {
+	try {
+		const url = new URL(raw);
+		return IMAGE_EXT.test(url.pathname) || GIF_HOSTS.test(url.hostname);
+	} catch {
+		return false;
+	}
+}
+
 /**
- * Nombre d'images (et GIFs) dans un message : pièces jointes + images collées en lien.
+ * Analyse un message (ou un message transféré).
+ * Les GIFs et images collés en lien arrivent souvent SANS embed au moment du
+ * MessageCreate (Discord l'ajoute ensuite via un MessageUpdate) : on regarde donc aussi
+ * les URLs du texte. Un message qui ne contient que des liens d'images n'est pas du texte.
+ * @returns {{ images: number, hasText: boolean }}
+ */
+function analyse({ attachments, embeds, content }) {
+	const attachmentImages = attachments.filter(a =>
+		a.contentType?.startsWith('image/') || IMAGE_EXT.test(a.name ?? ''),
+	).size;
+	const embedImages = embeds.filter(e => e.data?.type === 'image' || e.data?.type === 'gifv').length;
+
+	const urls = content.match(URL_REGEX) ?? [];
+	const urlImages = urls.filter(isImageUrl).length;
+	const textWithoutImageUrls = urls.filter(isImageUrl).reduce((txt, u) => txt.replace(u, ''), content);
+
+	return {
+		// Embed et URL décrivent la même image : on garde le plus grand des deux
+		images: attachmentImages + Math.max(embedImages, urlImages),
+		hasText: textWithoutImageUrls.trim().length > 0,
+	};
+}
+
+/**
  * @param {import('discord.js').Message} message
+ * @returns {{ images: number, hasText: boolean }}
  */
 function countImages(message) {
-	const attachments = message.attachments.filter(a =>
-		a.contentType?.startsWith('image/') || /\.(png|jpe?g|gif|webp|avif)$/i.test(a.name ?? ''),
-	).size;
-	const embeds = message.embeds.filter(e => e.data?.type === 'image' || e.data?.type === 'gifv').length;
-	return attachments + embeds;
+	const result = analyse(message);
+	// Messages transférés : le contenu est dans les snapshots
+	for (const snapshot of message.messageSnapshots?.values() ?? []) {
+		const snap = analyse(snapshot);
+		result.images += snap.images;
+		result.hasText ||= snap.hasText;
+	}
+	return result;
 }
 
 /**
@@ -51,15 +93,16 @@ async function imageSpamWatch(message) {
 		if (!watchedId || message.channelId !== watchedId) return;
 
 		const state = getState(message.channelId);
-		const images = countImages(message);
+		const { images, hasText } = countImages(message);
 
 		if (images === 0) {
 			// Un vrai message texte casse la série
-			if (message.content.trim().length > 0) state.count = 0;
+			if (hasText) state.count = 0;
 			return;
 		}
 
 		state.count += images;
+		logger.debug(`Anti-spam d'images : ${state.count} image(s) d'affilée dans #${message.channel.name}`);
 		if (state.count <= MAX_IMAGES_IN_A_ROW) return;
 
 		state.count = 0;
