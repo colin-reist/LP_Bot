@@ -1,8 +1,9 @@
 const { EmbedBuilder } = require('discord.js');
-const logger = require('../logger.js');
+const log = require('../logger.js').child({ module: 'imageSpam' });
 const ids = require('../../config/ids.json');
 const { getChannelId } = require('../utils/channelConfig.js');
 const { getSetting } = require('../utils/imageSpamSettings.js');
+const { logToDiscord } = require('../utils/discordLogger.js');
 
 /**
  * Surveillance des salons de discussion : si plus de `threshold` images sont envoyées
@@ -13,16 +14,26 @@ const { getSetting } = require('../utils/imageSpamSettings.js');
  * Appelé depuis src/events/message/create.js (un seul listener MessageCreate).
  */
 
-/** @type {Map<string, { count: number, lastImageAt: number, lastAnnounce: number }>} état par salon */
+/**
+ * @typedef {{ count: number, lastImageAt: number, lastAnnounce: number, authors: Map<string, number> }} SpamState
+ * `authors` : images postées par membre dans la série en cours (pour les logs)
+ */
+/** @type {Map<string, SpamState>} état par salon */
 const channelStates = new Map();
 
 function getState(channelId) {
 	let state = channelStates.get(channelId);
 	if (!state) {
-		state = { count: 0, lastImageAt: 0, lastAnnounce: 0 };
+		state = { count: 0, lastImageAt: 0, lastAnnounce: 0, authors: new Map() };
 		channelStates.set(channelId, state);
 	}
 	return state;
+}
+
+/** Remet la série à zéro */
+function resetSeries(state) {
+	state.count = 0;
+	state.authors.clear();
 }
 
 const IMAGE_EXT = /\.(png|jpe?g|gif|webp|avif)$/i;
@@ -120,43 +131,101 @@ function buildReminder() {
 /**
  * @param {import('discord.js').Message} message
  */
+/**
+ * Log console + Discord d'un déclenchement (rappel envoyé ou bloqué par le cooldown).
+ * @param {import('discord.js').Message} message
+ * @param {{ count: number, authors: Map<string, number> }} series
+ * @param {{ sent: boolean, cooldownLeftSec?: number }} result
+ */
+function logTrigger(message, series, result) {
+	const authors = [...series.authors.entries()]
+		.sort((a, b) => b[1] - a[1])
+		.map(([id, n]) => `<@${id}> (${n})`);
+	const status = result.sent
+		? `rappel envoyé${getSetting('deleteAfterSec') > 0 ? `, supprimé dans ${getSetting('deleteAfterSec')}s` : ''}`
+		: `rappel NON envoyé (cooldown, encore ${result.cooldownLeftSec}s)`;
+
+	log.info(`Déclenché dans #${message.channel.name} : ${series.count} images par ${series.authors.size} membre(s) → ${status}`);
+
+	const embed = new EmbedBuilder()
+		.setColor(result.sent ? '#9013fe' : '#808080')
+		.setTitle(result.sent ? '🖼️ Anti-spam d\'images : rappel envoyé' : '🖼️ Anti-spam d\'images : déclenché (cooldown)')
+		.addFields(
+			{ name: 'Salon', value: `<#${message.channelId}>`, inline: true },
+			{ name: 'Images d\'affilée', value: `${series.count} (seuil ${getSetting('threshold')})`, inline: true },
+			{ name: 'Dernier message', value: `[Aller au message](${message.url})`, inline: true },
+			{ name: 'Membres', value: authors.join(', ').slice(0, 1024) || '—' },
+			{ name: 'Résultat', value: status },
+		)
+		.setTimestamp();
+
+	// Volontairement non attendu : le log ne doit pas retarder le rappel
+	logToDiscord(message.client, embed);
+}
+
+/**
+ * @param {import('discord.js').Message} message
+ */
 async function imageSpamWatch(message) {
 	try {
 		if (!message.guild) return;
+		// Salon non surveillé : silencieux (appelé pour chaque message du serveur)
 		if (!getSetting('channels').includes(message.channelId)) return;
 
 		const state = getState(message.channelId);
 		const { images, hasText } = countImages(message);
+		const where = `#${message.channel.name}`;
 
 		if (images === 0) {
 			// Un vrai message texte casse la série (staff compris : c'est de la discussion)
-			if (hasText) state.count = 0;
+			if (hasText && state.count > 0) {
+				log.debug(`${where} : série de ${state.count} image(s) cassée par un message texte de ${message.author.tag}`);
+				resetSeries(state);
+			}
 			return;
 		}
-		if (isExempt(message.member)) return;
+		if (isExempt(message.member)) {
+			log.debug(`${where} : ${images} image(s) de ${message.author.tag} ignorée(s) (membre exempté)`);
+			return;
+		}
 
 		const now = Date.now();
 		// Trop longtemps depuis la dernière image : ce n'est plus une rafale
-		if (now - state.lastImageAt > getSetting('windowMin') * 60 * 1000) state.count = 0;
+		if (state.count > 0 && now - state.lastImageAt > getSetting('windowMin') * 60 * 1000) {
+			log.debug(`${where} : série de ${state.count} image(s) expirée (plus de ${getSetting('windowMin')} min sans image)`);
+			resetSeries(state);
+		}
 		state.lastImageAt = now;
 
 		state.count += images;
-		logger.debug(`Anti-spam d'images : ${state.count} image(s) d'affilée dans #${message.channel.name}`);
+		state.authors.set(message.author.id, (state.authors.get(message.author.id) ?? 0) + images);
+		log.debug(`${where} : ${state.count}/${getSetting('threshold')} image(s) d'affilée (+${images} de ${message.author.tag})`);
 		if (state.count <= getSetting('threshold')) return;
 
-		state.count = 0;
-		if (now - state.lastAnnounce < getSetting('cooldownSec') * 1000) return;
+		// Copie de la série avant remise à zéro, pour le log
+		const series = { count: state.count, authors: new Map(state.authors) };
+		resetSeries(state);
+
+		const cooldownLeft = getSetting('cooldownSec') * 1000 - (now - state.lastAnnounce);
+		if (cooldownLeft > 0) {
+			logTrigger(message, series, { sent: false, cooldownLeftSec: Math.ceil(cooldownLeft / 1000) });
+			return;
+		}
 		state.lastAnnounce = now;
 
 		const reminder = await message.channel.send({ embeds: [buildReminder()] });
-		logger.debug(`Annonce anti-spam d'images envoyée dans #${message.channel.name}`);
+		logTrigger(message, series, { sent: true });
 
 		const deleteAfter = getSetting('deleteAfterSec');
 		if (deleteAfter > 0) {
-			setTimeout(() => reminder.delete().catch(() => null), deleteAfter * 1000).unref?.();
+			setTimeout(() => {
+				reminder.delete()
+					.then(() => log.debug(`${where} : rappel supprimé après ${deleteAfter}s`))
+					.catch(error => log.warn(`${where} : impossible de supprimer le rappel :`, error.message));
+			}, deleteAfter * 1000).unref?.();
 		}
 	} catch (error) {
-		logger.error('Erreur dans la surveillance anti-spam d\'images :', error);
+		log.error('Erreur dans la surveillance anti-spam d\'images :', error);
 	}
 }
 
