@@ -109,7 +109,7 @@ async function levelHandler(message) {
 			const expirationTime = userXpCooldowns.get(cooldownKey) + XP_COOLDOWN;
 			if (now < expirationTime) {
 				// Utilisateur encore en cooldown, ne pas donner d'XP
-				logger.debug(`User ${message.author.username} in XP cooldown`);
+				logger.silly(`User ${message.author.username} in XP cooldown`);
 				return;
 			}
 		}
@@ -143,10 +143,10 @@ async function levelHandler(message) {
 
 			const boost = message.member.roles.cache.some(role => role.id === ids.roles.boost);
 			if (boost) {
-				logger.debug(`Booster ${message.author.username}`);
+				logger.silly(`Booster ${message.author.username}`);
 				increment = Math.floor(increment * XP_BOOST_MULTIPLIER);
 			}
-			logger.debug(`Increment ${increment} XP for ${message.author.username}`);
+			logger.silly(`Increment ${increment} XP for ${message.author.username}`);
 
 			const newXP = previousXP + increment;
 			const oldLevel = getLevelFromXP(previousXP);

@@ -9,7 +9,7 @@ const { exec } = require('child_process');
 const { errorHandler } = require('./utils/errorHandler.js');
 const { HealthCheck } = require('./utils/healthCheck.js');
 const { loadChannelConfig } = require('./utils/channelConfig.js');
-const { loadImageSpamSettings } = require('./utils/imageSpamSettings.js');
+const { loadImageSpamSettings, getSetting: getImageSpamSetting } = require('./utils/imageSpamSettings.js');
 
 // Validation des variables d'environnement critiques
 const token = process.env.DISCORD_TOKEN;
@@ -90,7 +90,15 @@ exec(`node ${path.join(__dirname, '../scripts/deploy-commands.js')}`, (error, st
 });
 
 // Charge les salons (/config) et les réglages anti-spam (/antispam) avant de se connecter
-Promise.allSettled([loadChannelConfig(), loadImageSpamSettings()]).finally(() => client.login(token));
+Promise.allSettled([loadChannelConfig(), loadImageSpamSettings()]).finally(() => {
+	const watched = getImageSpamSetting('channels');
+	if (watched.length) {
+		logger.info(`Anti-spam d'images actif sur ${watched.length} salon(s) : ${watched.join(', ')} (seuil ${getImageSpamSetting('threshold')}, cooldown ${getImageSpamSetting('cooldownSec')}s)`);
+	} else {
+		logger.warn('Anti-spam d\'images inactif : aucun salon surveillé (/antispam)');
+	}
+	client.login(token);
+});
 
 // Démarre les health checks après login
 // Utilise Events.ClientReady pour éviter le warning de dépréciation
