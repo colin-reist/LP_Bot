@@ -40,11 +40,6 @@ function wrapEventHandler(eventName, handler, options = {}) {
 				timeoutPromise
 			]);
 
-			// Track successful event processing
-			if (args[0]?.client?.healthCheck) {
-				args[0].client.healthCheck.incrementMetric('eventsProcessed');
-			}
-
 			// Log le temps d'exécution si > 5s
 			const executionTime = Date.now() - startTime;
 			if (executionTime > 5000) {
@@ -66,11 +61,6 @@ function wrapEventHandler(eventName, handler, options = {}) {
 				if (args[0].guild) context.guild = args[0].guild.name;
 				if (args[0].user) context.user = args[0].user.tag;
 				if (args[0].author) context.author = args[0].author.tag;
-			}
-
-			// Track errors
-			if (args[0]?.client?.healthCheck) {
-				args[0].client.healthCheck.incrementMetric('errors');
 			}
 
 			// Log avec errorHandler

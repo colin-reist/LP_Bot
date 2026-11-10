@@ -3,11 +3,10 @@ require('dotenv').config();
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, Events, GatewayIntentBits, Options, Partials } = require('discord.js');
+const { Client, Collection, GatewayIntentBits, Options, Partials } = require('discord.js');
 const logger = require('./logger.js');
 const { exec } = require('child_process');
 const { errorHandler } = require('./utils/errorHandler.js');
-const { HealthCheck } = require('./utils/healthCheck.js');
 const { loadChannelConfig } = require('./utils/channelConfig.js');
 const { loadImageSpamSettings } = require('./utils/imageSpamSettings.js');
 
@@ -52,10 +51,6 @@ const client = new Client({
 		messages: { interval: 900, lifetime: 1800 },
 	},
 });
-
-// Initialise le health check
-client.healthCheck = new HealthCheck(client);
-logger.info('Health check system initialized');
 
 logger.debug('-- loading events --');
 const eventFolderPath = path.join(__dirname, 'events/.');
@@ -111,10 +106,3 @@ exec(`node ${path.join(__dirname, '../scripts/deploy-commands.js')}`, (error, st
 // Charge les salons (/config) et les réglages anti-spam (/antispam) avant de se connecter
 Promise.allSettled([loadChannelConfig(), loadImageSpamSettings()]).finally(() => client.login(token));
 
-// Démarre les health checks après login
-// Utilise Events.ClientReady pour éviter le warning de dépréciation
-client.once(Events.ClientReady, () => {
-	// Démarre le health check toutes les minutes
-	client.healthCheck.start(60000);
-	logger.info('Health check monitoring started');
-});

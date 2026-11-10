@@ -133,15 +133,8 @@ module.exports = (client) => {
 
         try {
             await command.execute(interaction);
-
-            if (interaction.client.healthCheck) {
-                interaction.client.healthCheck.incrementMetric('commandsExecuted');
-            }
         }
         catch (error) {
-            if (interaction.client.healthCheck) {
-                interaction.client.healthCheck.incrementMetric('errors');
-            }
             await errorHandler.handleCommandError(error, interaction);
 
             try {
