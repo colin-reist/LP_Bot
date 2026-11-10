@@ -47,7 +47,7 @@ module.exports = {
 
         // Récupère les messages du salon sélectionné
         try {
-            const messages = await randomChannel.messages.fetch({ limit: 100 });
+            const messages = await randomChannel.messages.fetch({ limit: 100, cache: false });
             const images = [];
 
             messages.forEach(message => {

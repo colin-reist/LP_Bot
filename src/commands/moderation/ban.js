@@ -111,7 +111,7 @@ async function deleteAllUserMessages(guild, userId) {
 			let fetchedMessages;
 			do {
 				// Récupérer jusqu'à 100 messages du canal
-				fetchedMessages = await channel.messages.fetch({ limit: 100 });
+				fetchedMessages = await channel.messages.fetch({ limit: 100, cache: false });
 
 				// Filtrer les messages de l'utilisateur et ceux qui datent de moins de 14 jours
 				const userMessages = fetchedMessages.filter(

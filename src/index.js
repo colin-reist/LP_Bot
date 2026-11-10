@@ -3,7 +3,7 @@ require('dotenv').config();
 
 const fs = require('node:fs');
 const path = require('node:path');
-const { Client, Collection, Events, GatewayIntentBits, Partials } = require('discord.js');
+const { Client, Collection, Events, GatewayIntentBits, Options, Partials } = require('discord.js');
 const logger = require('./logger.js');
 const { exec } = require('child_process');
 const { errorHandler } = require('./utils/errorHandler.js');
@@ -32,6 +32,25 @@ const client = new Client({
 		GatewayIntentBits.MessageContent,
 	],
 	partials: [Partials.Message, Partials.Channel, Partials.Reaction],
+	// Limite la RAM : on ne garde que ce dont le bot a besoin.
+	// GuildMemberManager reste illimité : GuildMemberUpdate (annonce boost / rôles)
+	// et le compteur de /rolebutton (role.members) dépendent du cache membres complet.
+	makeCache: Options.cacheWithLimits({
+		...Options.DefaultMakeCacheSettings,
+		MessageManager: 25,
+		PresenceManager: 0,
+		VoiceStateManager: 0,
+		StageInstanceManager: 0,
+		GuildStickerManager: 0,
+		GuildScheduledEventManager: 0,
+		GuildInviteManager: 0,
+		AutoModerationRuleManager: 0,
+	}),
+	sweepers: {
+		...Options.DefaultSweeperSettings,
+		// Toutes les 15 min, vide les messages en cache de plus de 30 min
+		messages: { interval: 900, lifetime: 1800 },
+	},
 });
 
 // Initialise le health check
