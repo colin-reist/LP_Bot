@@ -4,10 +4,10 @@ const { Op } = require('sequelize');
 const logger = require('#logger');
 const { ensureUserExists } = require('#utils/databaseUtils');
 const { logModerationAction } = require('#utils/loggerUtils');
-const { hasStaffRole } = require('#utils/permissionUtils');
 const { CommandOptionsValidator, ValidationError } = require('#utils/validators');
 
 module.exports = {
+	staffOnly: true,
 	category: 'moderation',
 	data: new SlashCommandBuilder()
 		.setName('warn')
@@ -39,22 +39,6 @@ module.exports = {
 	async execute(interaction) {
 		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 		try {
-			// Double vérification des permissions (sécurité renforcée)
-			if (!interaction.memberPermissions.has(PermissionFlagsBits.ModerateMembers)) {
-				return interaction.editReply({
-					content: '❌ Vous n\'avez pas la permission `Modérer les membres`.',
-					flags: MessageFlags.Ephemeral
-				});
-			}
-
-			// Vérification Staff (en plus de Discord permissions)
-			if (!hasStaffRole(interaction)) {
-				return interaction.editReply({
-					content: '❌ Vous devez avoir le rôle Staff.',
-					flags: MessageFlags.Ephemeral
-				});
-			}
-
 			const validator = new CommandOptionsValidator(interaction);
 			const warnedUser = validator.getUser('utilisateur');
 			const reason = validator.getString('raison', null, {

@@ -14,14 +14,6 @@ module.exports = {
 	async execute(interaction) {
 		await interaction.reply({ content: 'Ban en cours...', flags: MessageFlags.Ephemeral });
 
-		// Double vérification des permissions (sécurité renforcée)
-		if (!interaction.memberPermissions.has(PermissionFlagsBits.BanMembers)) {
-			return interaction.editReply({
-				content: '❌ Vous n\'avez pas la permission `Bannir des membres`.',
-				flags: MessageFlags.Ephemeral
-			});
-		}
-
 		const staff = interaction.member.user;
 		const staffId = staff.id;
 

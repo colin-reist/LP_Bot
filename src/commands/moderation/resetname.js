@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
-const { hasStaffRole } = require('#utils/permissionUtils');
 
 module.exports = {
+	staffOnly: true,
 	category: 'moderation',
 	data: new SlashCommandBuilder()
 		.setName('resetname')
@@ -9,22 +9,6 @@ module.exports = {
 		.setDefaultMemberPermissions(PermissionFlagsBits.ManageNicknames)
 		.addUserOption(option => option.setName('user').setDescription('The user to reset the name').setRequired(true)),
 	async execute(interaction) {
-		// Double vérification des permissions (sécurité renforcée)
-		if (!interaction.memberPermissions.has(PermissionFlagsBits.ManageNicknames)) {
-			return interaction.reply({
-				content: '❌ Vous n\'avez pas la permission `Gérer les pseudos`.',
-				flags: MessageFlags.Ephemeral
-			});
-		}
-
-		// Vérification Staff (en plus de Discord permissions)
-		if (!hasStaffRole(interaction)) {
-			return interaction.reply({
-				content: '❌ Vous devez avoir le rôle Staff.',
-				flags: MessageFlags.Ephemeral
-			});
-		}
-	
 		// Rest of your code here...
 		await interaction.reply({ content: 'Réinitialisation du nom de l\'utilisateur...', flags: MessageFlags.Ephemeral });
 	

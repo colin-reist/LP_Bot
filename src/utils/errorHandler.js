@@ -1,4 +1,4 @@
-const { MessageFlags } = require('discord.js');
+const { EmbedBuilder, MessageFlags } = require('discord.js');
 const logger = require('#logger');
 
 /**
@@ -48,6 +48,9 @@ class PermissionError extends BotError {
 class ErrorHandler {
 	constructor() {
 		this.errorCounts = new Map();
+		/** @type {import('discord.js').Client|null} */
+		this.client = null;
+		this.lastDiscordReport = 0;
 		this.setupGlobalHandlers();
 	}
 
@@ -58,16 +61,56 @@ class ErrorHandler {
 		process.on('uncaughtException', (error) => {
 			logger.error('Uncaught Exception:', error);
 			this.logError(error, { type: 'UNCAUGHT_EXCEPTION' });
+			this.reportToDiscord(error, 'Uncaught Exception');
 		});
 
 		process.on('unhandledRejection', (reason, promise) => {
 			logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
-			this.logError(reason, { type: 'UNHANDLED_REJECTION' });
+			this.logError(reason instanceof Error ? reason : new Error(String(reason)), { type: 'UNHANDLED_REJECTION' });
+			this.reportToDiscord(reason, 'Unhandled Rejection');
 		});
 
 		process.on('warning', (warning) => {
 			logger.warn('Process Warning:', warning);
 		});
+	}
+
+	/**
+	 * Branche le client Discord pour pouvoir poster les erreurs globales dans le salon de logs.
+	 * @param {import('discord.js').Client} client
+	 */
+	setClient(client) {
+		this.client = client;
+	}
+
+	/**
+	 * Poste une erreur globale dans le salon de logs (max 1 message par minute pour éviter le spam).
+	 * @param {unknown} error
+	 * @param {string} title
+	 */
+	async reportToDiscord(error, title) {
+		const now = Date.now();
+		if (!this.client?.isReady() || now - this.lastDiscordReport < 60_000) return;
+		this.lastDiscordReport = now;
+
+		try {
+			// Import tardif : channelConfig dépend de la base, inutile de la charger avant le login
+			const { getChannelId } = require('./channelConfig.js');
+			const ids = require('#config/ids');
+			const channel = this.client.channels.cache.get(getChannelId('logs'));
+			if (!channel?.isTextBased()) return;
+
+			const text = error instanceof Error ? error.stack ?? error.message : String(error);
+			const embed = new EmbedBuilder()
+				.setColor('#FF0000')
+				.setTitle(`❌ ${title}`)
+				.setDescription(`\`\`\`${text.slice(0, 3900)}\`\`\``)
+				.setTimestamp();
+
+			await channel.send({ content: `<@${ids.users.dev}>`, embeds: [embed] });
+		} catch (sendError) {
+			logger.error('Impossible d\'envoyer l\'erreur globale dans le salon de logs :', sendError);
+		}
 	}
 
 	/**

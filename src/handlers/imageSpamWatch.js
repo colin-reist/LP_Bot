@@ -3,6 +3,7 @@ const logger = require('../logger.js');
 const ids = require('../../config/ids.json');
 const { getChannelId } = require('../utils/channelConfig.js');
 const { getSetting } = require('../utils/imageSpamSettings.js');
+const { isStaff } = require('../utils/permissionUtils.js');
 
 /**
  * Surveillance des salons de discussion : si plus de `threshold` images sont envoyées
@@ -102,7 +103,7 @@ function countImages(message) {
 /** Staff (et boosters si activé) : leurs images ne comptent pas */
 function isExempt(member) {
 	if (!member) return false;
-	if (member.roles.cache.some(role => role.name === ids.roles.staff)) return true;
+	if (isStaff(member)) return true;
 	return getSetting('exemptBoosters') && member.roles.cache.has(ids.roles.boost);
 }
 

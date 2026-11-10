@@ -86,17 +86,6 @@ const Boosts = sequelize.define('Boosts', {
 	boost_date: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.NOW },
 }, { timestamps: true });
 
-const Concours = sequelize.define('Concours', {
-	pk_concours: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-	fk_user: {
-		type: DataTypes.INTEGER,
-		allowNull: false,
-		references: { model: Users, key: 'pk_user' },
-	},
-	count: { type: DataTypes.INTEGER, defaultValue: 0 },
-	post_link: { type: DataTypes.STRING, allowNull: false },
-}, { timestamps: true });
-
 // Paramètres du bot modifiables à chaud (ex: salons configurés via /config)
 const BotSettings = sequelize.define('BotSettings', {
 	setting_key: { type: DataTypes.STRING(100), primaryKey: true },
@@ -107,4 +96,4 @@ const BotSettings = sequelize.define('BotSettings', {
 // Synchronisation de la base de données
 sequelize.sync({ force: false }); // Ne pas forcer la synchronisation à chaque démarrage
 
-module.exports = { Users, Punishments, Suggestions, Boosts, Concours, BotSettings, sequelize };
+module.exports = { Users, Punishments, Suggestions, Boosts, BotSettings, sequelize };

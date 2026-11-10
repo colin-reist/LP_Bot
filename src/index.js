@@ -26,11 +26,10 @@ const client = new Client({
 		GatewayIntentBits.Guilds,
 		GatewayIntentBits.GuildModeration,
 		GatewayIntentBits.GuildMessages,
-		GatewayIntentBits.GuildMessageReactions,
 		GatewayIntentBits.GuildMembers,
 		GatewayIntentBits.MessageContent,
 	],
-	partials: [Partials.Message, Partials.Channel, Partials.Reaction],
+	partials: [Partials.Message, Partials.Channel],
 	// Limite la RAM : on ne garde que ce dont le bot a besoin.
 	// GuildMemberManager reste illimité : GuildMemberUpdate (annonce boost / rôles)
 	// et le compteur de /rolebutton (role.members) dépendent du cache membres complet.
@@ -51,6 +50,9 @@ const client = new Client({
 		messages: { interval: 900, lifetime: 1800 },
 	},
 });
+
+// Les erreurs globales (uncaughtException / unhandledRejection) sont aussi postées dans le salon de logs
+errorHandler.setClient(client);
 
 logger.debug('-- loading events --');
 const eventFolderPath = path.join(__dirname, 'events/.');

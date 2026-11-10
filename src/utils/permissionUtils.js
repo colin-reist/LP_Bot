@@ -1,28 +1,64 @@
+const { MessageFlags, PermissionsBitField } = require('discord.js');
 const ids = require('#config/ids');
 
 /**
- * Checks if a member has the Staff role.
- * @param {Interaction|Message} context The interaction or message context.
- * @returns {boolean} True if the member has the Staff role.
+ * Indique si un membre a le rôle Staff.
+ * `ids.roles.staff` peut être un ID de rôle ou un nom de rôle ("Staff").
+ * @param {import('discord.js').GuildMember|null|undefined} member
+ * @returns {boolean}
  */
-function hasStaffRole(context) {
-    const member = context.member;
-    if (!member) return false;
-
-    // Retrieve Staff role ID from ids.json. 
-    // Assuming ids.roles.staff is "Staff" (name) or an ID. 
-    // The previous code was checking by name 'Staff'.
-    // Ideally we should use an ID in ids.json, but for now we reproduce the logic or use the ID if available.
-    // Based on previous files: const requiredRole = interaction.guild.roles.cache.find(role => role.name === 'Staff');
-
-    // If ids.roles.staff is literally "Staff" string, we keep legacy name check, otherwise we check ID.
-    const staffRef = ids.roles.staff;
-
-    if (staffRef === 'Staff') {
-        return member.roles.cache.some(role => role.name === 'Staff');
-    } else {
-        return member.roles.cache.has(staffRef);
-    }
+function isStaff(member) {
+	if (!member?.roles?.cache) return false;
+	const staffRef = ids.roles.staff;
+	return /^\d+$/.test(staffRef)
+		? member.roles.cache.has(staffRef)
+		: member.roles.cache.some(role => role.name === staffRef);
 }
 
-module.exports = { hasStaffRole };
+/**
+ * Raccourci pour une interaction ou un message.
+ * @param {{ member?: import('discord.js').GuildMember }} context
+ * @returns {boolean}
+ */
+function hasStaffRole(context) {
+	return isStaff(context?.member);
+}
+
+/**
+ * Vérification centralisée avant l'exécution d'une commande slash.
+ * - Les permissions déclarées avec setDefaultMemberPermissions() sont revérifiées
+ *   (un admin peut les surcharger dans les réglages d'intégration du serveur).
+ * - `staffOnly: true` dans le module de la commande exige en plus le rôle Staff.
+ *
+ * Répond lui-même à l'interaction en cas de refus.
+ * @param {import('discord.js').ChatInputCommandInteraction} interaction
+ * @param {{ data: any, staffOnly?: boolean }} command
+ * @returns {Promise<boolean>} true si la commande peut s'exécuter
+ */
+async function checkCommandPermissions(interaction, command) {
+	const required = command.data.default_member_permissions;
+
+	if (required) {
+		const needed = new PermissionsBitField(BigInt(required));
+		if (!interaction.memberPermissions?.has(needed)) {
+			const names = needed.toArray().map(p => `\`${p}\``).join(', ');
+			await interaction.reply({
+				content: `❌ Il te faut la permission ${names} pour utiliser cette commande.`,
+				flags: MessageFlags.Ephemeral,
+			});
+			return false;
+		}
+	}
+
+	if (command.staffOnly && !hasStaffRole(interaction)) {
+		await interaction.reply({
+			content: '❌ Tu dois avoir le rôle Staff pour utiliser cette commande.',
+			flags: MessageFlags.Ephemeral,
+		});
+		return false;
+	}
+
+	return true;
+}
+
+module.exports = { isStaff, hasStaffRole, checkCommandPermissions };

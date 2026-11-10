@@ -3,10 +3,10 @@ const { Punishments } = require('#database');
 const logger = require('#logger');
 const { ensureUserExists } = require('#utils/databaseUtils');
 const { logModerationAction } = require('#utils/loggerUtils');
-const { hasStaffRole } = require('#utils/permissionUtils');
 const { CommandOptionsValidator, ValidationError } = require('#utils/validators');
 
 module.exports = {
+    staffOnly: true,
     category: 'moderation',
     data: new SlashCommandBuilder()
         .setName('kick')
@@ -22,22 +22,6 @@ module.exports = {
                 .setRequired(true)),
     async execute(interaction) {
         await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-        // Double vérification des permissions (sécurité renforcée)
-        if (!interaction.memberPermissions.has(PermissionFlagsBits.KickMembers)) {
-            return interaction.editReply({
-                content: '❌ Vous n\'avez pas la permission `Expulser des membres`.',
-                flags: MessageFlags.Ephemeral
-            });
-        }
-
-        // Vérification Staff (en plus de Discord permissions)
-        if (!hasStaffRole(interaction)) {
-            return interaction.editReply({
-                content: '❌ Vous devez avoir le rôle Staff.',
-                flags: MessageFlags.Ephemeral
-            });
-        }
 
         const validator = new CommandOptionsValidator(interaction);
         const kickedUser = validator.getUser('utilisateur');

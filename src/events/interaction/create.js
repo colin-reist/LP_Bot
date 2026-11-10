@@ -2,6 +2,7 @@ const { Events, Collection, EmbedBuilder, MessageFlags } = require('discord.js')
 const logger = require('../../logger.js');
 const { getChannelId } = require('../../utils/channelConfig.js');
 const { errorHandler } = require('../../utils/errorHandler.js');
+const { checkCommandPermissions } = require('../../utils/permissionUtils.js');
 
 /**
  * Capte les interactions
@@ -109,6 +110,9 @@ module.exports = (client) => {
         const command = client.commands.get(interaction.commandName);
 
         if (!command) return;
+
+        // Permissions (setDefaultMemberPermissions + staffOnly) vérifiées ici pour toutes les commandes
+        if (!(await checkCommandPermissions(interaction, command))) return;
 
         if (!cooldowns.has(command.data.name)) {
             cooldowns.set(command.data.name, new Collection());

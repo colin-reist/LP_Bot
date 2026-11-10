@@ -39,10 +39,6 @@
         "version": "1.23",
         "hash": "02948db05bb40cbb8a94b6b88ed271b2"
     },
-    "remove": {
-        "version": "1.10",
-        "hash": "41241659c706fc493a99cace9734140b"
-    },
     "addtag": {
         "version": "1.00",
         "hash": "d37cb4a45696b504989d8e4bfc18a422"
@@ -71,10 +67,6 @@
         "version": "1.00",
         "hash": "88622c017ad25b4d0e93d82eef43f220"
     },
-    "concours": {
-        "version": "1.01",
-        "hash": "ff06b30c04acbc8059d3e4e7383169de"
-    },
     "reload": {
         "version": "1.02",
         "hash": "66dae6da901d8a4704fb8e89acc10407"
@@ -98,5 +90,9 @@
     "top": {
         "version": "1.06",
         "hash": "d2fb477cc860a5ec12c34bff98744e3f"
+    },
+    "warn-remove": {
+        "version": "1.10",
+        "hash": "41241659c706fc493a99cace9734140b"
     }
 }

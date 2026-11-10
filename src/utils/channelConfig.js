@@ -22,10 +22,6 @@ const CHANNEL_DEFINITIONS = {
 	textBoosters: { label: 'Salon textuel boosters', description: 'Mentionné dans le message de boost', types: TEXT },
 	voiceBoosters: { label: 'Salon vocal boosters', description: 'Mentionné dans le message de boost', types: [ChannelType.GuildVoice, ChannelType.GuildStageVoice] },
 	tickets: { label: 'Tickets', description: 'Mentionné dans le message de boost', types: TEXT },
-	arts: { label: 'Arts', description: 'Salon des œuvres (starboard)', types: TEXT },
-	bestOfArts: { label: 'Best of arts', description: 'Œuvres les plus votées', types: TEXT },
-	concours: { label: 'Concours', description: 'Annonces du concours', types: TEXT },
-	concoursSubmission: { label: 'Participations concours', description: 'Salon où les votes sont comptés', types: TEXT },
 	smashOrPassTarget: { label: 'Smash or Pass', description: 'Salon où les postes sont republiés', types: TEXT },
 	imageRedirect: { label: 'Salon images', description: 'Mentionné dans le rappel anti-spam d\'images ({salon})', types: TEXT },
 };

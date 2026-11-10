@@ -7,14 +7,6 @@ module.exports = {
 		.setDescription('Provides information about the server.')
 		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 	async execute(interaction) {
-		// Double vérification des permissions (sécurité renforcée)
-		if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
-			return interaction.reply({
-				content: '❌ Vous n\'avez pas la permission `Administrateur`.',
-				flags: MessageFlags.Ephemeral
-			});
-		}
-
 		const guild = interaction.guild;
 		const owner = await interaction.guild.fetchOwner();
 		const exampleEmbed = new EmbedBuilder()

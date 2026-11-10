@@ -1,4 +1,4 @@
-const { Events, EmbedBuilder } = require('discord.js');
+const { Events } = require('discord.js');
 const { Users } = require('../../../database/database.js');
 const logger = require('../../logger.js');
 const ids = require('../../../config/ids.json');
@@ -7,6 +7,8 @@ const { dbOperations } = require('../../utils/dbRetry.js');
 const { errorHandler } = require('../../utils/errorHandler.js');
 const { wrapEventHandler } = require('../../utils/eventWrapper.js');
 const { imageSpamWatch } = require('../../handlers/imageSpamWatch.js');
+const { isStaff } = require('../../utils/permissionUtils.js');
+const { scheduleBumpReminder } = require('../../handlers/bumpReminder.js');
 
 // Rate limiting pour le système XP
 const userXpCooldowns = new Map();
@@ -51,29 +53,11 @@ module.exports = (client) => {
 };
 
 async function bumpHandler(message) {
-	const bumbChannelId = getChannelId('bump');
-	const commandName = 'bump';
+	if (message.interaction?.commandName !== 'bump') return;
 
-	if (!message.interaction && message.channelId !== bumbChannelId) return;
-
-	// Check if interaction exists before accessing properties (Fix for potential crash)
-	if (message.interaction && message.interaction.commandName === commandName) {
-		logger.debug('Bump command');
-		const codeText = '/Bump';
-		message.channel.send('Merci d\'avoir bump le serveur <@' + message.interaction.user.id + '> !' + '\nNous vous rappelerons dans 2 heures de bump le serveur !');
-		setTimeout(() => {
-			message.channel.send('Il est temps de Bump ! <@&' + ids.roles.bumpPing + '> !');
-			const embed = new EmbedBuilder()
-				.setColor('#EBBC4E')
-				.setTitle('Il est temps de Bump !')
-				.addFields({
-					name: ' ',
-					value: 'Utilisez la commande de ' + codeText + ' de <@' + ids.users.bumpBot + '>',
-				});
-
-			message.channel.send({ embeds: [embed] });
-		}, 7200000);
-	}
+	logger.debug('Bump command');
+	await message.channel.send(`Merci d'avoir bump le serveur <@${message.interaction.user.id}> !\nNous vous rappelerons dans 2 heures de bump le serveur !`);
+	await scheduleBumpReminder(message.client);
 }
 
 async function checkMandatoryRole(message) {
@@ -157,7 +141,7 @@ async function levelHandler(message) {
 				{ userId: message.author.id, field: 'experience' }
 			);
 
-			if (message.member && message.member.roles.cache.some(role => role.name === ids.roles.staff)) {
+			if (isStaff(message.member) && !user.is_admin) {
 				await dbOperations.update(user, { is_admin: true },
 					{ userId: message.author.id, field: 'is_admin' }
 				);

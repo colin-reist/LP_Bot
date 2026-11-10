@@ -9,14 +9,6 @@ module.exports = {
 		.setDescription('Rename all members of the server')
 		.setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
 	async execute(interaction) {
-		// Double vérification des permissions (sécurité renforcée)
-		if (!interaction.memberPermissions.has(PermissionFlagsBits.Administrator)) {
-			return interaction.reply({
-				content: '❌ Vous n\'avez pas la permission `Administrateur`.',
-				flags: MessageFlags.Ephemeral
-			});
-		}
-
 		await interaction.reply({ content: 'Renaming all members of the server...', flags: MessageFlags.Ephemeral });
 		try {
 			logger.debug('-------Renaming all members of the server-------');

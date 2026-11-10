@@ -1,110 +1,17 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
-const logger = require('../../logger.js');
-const ids = require('../../../config/ids.json');
-const { getChannelId } = require('../../utils/channelConfig.js');
+const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
+const { runSmashOrPass } = require('../../handlers/smashOrPass.js');
 
 module.exports = {
-    category: 'fun',
-    data: new SlashCommandBuilder()
-        .setName('forcesmashorpass')
-        .setDescription('Force the smash or pass command to run.')
-        .setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
-    async execute(interaction) {
-		// Double vérification des permissions (sécurité renforcée)
-		if (!interaction.memberPermissions.has(PermissionFlagsBits.BanMembers)) {
-			return interaction.reply({
-				content: '❌ Vous n\'avez pas la permission `Bannir des membres`.',
-				flags: MessageFlags.Ephemeral
-			});
-		}
-
-        // IDs des catégories à scanner
-        const categoryIds = ids.categories.smashOrPass;
-
-        // Liste pour stocker les salons des catégories spécifiées
-        const eligibleChannels = [];
-
-        // Parcourt toutes les guilds accessibles au bot
-        interaction.client.guilds.cache.forEach(guild => {
-            // Filtre les salons appartenant aux catégories spécifiées
-            const channels = guild.channels.cache.filter(channel =>
-                channel.isTextBased() &&
-                channel.parentId &&
-                categoryIds.includes(channel.parentId)
-            );
-
-            eligibleChannels.push(...channels.values());
-        });
-
-        if (eligibleChannels.length === 0) {
-            logger.error('Aucun salon éligible trouvé dans les catégories spécifiées.');
-            return;
-        }
-
-        // Sélectionne un salon aléatoire
-        const randomChannel = eligibleChannels[Math.floor(Math.random() * eligibleChannels.length)];
-        logger.debug(`Salon sélectionné : ${randomChannel.name} (ID: ${randomChannel.id})`);
-
-        // Récupère les messages du salon sélectionné
-        try {
-            const messages = await randomChannel.messages.fetch({ limit: 100, cache: false });
-            const images = [];
-
-            messages.forEach(message => {
-                if (message.attachments.size > 0) { // Vérifie si le message a des fichiers attachés
-                    message.attachments.forEach(attachment => {
-                        if (attachment.contentType && attachment.contentType.startsWith('image/')) {
-                            images.push({
-                                url: attachment.url,
-                                name: attachment.name,
-                                messageUrl: message.url,
-                                authorTag: message.author.tag,
-                                authorId: message.author.id
-                            });
-                        }
-                    });
-                }
-            });
-
-            if (images.length === 0) {
-                logger.error(`Aucune image trouvée dans le salon ${randomChannel.name}.`);
-                return;
-            }
-
-            // Sélectionne une image au hasard
-            const randomImage = images[Math.floor(Math.random() * images.length)];
-            logger.debug(`Image sélectionnée : ${randomImage.url}`);
-
-            // Poste l'image dans un autre salon (par exemple, un salon spécifique)
-            const targetChannelId = getChannelId('smashOrPassTarget');
-            const targetChannel = interaction.client.channels.cache.get(targetChannelId);
-
-            if (targetChannel && targetChannel.isTextBased()) {
-                await targetChannel.send('Nouveau poste ! <@&' + ids.roles.smashOrPassPing + '>');
-                const embed = new EmbedBuilder()
-                    .setTitle('✅ Smash or Pass ? ❌')
-                    .setDescription(`- Image postée par : **<@${randomImage.authorId}>** \n- Salon d'origine : ${randomImage.messageUrl}`)
-                    .setImage(randomImage.url)
-                    .setColor('#EBBC4E')
-                    .setFooter({
-                        text: 'Lewd Paradise au service de tout les hornys',
-                        iconURL: 'https://i.imgur.com/PQtvZLa.gif',
-                    });
-
-                const message = await targetChannel.send({ embeds: [embed] });
-                await message.react(ids.emojis.foxxoWow);
-                await message.react(ids.emojis.foxxoHmph);
-                logger.debug('Image postée avec succès !');
-            } else {
-                logger.error('Le salon cible est introuvable ou non textuel.');
-            }
-        } catch (error) {
-            logger.error(`Erreur lors de la récupération des messages du salon ${randomChannel.id}:`, error);
-        }
-        await interaction.reply('Forcing the smash or pass command to run.');
-    },
+	category: 'fun',
+	data: new SlashCommandBuilder()
+		.setName('forcesmashorpass')
+		.setDescription('Force the smash or pass command to run.')
+		.setDefaultMemberPermissions(PermissionFlagsBits.BanMembers),
+	async execute(interaction) {
+		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+		const posted = await runSmashOrPass(interaction.client);
+		await interaction.editReply(posted
+			? '✅ Smash or Pass posté.'
+			: '❌ Aucune image postée (pas d\'image trouvée ou salon cible introuvable), voir les logs.');
+	},
 };
-
-async function smashOrPass() {
-
-}

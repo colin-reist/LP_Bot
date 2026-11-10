@@ -3,10 +3,10 @@ const { Punishments } = require('#database');
 const logger = require('#logger');
 const { ensureUserExists, anonymizeUser } = require('#utils/databaseUtils');
 const { logModerationAction } = require('#utils/loggerUtils');
-const { hasStaffRole } = require('#utils/permissionUtils');
 const { CommandOptionsValidator, ValidationError } = require('#utils/validators');
 
 module.exports = {
+	staffOnly: true,
 	category: 'moderation',
 	data: new SlashCommandBuilder()
 		.setName('ban')
@@ -30,22 +30,6 @@ module.exports = {
 	},
 	async execute(interaction) {
 		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-
-		// Double vérification des permissions (sécurité renforcée)
-		if (!interaction.memberPermissions.has(PermissionFlagsBits.BanMembers)) {
-			return interaction.editReply({
-				content: '❌ Vous n\'avez pas la permission `Bannir des membres`.',
-				flags: MessageFlags.Ephemeral
-			});
-		}
-
-		// Vérification Staff (en plus de Discord permissions)
-		if (!hasStaffRole(interaction)) {
-			return interaction.editReply({
-				content: '❌ Vous devez avoir le rôle Staff.',
-				flags: MessageFlags.Ephemeral
-			});
-		}
 
 		const validator = new CommandOptionsValidator(interaction);
 		const bannedUser = validator.getUser('utilisateur');
@@ -73,7 +57,8 @@ module.exports = {
 				type: 'ban',
 			});
 
-			deleteAllUserMessages(interaction.guild, bannedUser.id);
+			deleteAllUserMessages(interaction.guild, bannedUser.id)
+				.catch(error => logger.error('Erreur lors de la purge des messages :', error));
 
 			// Log
 			await logModerationAction(interaction, bannedUser, staffMember, reason, 'Ban');
@@ -100,37 +85,44 @@ module.exports = {
 	},
 };
 
+/**
+ * Supprime les messages des 14 derniers jours d'un utilisateur dans tous les salons
+ * accessibles. Pagine avec `before` jusqu'à atteindre des messages de plus de 14 jours
+ * (limite de bulkDelete), puis supprime par lots de 100 maximum.
+ * @param {import('discord.js').Guild} guild
+ * @param {string} userId
+ */
 async function deleteAllUserMessages(guild, userId) {
 	const textChannels = guild.channels.cache.filter(
-		channel => channel.isTextBased() && channel.permissionsFor(guild.members.me).has(['ViewChannel', 'ReadMessageHistory', 'ManageMessages']),
+		channel => channel.isTextBased() && channel.permissionsFor(guild.members.me)?.has(['ViewChannel', 'ReadMessageHistory', 'ManageMessages']),
 	);
-	const fourteenDaysAgo = Date.now() - 14 * 24 * 60 * 60 * 1000;
+	// Petite marge sous les 14 jours pour que bulkDelete ne refuse pas les plus anciens
+	const cutoff = Date.now() - (14 * 24 * 60 * 60 * 1000 - 60 * 1000);
+	let total = 0;
 
-	for (const [channelId, channel] of textChannels) {
+	for (const channel of textChannels.values()) {
 		try {
-			let fetchedMessages;
-			do {
-				// Récupérer jusqu'à 100 messages du canal
-				fetchedMessages = await channel.messages.fetch({ limit: 100, cache: false });
+			let before;
+			let reachedCutoff = false;
 
-				// Filtrer les messages de l'utilisateur et ceux qui datent de moins de 14 jours
-				const userMessages = fetchedMessages.filter(
-					msg => msg.author.id === userId && msg.createdTimestamp >= fourteenDaysAgo,
-				);
+			while (!reachedCutoff) {
+				const batch = await channel.messages.fetch({ limit: 100, before, cache: false });
+				if (batch.size === 0) break;
 
-				// Supprimer chaque message de l'utilisateur
-				for (const msg of userMessages.values()) {
-					await msg.delete();
+				const toDelete = batch.filter(msg => msg.author.id === userId && msg.createdTimestamp >= cutoff);
+				if (toDelete.size > 0) {
+					const deleted = await channel.bulkDelete(toDelete, true);
+					total += deleted.size;
 				}
 
-				// Arrêter la boucle si aucun message récent de l'utilisateur n'est trouvé
-				if (userMessages.size === 0) break;
-
-			} while (fetchedMessages.size >= 100);
-
-			logger.debug(`Messages récents de l'utilisateur ${userId} supprimés dans le canal ${channel.name}.`);
+				const oldest = batch.last();
+				reachedCutoff = batch.size < 100 || oldest.createdTimestamp < cutoff;
+				before = oldest.id;
+			}
 		} catch (error) {
 			logger.error(`Erreur lors de la suppression des messages dans le canal ${channel.name}:`, error);
 		}
 	}
+
+	logger.debug(`${total} message(s) de l'utilisateur ${userId} supprimé(s).`);
 }
