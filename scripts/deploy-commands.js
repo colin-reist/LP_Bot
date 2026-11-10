@@ -11,8 +11,8 @@ const guildId = process.env.DISCORD_GUILD_ID;
 const token = process.env.DISCORD_TOKEN;
 
 if (!clientId || !guildId || !token) {
-    console.error('Variables d\'environnement manquantes (DISCORD_CLIENT_ID, DISCORD_GUILD_ID, DISCORD_TOKEN)');
-    process.exit(1);
+	console.error('Variables d\'environnement manquantes (DISCORD_CLIENT_ID, DISCORD_GUILD_ID, DISCORD_TOKEN)');
+	process.exit(1);
 }
 
 const commands = [];
@@ -24,54 +24,54 @@ const logger = require('../src/logger.js');
 // Charger ou initialiser les métadonnées des versions
 let commandVersions = {};
 if (fs.existsSync(metadataPath)) {
-    commandVersions = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
+	commandVersions = JSON.parse(fs.readFileSync(metadataPath, 'utf8'));
 }
 
 // Fonction pour calculer le hash d'un fichier
 function getFileHash(filePath) {
-    const content = fs.readFileSync(filePath, 'utf8');
-    return crypto.createHash('md5').update(content).digest('hex');
+	const content = fs.readFileSync(filePath, 'utf8');
+	return crypto.createHash('md5').update(content).digest('hex');
 }
 
 for (const folder of commandFolders) {
-    const commandsPath = path.join(foldersPath, folder);
-    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+	const commandsPath = path.join(foldersPath, folder);
+	const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
-    for (const file of commandFiles) {
-        const filePath = path.join(commandsPath, file);
-        const command = require(filePath);
+	for (const file of commandFiles) {
+		const filePath = path.join(commandsPath, file);
+		const command = require(filePath);
 
-        if ('data' in command && 'execute' in command) {
-            // Récupérer le nom de la commande
-            const commandName = command.data.name;
-            const fileHash = getFileHash(filePath);
+		if ('data' in command && 'execute' in command) {
+			// Récupérer le nom de la commande
+			const commandName = command.data.name;
+			const fileHash = getFileHash(filePath);
 
-            // Vérifier les versions
-            if (commandVersions[commandName] && commandVersions[commandName].hash !== fileHash) {
-                // Incrémenter la version
-                let oldVersion = parseFloat(commandVersions[commandName].version);
-                commandVersions[commandName] = {
-                    version: (oldVersion + 0.01).toFixed(2),
-                    hash: fileHash
-                };
-            } else if (!commandVersions[commandName]) {
-                // Nouvelle commande : initialiser la version
-                commandVersions[commandName] = {
-                    version: "1.00",
-                    hash: fileHash
-                };
-            }
+			// Vérifier les versions
+			if (commandVersions[commandName] && commandVersions[commandName].hash !== fileHash) {
+				// Incrémenter la version
+				const oldVersion = parseFloat(commandVersions[commandName].version);
+				commandVersions[commandName] = {
+					version: (oldVersion + 0.01).toFixed(2),
+					hash: fileHash,
+				};
+			} else if (!commandVersions[commandName]) {
+				// Nouvelle commande : initialiser la version
+				commandVersions[commandName] = {
+					version: '1.00',
+					hash: fileHash,
+				};
+			}
 
-            // Ajouter la version dans les données de la commande
-            command.data.setDescription(`${command.data.description} (v${commandVersions[commandName].version})`);
+			// Ajouter la version dans les données de la commande
+			command.data.setDescription(`${command.data.description} (v${commandVersions[commandName].version})`);
 
-            commands.push(command.data.toJSON());
+			commands.push(command.data.toJSON());
 
-            logger.info(`Commande chargée: ${commandName} v${commandVersions[commandName].version}`);
-        } else {
-            logger.info(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
-        }
-    }
+			logger.info(`Commande chargée: ${commandName} v${commandVersions[commandName].version}`);
+		} else {
+			logger.info(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
+		}
+	}
 }
 
 // Sauvegarder les métadonnées mises à jour
@@ -80,18 +80,18 @@ fs.writeFileSync(metadataPath, JSON.stringify(commandVersions, null, 4));
 const rest = new REST().setToken(token);
 
 (async () => {
-    try {
-        logger.info(`Started refreshing ${commands.length} application (/) commands.`);
+	try {
+		logger.info(`Started refreshing ${commands.length} application (/) commands.`);
 
-        const data = await rest.put(
-            Routes.applicationGuildCommands(clientId, guildId),
-            { body: commands },
-        );
+		const data = await rest.put(
+			Routes.applicationGuildCommands(clientId, guildId),
+			{ body: commands },
+		);
 
-        logger.info(`Successfully reloaded ${data.length} application (/) commands.`);
-    } catch (error) {
-        logger.error(error);
-    } finally {
-        logger.info('Finished deploying commands');
-    }
+		logger.info(`Successfully reloaded ${data.length} application (/) commands.`);
+	} catch (error) {
+		logger.error(error);
+	} finally {
+		logger.info('Finished deploying commands');
+	}
 })();

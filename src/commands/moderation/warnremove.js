@@ -1,8 +1,6 @@
 const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
 const { Punishments, Users } = require('#database');
-const ids = require('#config/ids');
 const { logModerationAction } = require('#utils/loggerUtils');
-const logger = require('#logger');
 const { CommandOptionsValidator, ValidationError } = require('#utils/validators');
 
 module.exports = {
@@ -22,7 +20,7 @@ module.exports = {
 			reason = validator.getString('raison', null, {
 				name: 'Raison',
 				minLength: 3,
-				maxLength: 500
+				maxLength: 500,
 			});
 		} catch (error) {
 			if (error instanceof ValidationError) {
@@ -43,7 +41,7 @@ module.exports = {
 
 		const lastWarn = await Punishments.findOne({
 			where: { fk_user: user.pk_user, type: 'warn' },
-			order: [['createdAt', 'DESC']]
+			order: [['createdAt', 'DESC']],
 		});
 
 		if (lastWarn) {
@@ -53,8 +51,9 @@ module.exports = {
 		}
 
 		// log the action
-		await logModerationAction(interaction, unWarnedUser, interaction.user, reason, 'Warn Removed', '#00FF00'); // Green color for removal
+		// Green color for removal
+		await logModerationAction(interaction, unWarnedUser, interaction.user, reason, 'Warn Removed', '#00FF00');
 
 		await interaction.reply({ content: `Removed warn for ${unWarnedUser.username}`, flags: MessageFlags.Ephemeral });
-	}
+	},
 };

@@ -4,15 +4,16 @@ const logger = require('../../logger.js');
 const ids = require('../../../config/ids.json');
 const { getChannelId } = require('../../utils/channelConfig.js');
 const { dbOperations } = require('../../utils/dbRetry.js');
-const { errorHandler } = require('../../utils/errorHandler.js');
 const { wrapEventHandler } = require('../../utils/eventWrapper.js');
 const { imageSpamWatch } = require('../../handlers/imageSpamWatch.js');
 const { isStaff } = require('../../utils/permissionUtils.js');
 const { scheduleBumpReminder } = require('../../handlers/bumpReminder.js');
+const { getLevelFromXP } = require('../../utils/levels.js');
 
 // Rate limiting pour le système XP
 const userXpCooldowns = new Map();
-const XP_COOLDOWN = 60000; // 1 minute en millisecondes
+// 1 minute en millisecondes
+const XP_COOLDOWN = 60000;
 
 // Constantes pour le système XP
 const XP_MIN = 9;
@@ -46,7 +47,7 @@ module.exports = (client) => {
 	const wrappedHandler = wrapEventHandler(
 		Events.MessageCreate,
 		handleMessageCreate,
-		{ logExecution: false, timeout: 15000 }
+		{ logExecution: false, timeout: 15000 },
 	);
 
 	client.on(Events.MessageCreate, wrappedHandler);
@@ -66,7 +67,7 @@ async function checkMandatoryRole(message) {
 		const user = message.member;
 		const mandatoryRole = ids.roles.mandatory;
 
-		for (const [key, roleId] of Object.entries(mandatoryRole)) {
+		for (const roleId of Object.values(mandatoryRole)) {
 			if (!user.roles.cache.has(roleId)) {
 				const role = message.guild.roles.cache.get(roleId);
 				if (role) {
@@ -116,7 +117,7 @@ async function levelHandler(message) {
 		// Utilise dbOperations avec retry automatique
 		const user = await dbOperations.findOne(Users,
 			{ where: { discord_identifier: message.author.id } },
-			{ userId: message.author.id, username: message.author.username }
+			{ userId: message.author.id, username: message.author.username },
 		);
 
 		if (user) {
@@ -138,12 +139,12 @@ async function levelHandler(message) {
 
 			// Utilise retry pour l'incrémentation
 			await dbOperations.increment(user, { experience: increment },
-				{ userId: message.author.id, field: 'experience' }
+				{ userId: message.author.id, field: 'experience' },
 			);
 
 			if (isStaff(message.member) && !user.is_admin) {
 				await dbOperations.update(user, { is_admin: true },
-					{ userId: message.author.id, field: 'is_admin' }
+					{ userId: message.author.id, field: 'is_admin' },
 				);
 			}
 
@@ -167,16 +168,6 @@ async function levelHandler(message) {
 	}
 }
 
-function getLevelFromXP(xp) {
-	let level = 0;
-	while (true) {
-		const requiredXP = 2.5 * level ** 2 + 50 * level + 100;
-		if (xp < requiredXP) break;
-		xp -= requiredXP;
-		level++;
-	}
-	return level;
-}
 
 async function handleLevelUp(message, level) {
 	const roleRewards = ids.roles.rewards;

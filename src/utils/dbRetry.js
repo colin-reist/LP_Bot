@@ -6,8 +6,10 @@ const { DatabaseError } = require('./errorHandler.js');
  */
 const RETRY_CONFIG = {
 	maxRetries: 3,
-	baseDelay: 1000, // 1 seconde
-	maxDelay: 10000, // 10 secondes
+	// 1 seconde
+	baseDelay: 1000,
+	// 10 secondes
+	maxDelay: 10000,
 	exponentialBase: 2,
 };
 
@@ -19,7 +21,7 @@ const RETRY_CONFIG = {
 function calculateDelay(attempt) {
 	const delay = Math.min(
 		RETRY_CONFIG.baseDelay * Math.pow(RETRY_CONFIG.exponentialBase, attempt),
-		RETRY_CONFIG.maxDelay
+		RETRY_CONFIG.maxDelay,
 	);
 	// Ajoute un peu de jitter (±20%) pour éviter les thundering herds
 	const jitter = delay * 0.2 * (Math.random() - 0.5);
@@ -126,7 +128,7 @@ const dbOperations = {
 	async findOne(model, options, context = {}) {
 		return withRetry(
 			() => model.findOne(options),
-			{ operation: 'findOne', model: model.name, ...context }
+			{ operation: 'findOne', model: model.name, ...context },
 		);
 	},
 
@@ -136,7 +138,7 @@ const dbOperations = {
 	async findAll(model, options, context = {}) {
 		return withRetry(
 			() => model.findAll(options),
-			{ operation: 'findAll', model: model.name, ...context }
+			{ operation: 'findAll', model: model.name, ...context },
 		);
 	},
 
@@ -146,7 +148,7 @@ const dbOperations = {
 	async create(model, data, context = {}) {
 		return withRetry(
 			() => model.create(data),
-			{ operation: 'create', model: model.name, ...context }
+			{ operation: 'create', model: model.name, ...context },
 		);
 	},
 
@@ -156,7 +158,7 @@ const dbOperations = {
 	async update(instance, data, context = {}) {
 		return withRetry(
 			() => instance.update(data),
-			{ operation: 'update', model: instance.constructor.name, ...context }
+			{ operation: 'update', model: instance.constructor.name, ...context },
 		);
 	},
 
@@ -166,7 +168,7 @@ const dbOperations = {
 	async destroy(instance, context = {}) {
 		return withRetry(
 			() => instance.destroy(),
-			{ operation: 'destroy', model: instance.constructor.name, ...context }
+			{ operation: 'destroy', model: instance.constructor.name, ...context },
 		);
 	},
 
@@ -176,7 +178,7 @@ const dbOperations = {
 	async increment(instance, fields, context = {}) {
 		return withRetry(
 			() => instance.increment(fields),
-			{ operation: 'increment', model: instance.constructor.name, fields, ...context }
+			{ operation: 'increment', model: instance.constructor.name, fields, ...context },
 		);
 	},
 };

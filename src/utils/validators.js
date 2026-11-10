@@ -36,7 +36,7 @@ function validateString(value, options = {}) {
 	}
 
 	// Trim si demandé
-	let processedValue = trim ? value.trim() : value;
+	const processedValue = trim ? value.trim() : value;
 
 	// Vérifie la longueur minimale
 	if (processedValue.length < minLength) {

@@ -11,11 +11,11 @@ module.exports = {
 	async execute(interaction) {
 		// Rest of your code here...
 		await interaction.reply({ content: 'Réinitialisation du nom de l\'utilisateur...', flags: MessageFlags.Ephemeral });
-	
+
 		const user = interaction.options.getUser('user');
 		const member = await interaction.guild.members.fetch(user.id);
 		await member.setNickname(user.username);
-	
-		await interaction.editReply({ content: 'Le nom de l\'utilisateur a été réinitialisé', flags: MessageFlags.Ephemeral });	
+
+		await interaction.editReply({ content: 'Le nom de l\'utilisateur a été réinitialisé', flags: MessageFlags.Ephemeral });
 	},
 };

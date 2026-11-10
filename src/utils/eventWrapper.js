@@ -16,7 +16,8 @@ const { errorHandler } = require('#errorHandler');
 function wrapEventHandler(eventName, handler, options = {}) {
 	const {
 		logExecution = false,
-		timeout = 30000, // 30 secondes max par défaut
+		// 30 secondes max par défaut
+		timeout = 30000,
 		retryOnError = false,
 	} = options;
 
@@ -37,7 +38,7 @@ function wrapEventHandler(eventName, handler, options = {}) {
 			// Exécution avec timeout
 			const result = await Promise.race([
 				handler(...args),
-				timeoutPromise
+				timeoutPromise,
 			]);
 
 			// Log le temps d'exécution si > 5s

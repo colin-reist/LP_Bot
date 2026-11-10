@@ -44,7 +44,7 @@ module.exports = {
 			const reason = validator.getString('raison', null, {
 				name: 'Raison',
 				minLength: 3,
-				maxLength: 500
+				maxLength: 500,
 			});
 			const staffMember = interaction.member.user;
 			if (!staffMember) {

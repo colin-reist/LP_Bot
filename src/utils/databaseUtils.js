@@ -8,21 +8,22 @@ const logger = require('#logger');
  * @returns {Promise<Model>} The user model instance.
  */
 async function ensureUserExists(discordId, username) {
-    try {
-        let user = await Users.findOne({ where: { discord_identifier: discordId } });
-        if (!user) {
-            user = await Users.create({
-                discord_identifier: discordId,
-                username: username,
-                experience: 1, // Default experience
-            });
-            logger.debug(`Created new user in DB: ${username} (${discordId})`);
-        }
-        return user;
-    } catch (error) {
-        logger.error(`Error ensuring user exists for ${username} (${discordId}):`, error);
-        throw error;
-    }
+	try {
+		let user = await Users.findOne({ where: { discord_identifier: discordId } });
+		if (!user) {
+			user = await Users.create({
+				discord_identifier: discordId,
+				username: username,
+				// Default experience
+				experience: 1,
+			});
+			logger.debug(`Created new user in DB: ${username} (${discordId})`);
+		}
+		return user;
+	} catch (error) {
+		logger.error(`Error ensuring user exists for ${username} (${discordId}):`, error);
+		throw error;
+	}
 }
 
 /**
@@ -32,15 +33,15 @@ async function ensureUserExists(discordId, username) {
  * @param {Model} user L'instance Sequelize du user à anonymiser.
  */
 async function anonymizeUser(user) {
-    try {
-        await user.update({
-            discord_identifier: -user.pk_user,
-            username: 'Utilisateur banni',
-        });
-        logger.debug(`Utilisateur anonymisé suite à un ban (pk_user: ${user.pk_user})`);
-    } catch (error) {
-        logger.error(`Erreur lors de l'anonymisation de l'utilisateur (pk_user: ${user.pk_user}):`, error);
-    }
+	try {
+		await user.update({
+			discord_identifier: -user.pk_user,
+			username: 'Utilisateur banni',
+		});
+		logger.debug(`Utilisateur anonymisé suite à un ban (pk_user: ${user.pk_user})`);
+	} catch (error) {
+		logger.error(`Erreur lors de l'anonymisation de l'utilisateur (pk_user: ${user.pk_user}):`, error);
+	}
 }
 
 module.exports = { ensureUserExists, anonymizeUser };

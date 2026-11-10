@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const logger = require('../../logger.js');
 const { Users, sequelize } = require('../../../database/database.js');
+const { getLevelFromXP } = require('../../utils/levels.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -40,14 +41,3 @@ module.exports = {
 		}
 	},
 };
-
-function getLevelFromXP(xp) {
-	let level = 0;
-	while (true) {
-		const requiredXP = 50 * level ** 2 + 50 * level + 100;
-		if (xp < requiredXP) break;
-		xp -= requiredXP;
-		level++;
-	}
-	return level;
-}

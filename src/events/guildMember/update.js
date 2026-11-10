@@ -1,6 +1,6 @@
 const { AuditLogEvent, Events } = require('discord.js');
 const { EmbedBuilder } = require('discord.js');
-const { Users, Punishments } = require('#database');
+const { Punishments } = require('#database');
 const logger = require('#logger');
 const ids = require('#config/ids');
 const { getChannelId } = require('../../utils/channelConfig.js');
@@ -34,14 +34,14 @@ module.exports = (client) => {
 	const wrappedMemberUpdate = wrapEventHandler(
 		Events.GuildMemberUpdate,
 		handleGuildMemberUpdate,
-		{ logExecution: false, timeout: 10000 }
+		{ logExecution: false, timeout: 10000 },
 	);
 
 	// Wrapper pour GuildBanAdd
 	const wrappedBanAdd = wrapEventHandler(
 		Events.GuildBanAdd,
 		handleBanUser,
-		{ logExecution: true, timeout: 15000 }
+		{ logExecution: true, timeout: 15000 },
 	);
 
 	client.on(Events.GuildMemberUpdate, wrappedMemberUpdate);
@@ -63,7 +63,8 @@ async function handleBanUser(ban) {
 
 		const banLog = fetchedLogs.entries.find(entry =>
 			entry.target.id === user.id &&
-			Date.now() - entry.createdTimestamp < 10000, // 10s window
+			// 10s window
+			Date.now() - entry.createdTimestamp < 10000,
 		);
 
 		if (banLog) {
@@ -71,7 +72,8 @@ async function handleBanUser(ban) {
 			try {
 				staffMember = await guild.members.fetch(banLog.executor.id);
 			} catch {
-				staffMember = null; // Could happen if executor left?
+				// Could happen if executor left?
+				staffMember = null;
 			}
 		}
 	} catch (error) {
@@ -94,8 +96,8 @@ async function handleBanUser(ban) {
 			where: {
 				fk_user: userDb.pk_user,
 				type: 'ban',
-				createdAt: { [Op.gte]: tenSecondsAgo }
-			}
+				createdAt: { [Op.gte]: tenSecondsAgo },
+			},
 		});
 
 		if (recentBan) {

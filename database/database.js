@@ -14,29 +14,30 @@ const useSsl = process.env.DB_SSL === 'true';
 
 const useSqlite = dialect === 'sqlite' || !database;
 const sequelize = useSqlite
-  ? new Sequelize({
-      dialect: 'sqlite',
-      storage: path.join(__dirname, 'database.sqlite'),
-      logging: false
-    })
-  : new Sequelize(database, user, password, {
-      host: host,
-      port: port ? Number(port) : undefined,
-      dialect: dialect,
-      logging: false,
-      dialectOptions: useSsl ? { ssl: { require: true, rejectUnauthorized: true } } : undefined,
-      pool: {
-        max: 5,
-        min: 0,
-        acquire: 30000,
-        idle: 10000
-      }
-    });
+	? new Sequelize({
+		dialect: 'sqlite',
+		storage: path.join(__dirname, 'database.sqlite'),
+		logging: false,
+	})
+	: new Sequelize(database, user, password, {
+		host: host,
+		port: port ? Number(port) : undefined,
+		dialect: dialect,
+		logging: false,
+		dialectOptions: useSsl ? { ssl: { require: true, rejectUnauthorized: true } } : undefined,
+		pool: {
+			max: 5,
+			min: 0,
+			acquire: 30000,
+			idle: 10000,
+		},
+	});
 
 
 const Users = sequelize.define('Users', {
 	pk_user: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
-	discord_identifier: { type: DataTypes.BIGINT, allowNull: false, unique: true }, // Changed to BIGINT
+	// Changed to BIGINT
+	discord_identifier: { type: DataTypes.BIGINT, allowNull: false, unique: true },
 	username: { type: DataTypes.STRING, allowNull: false },
 	experience: { type: DataTypes.INTEGER, defaultValue: 0 },
 	is_admin: { type: DataTypes.BOOLEAN, defaultValue: false },
@@ -56,8 +57,10 @@ const Punishments = sequelize.define('Punishments', {
 	},
 	reason: { type: DataTypes.STRING, allowNull: false },
 	date: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.NOW },
-	type: { type: DataTypes.STRING, allowNull: false }, // 'ban', 'warn', 'kick'
-	expires_at: { type: DataTypes.DATE, allowNull: true }, // NULL si permanent
+	// 'ban', 'warn', 'kick'
+	type: { type: DataTypes.STRING, allowNull: false },
+	// NULL si permanent
+	expires_at: { type: DataTypes.DATE, allowNull: true },
 }, { timestamps: true, tableName: 'Punishments' });
 
 const Suggestions = sequelize.define('Suggestions', {
@@ -72,7 +75,8 @@ const Suggestions = sequelize.define('Suggestions', {
 	date: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.NOW },
 	positive_count: { type: DataTypes.INTEGER, defaultValue: 0 },
 	negative_count: { type: DataTypes.INTEGER, defaultValue: 0 },
-	status: { type: DataTypes.STRING, allowNull: false }, // 'pending', 'approved', 'rejected'
+	// 'pending', 'approved', 'rejected'
+	status: { type: DataTypes.STRING, allowNull: false },
 	updated_at: { type: DataTypes.DATE, allowNull: false, defaultValue: Sequelize.NOW },
 }, { timestamps: true });
 
@@ -90,10 +94,12 @@ const Boosts = sequelize.define('Boosts', {
 const BotSettings = sequelize.define('BotSettings', {
 	setting_key: { type: DataTypes.STRING(100), primaryKey: true },
 	setting_value: { type: DataTypes.STRING, allowNull: false },
-	updated_by: { type: DataTypes.STRING(32), allowNull: true }, // ID Discord de la dernière personne ayant modifié
+	// ID Discord de la dernière personne ayant modifié
+	updated_by: { type: DataTypes.STRING(32), allowNull: true },
 }, { timestamps: true, tableName: 'BotSettings' });
 
 // Synchronisation de la base de données
-sequelize.sync({ force: false }); // Ne pas forcer la synchronisation à chaque démarrage
+// Ne pas forcer la synchronisation à chaque démarrage
+sequelize.sync({ force: false });
 
 module.exports = { Users, Punishments, Suggestions, Boosts, BotSettings, sequelize };

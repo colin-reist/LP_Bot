@@ -10,162 +10,163 @@ const { checkCommandPermissions } = require('../../utils/permissionUtils.js');
  * @returns
  */
 module.exports = (client) => {
-    client.on(Events.InteractionCreate, async interaction => {
+	client.on(Events.InteractionCreate, async interaction => {
 
-        // ── Gestion des boutons ──────────────────────────────────────────────
-        if (interaction.isButton()) {
+		// ── Gestion des boutons ──────────────────────────────────────────────
+		if (interaction.isButton()) {
 
-            // Réponse sécurisée : une interaction expire après 3s si elle n'est
-            // ni "replied" ni "deferred" (DiscordAPIError[10062] Unknown interaction).
-            // On defer tout de suite pour avoir 15 min, et on avale les erreurs de
-            // réponse si le token a quand même expiré entre-temps.
-            const safeReply = async (content) => {
-                try {
-                    if (interaction.deferred || interaction.replied) {
-                        await interaction.editReply({ content });
-                    } else {
-                        await interaction.reply({ content, flags: MessageFlags.Ephemeral });
-                    }
-                } catch (error) {
-                    logger.warn(`Impossible de répondre à l'interaction (probablement expirée): ${error.message}`);
-                }
-            };
+			// Réponse sécurisée : une interaction expire après 3s si elle n'est
+			// ni "replied" ni "deferred" (DiscordAPIError[10062] Unknown interaction).
+			// On defer tout de suite pour avoir 15 min, et on avale les erreurs de
+			// réponse si le token a quand même expiré entre-temps.
+			const safeReply = async (content) => {
+				try {
+					if (interaction.deferred || interaction.replied) {
+						await interaction.editReply({ content });
+					} else {
+						await interaction.reply({ content, flags: MessageFlags.Ephemeral });
+					}
+				} catch (error) {
+					logger.warn(`Impossible de répondre à l'interaction (probablement expirée): ${error.message}`);
+				}
+			};
 
-            // Bouton : Obtenir le rôle
-            if (interaction.customId.startsWith('add_role_')) {
-                const roleId = interaction.customId.replace('add_role_', '');
-                const role = interaction.guild.roles.cache.get(roleId);
+			// Bouton : Obtenir le rôle
+			if (interaction.customId.startsWith('add_role_')) {
+				const roleId = interaction.customId.replace('add_role_', '');
+				const role = interaction.guild.roles.cache.get(roleId);
 
-                if (!role) {
-                    return safeReply('❌ Rôle introuvable.');
-                }
+				if (!role) {
+					return safeReply('❌ Rôle introuvable.');
+				}
 
-                if (interaction.member.roles.cache.has(roleId)) {
-                    return safeReply(`⚠️ Tu as déjà le rôle **${role.name}**.`);
-                }
+				if (interaction.member.roles.cache.has(roleId)) {
+					return safeReply(`⚠️ Tu as déjà le rôle **${role.name}**.`);
+				}
 
-                await interaction.deferReply({ flags: MessageFlags.Ephemeral }).catch(() => {});
+				await interaction.deferReply({ flags: MessageFlags.Ephemeral }).catch(() => null);
 
-                try {
-                    await interaction.member.roles.add(role);
-                    return safeReply(`✅ Tu as obtenu le rôle **${role.name}** !`);
-                } catch (error) {
-                    logger.error('Erreur add_role:', error);
-                    const message = error.code === 50013
-                        ? '❌ Je n\'ai pas les permissions pour modifier ce rôle. Vérifie que mon rôle est au-dessus du rôle cible.'
-                        : '❌ Une erreur est survenue lors de l\'ajout du rôle.';
-                    return safeReply(message);
-                }
-            }
+				try {
+					await interaction.member.roles.add(role);
+					return safeReply(`✅ Tu as obtenu le rôle **${role.name}** !`);
+				} catch (error) {
+					logger.error('Erreur add_role:', error);
+					const message = error.code === 50013
+						? '❌ Je n\'ai pas les permissions pour modifier ce rôle. Vérifie que mon rôle est au-dessus du rôle cible.'
+						: '❌ Une erreur est survenue lors de l\'ajout du rôle.';
+					return safeReply(message);
+				}
+			}
 
-            // Bouton : Retirer le rôle
-            if (interaction.customId.startsWith('remove_role_')) {
-                const roleId = interaction.customId.replace('remove_role_', '');
-                const role = interaction.guild.roles.cache.get(roleId);
+			// Bouton : Retirer le rôle
+			if (interaction.customId.startsWith('remove_role_')) {
+				const roleId = interaction.customId.replace('remove_role_', '');
+				const role = interaction.guild.roles.cache.get(roleId);
 
-                if (!role) {
-                    return safeReply('❌ Rôle introuvable.');
-                }
+				if (!role) {
+					return safeReply('❌ Rôle introuvable.');
+				}
 
-                if (!interaction.member.roles.cache.has(roleId)) {
-                    return safeReply(`⚠️ Tu n'as pas le rôle **${role.name}**.`);
-                }
+				if (!interaction.member.roles.cache.has(roleId)) {
+					return safeReply(`⚠️ Tu n'as pas le rôle **${role.name}**.`);
+				}
 
-                await interaction.deferReply({ flags: MessageFlags.Ephemeral }).catch(() => {});
+				await interaction.deferReply({ flags: MessageFlags.Ephemeral }).catch(() => null);
 
-                try {
-                    await interaction.member.roles.remove(role);
-                    return safeReply(`🗑️ Le rôle **${role.name}** t'a été retiré.`);
-                } catch (error) {
-                    logger.error('Erreur remove_role:', error);
-                    const message = error.code === 50013
-                        ? '❌ Je n\'ai pas les permissions pour modifier ce rôle. Vérifie que mon rôle est au-dessus du rôle cible.'
-                        : '❌ Une erreur est survenue lors du retrait du rôle.';
-                    return safeReply(message);
-                }
-            }
+				try {
+					await interaction.member.roles.remove(role);
+					return safeReply(`🗑️ Le rôle **${role.name}** t'a été retiré.`);
+				} catch (error) {
+					logger.error('Erreur remove_role:', error);
+					const message = error.code === 50013
+						? '❌ Je n\'ai pas les permissions pour modifier ce rôle. Vérifie que mon rôle est au-dessus du rôle cible.'
+						: '❌ Une erreur est survenue lors du retrait du rôle.';
+					return safeReply(message);
+				}
+			}
 
-            return; // Ignorer les autres boutons non gérés
-        }
-        // ────────────────────────────────────────────────────────────────────
+			// Ignorer les autres boutons non gérés
+			return;
+		}
+		// ────────────────────────────────────────────────────────────────────
 
-        // ── Gestion de l'autocomplétion ──────────────────────────────────────
-        if (interaction.isAutocomplete()) {
-            const command = client.commands.get(interaction.commandName);
-            if (!command?.autocomplete) return;
-            try {
-                await command.autocomplete(interaction);
-            } catch (error) {
-                logger.error('Erreur lors de l\'autocomplétion:', error);
-            }
-            return;
-        }
-        // ────────────────────────────────────────────────────────────────────
+		// ── Gestion de l'autocomplétion ──────────────────────────────────────
+		if (interaction.isAutocomplete()) {
+			const command = client.commands.get(interaction.commandName);
+			if (!command?.autocomplete) return;
+			try {
+				await command.autocomplete(interaction);
+			} catch (error) {
+				logger.error('Erreur lors de l\'autocomplétion:', error);
+			}
+			return;
+		}
+		// ────────────────────────────────────────────────────────────────────
 
-        if (!interaction.isChatInputCommand()) return;
+		if (!interaction.isChatInputCommand()) return;
 
-        logger.debug('Utilisation d\'une commande !');
+		logger.debug('Utilisation d\'une commande !');
 
-        const { cooldowns } = client;
-        const command = client.commands.get(interaction.commandName);
+		const { cooldowns } = client;
+		const command = client.commands.get(interaction.commandName);
 
-        if (!command) return;
+		if (!command) return;
 
-        // Permissions (setDefaultMemberPermissions + staffOnly) vérifiées ici pour toutes les commandes
-        if (!(await checkCommandPermissions(interaction, command))) return;
+		// Permissions (setDefaultMemberPermissions + staffOnly) vérifiées ici pour toutes les commandes
+		if (!(await checkCommandPermissions(interaction, command))) return;
 
-        if (!cooldowns.has(command.data.name)) {
-            cooldowns.set(command.data.name, new Collection());
-        }
+		if (!cooldowns.has(command.data.name)) {
+			cooldowns.set(command.data.name, new Collection());
+		}
 
-        const now = Date.now();
-        const timestamps = cooldowns.get(command.data.name);
-        const defaultCooldownDuration = 3;
-        const cooldownAmount = (command.cooldown ?? defaultCooldownDuration) * 1000;
+		const now = Date.now();
+		const timestamps = cooldowns.get(command.data.name);
+		const defaultCooldownDuration = 3;
+		const cooldownAmount = (command.cooldown ?? defaultCooldownDuration) * 1000;
 
-        if (timestamps.has(interaction.user.id)) {
-            const expirationTime = timestamps.get(interaction.user.id) + cooldownAmount;
+		if (timestamps.has(interaction.user.id)) {
+			const expirationTime = timestamps.get(interaction.user.id) + cooldownAmount;
 
-            if (now < expirationTime) {
-                const expiredTimestamp = Math.round(expirationTime / 1000);
-                return interaction.reply({ content: `Please wait, you are on a cooldown for \`${command.data.name}\`. You can use it again <t:${expiredTimestamp}:R>.`, flags: MessageFlags.Ephemeral });
-            }
-        }
+			if (now < expirationTime) {
+				const expiredTimestamp = Math.round(expirationTime / 1000);
+				return interaction.reply({ content: `Please wait, you are on a cooldown for \`${command.data.name}\`. You can use it again <t:${expiredTimestamp}:R>.`, flags: MessageFlags.Ephemeral });
+			}
+		}
 
-        timestamps.set(interaction.user.id, now);
-        setTimeout(() => timestamps.delete(interaction.user.id), cooldownAmount);
+		timestamps.set(interaction.user.id, now);
+		setTimeout(() => timestamps.delete(interaction.user.id), cooldownAmount);
 
-        try {
-            await command.execute(interaction);
-        }
-        catch (error) {
-            await errorHandler.handleCommandError(error, interaction);
+		try {
+			await command.execute(interaction);
+		}
+		catch (error) {
+			await errorHandler.handleCommandError(error, interaction);
 
-            try {
-                const errorEmbed = new EmbedBuilder()
-                    .setColor('#FF0000')
-                    .setTitle('Error while executing command')
-                    .setDescription(`There was an error while executing the command \`${command.data.name}\``)
-                    .addFields(
-                        { name: 'Error', value: error.message || 'Unknown error' },
-                        { name: 'Error Type', value: error.name || 'Error' },
-                        { name: 'Last user', value: `<@${interaction.user.id}>` },
-                        { name: 'Command name', value: command.data.name },
-                        { name: 'Time', value: `The error happened at : <t:${Math.floor(Date.now() / 1000)}:f>` }
-                    )
-                    .setImage("https://media1.tenor.com/m/sIB-6LgziVIAAAAC/spongebob-squarepants-spongebob.gif")
-                    .setFooter({
-                        text: "Lewd Paradise au service de tout les hornys",
-                        iconURL: "https://i.imgur.com/PQtvZLa.gif",
-                    });
+			try {
+				const errorEmbed = new EmbedBuilder()
+					.setColor('#FF0000')
+					.setTitle('Error while executing command')
+					.setDescription(`There was an error while executing the command \`${command.data.name}\``)
+					.addFields(
+						{ name: 'Error', value: error.message || 'Unknown error' },
+						{ name: 'Error Type', value: error.name || 'Error' },
+						{ name: 'Last user', value: `<@${interaction.user.id}>` },
+						{ name: 'Command name', value: command.data.name },
+						{ name: 'Time', value: `The error happened at : <t:${Math.floor(Date.now() / 1000)}:f>` },
+					)
+					.setImage('https://media1.tenor.com/m/sIB-6LgziVIAAAAC/spongebob-squarepants-spongebob.gif')
+					.setFooter({
+						text: 'Lewd Paradise au service de tout les hornys',
+						iconURL: 'https://i.imgur.com/PQtvZLa.gif',
+					});
 
-                const logChannel = client.channels.cache.get(getChannelId('logs'));
-                if (logChannel) {
-                    await logChannel.send({ embeds: [errorEmbed] });
-                }
-            } catch (logError) {
-                logger.error('Error while sending error message to log channel:', logError);
-            }
-        }
-    });
+				const logChannel = client.channels.cache.get(getChannelId('logs'));
+				if (logChannel) {
+					await logChannel.send({ embeds: [errorEmbed] });
+				}
+			} catch (logError) {
+				logger.error('Error while sending error message to log channel:', logError);
+			}
+		}
+	});
 };

@@ -12,49 +12,49 @@ const logger = require('#logger');
  * @param {string} [color='#FF0000'] The color of the embed.
  */
 async function logModerationAction(interaction, targetUser, staffUser, reason, type, color = '#FF0000') {
-    const embed = new EmbedBuilder()
-        .setColor(color)
-        .setTitle(type)
-        .setDescription(`Un utilisateur a été ${type.toLowerCase()}.`)
-        .addFields(
-            { name: 'Utilisateur', value: `<@${targetUser.id}>`, inline: true },
-            { name: 'Raison', value: reason, inline: true },
-            { name: 'Staff', value: `<@${staffUser.id}>`, inline: true }
-        )
-        .setTimestamp()
-        .setThumbnail(targetUser.displayAvatarURL());
+	const embed = new EmbedBuilder()
+		.setColor(color)
+		.setTitle(type)
+		.setDescription(`Un utilisateur a été ${type.toLowerCase()}.`)
+		.addFields(
+			{ name: 'Utilisateur', value: `<@${targetUser.id}>`, inline: true },
+			{ name: 'Raison', value: reason, inline: true },
+			{ name: 'Staff', value: `<@${staffUser.id}>`, inline: true },
+		)
+		.setTimestamp()
+		.setThumbnail(targetUser.displayAvatarURL());
 
-    const messageContent = `L'utilisateur <@${targetUser.id}> a été ${type.toLowerCase()} pour la raison suivante : `;
+	const messageContent = `L'utilisateur <@${targetUser.id}> a été ${type.toLowerCase()} pour la raison suivante : `;
 
-    // Helper to send to a channel safely
-    const sendToChannel = async (channelId, logName) => {
-        try {
-            const channel = interaction.guild.channels.cache.get(channelId);
-            if (!channel) {
-                logger.warn(`${logName} channel not found (ID: ${channelId})`);
-                return;
-            }
-            // For public logs, we send a message + embed. For admin, just embed (based on previous code).
-            if (logName === 'Public Log') {
-                await channel.send(messageContent);
-            }
-            await channel.send({ embeds: [embed] });
-        } catch (error) {
-            logger.error(`Error sending to ${logName}:`, error);
-        }
-    };
+	// Helper to send to a channel safely
+	const sendToChannel = async (channelId, logName) => {
+		try {
+			const channel = interaction.guild.channels.cache.get(channelId);
+			if (!channel) {
+				logger.warn(`${logName} channel not found (ID: ${channelId})`);
+				return;
+			}
+			// For public logs, we send a message + embed. For admin, just embed (based on previous code).
+			if (logName === 'Public Log') {
+				await channel.send(messageContent);
+			}
+			await channel.send({ embeds: [embed] });
+		} catch (error) {
+			logger.error(`Error sending to ${logName}:`, error);
+		}
+	};
 
-    // Admin Log
-    // Note: warn/kick used different admin log channels in previous code sometimes.
-    // warns -> adminWarnLogs, bans -> adminLogs. 
-    // We need to distinguish based on type.
-    let adminChannelId = getChannelId('adminLogs');
-    if (type === 'Warn' || type === 'Warn Removed') {
-        await sendToChannel(getChannelId('publicLogs'), 'Public Log');
-        adminChannelId = getChannelId('adminWarnLogs');
-    }
+	// Admin Log
+	// Note: warn/kick used different admin log channels in previous code sometimes.
+	// warns -> adminWarnLogs, bans -> adminLogs.
+	// We need to distinguish based on type.
+	let adminChannelId = getChannelId('adminLogs');
+	if (type === 'Warn' || type === 'Warn Removed') {
+		await sendToChannel(getChannelId('publicLogs'), 'Public Log');
+		adminChannelId = getChannelId('adminWarnLogs');
+	}
 
-    await sendToChannel(adminChannelId, 'Admin Log');
+	await sendToChannel(adminChannelId, 'Admin Log');
 }
 
 module.exports = { logModerationAction };

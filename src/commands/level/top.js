@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, EmbedBuilder, MessageFlags } = require('discord.js');
 const logger = require('../../logger.js');
 const { Users, sequelize } = require('../../../database/database.js');
+const { getLevelFromXP } = require('../../utils/levels.js');
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -31,7 +32,7 @@ module.exports = {
 				embed.addFields({ name: `🥇 #${index + 1}`, value: `** <@${user.discord_identifier}>** \n**${user.experience}** points \nNiveau **${getLevelFromXP(user.experience)}**`, inline: true });
 			});
 
-			let user = users.find(user => user.discord_identifier === interaction.user.id);
+			let user = users.find(u => u.discord_identifier === interaction.user.id);
 			if (!user) {
 				user = await Users.findOne({
 					where: sequelize.where(sequelize.cast(sequelize.col('discord_identifier'), 'TEXT'), interaction.user.id),
@@ -49,14 +50,3 @@ module.exports = {
 		}
 	},
 };
-
-function getLevelFromXP(xp) {
-	let level = 0;
-	while (true) {
-		const requiredXP = 50 * level ** 2 + 50 * level + 100;
-		if (xp < requiredXP) break;
-		xp -= requiredXP;
-		level++;
-	}
-	return level;
-}

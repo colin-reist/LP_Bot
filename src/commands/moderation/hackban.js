@@ -1,9 +1,12 @@
-const { SlashCommandBuilder, EmbedBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
-const { bans, badUsers: badUserModel, staffMembers } = require('../../../database/database.js');
-const logger = require('../../logger.js');
-const { CommandOptionsValidator, ValidationError, validateDiscordId } = require('../../utils/validators.js');
+const { SlashCommandBuilder, PermissionFlagsBits, MessageFlags } = require('discord.js');
+const { Punishments } = require('#database');
+const logger = require('#logger');
+const { ensureUserExists, anonymizeUser } = require('#utils/databaseUtils');
+const { logModerationAction } = require('#utils/loggerUtils');
+const { CommandOptionsValidator, ValidationError, validateDiscordId } = require('#utils/validators');
 
 module.exports = {
+	staffOnly: true,
 	category: 'moderation',
 	data: new SlashCommandBuilder()
 		.setName('hackban')
@@ -12,97 +15,54 @@ module.exports = {
 		.addStringOption(option => option.setName('id').setDescription('L\'identifiant de la personne à bannir').setRequired(true))
 		.addStringOption(option => option.setName('raison').setDescription('La raison du ban').setRequired(true)),
 	async execute(interaction) {
-		await interaction.reply({ content: 'Ban en cours...', flags: MessageFlags.Ephemeral });
+		await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-		const staff = interaction.member.user;
-		const staffId = staff.id;
-
-		let user_to_ban_id = undefined;
+		let targetId;
+		let reason;
 		try {
 			const validator = new CommandOptionsValidator(interaction);
-			user_to_ban_id = validator.getString('id', validateDiscordId);
-		} catch (error) {
-			if (error instanceof ValidationError) {
-				return interaction.editReply({ content: `❌ ${error.message}`, flags: MessageFlags.Ephemeral });
-			}
-			interaction.editReply({ content: `Erreur : ${error}`, flags: MessageFlags.Ephemeral });
-			return;
-		}
-
-		// Fetch the guild member, if they are in the server
-		let member;
-		try {
-			member = await interaction.guild.members.fetch(user_to_ban_id);
-		} catch (error) {
-			member = null; // Users is not in the server
-		}
-
-		// Check if the executing user is a staff member
-		const staffMember = await staffMembers.findOne({ where: { sm_user_id: staffId } });
-		if (!staffMember) {
-			return interaction.editReply({ content: 'Tu n\'es pas un staff', flags: MessageFlags.Ephemeral });
-		}
-
-		// Check if the user is already in the badUsers list
-		const badUser = await badUserModel.findOne({ where: { bu_id: user_to_ban_id } });
-		if (!badUser) {
-			try {
-				await badUserModel.create({
-					bu_id: user_to_ban_id,
-					bu_name: user.username,
-				});
-			} catch (error) {
-				logger.error('Contrainte de clé unique violée sur la table badUsers');
-			}
-		}
-
-		let raison;
-		try {
-			const validator = new CommandOptionsValidator(interaction);
-			raison = validator.getString('raison', null, {
+			targetId = validator.getString('id', validateDiscordId);
+			reason = validator.getString('raison', null, {
 				name: 'Raison',
 				minLength: 3,
-				maxLength: 500
+				maxLength: 500,
 			});
 		} catch (error) {
 			if (error instanceof ValidationError) {
-				return interaction.editReply({ content: `❌ ${error.message}`, flags: MessageFlags.Ephemeral });
+				return interaction.editReply({ content: `❌ ${error.message}` });
 			}
-			return interaction.editReply({ content: `Erreur : ${error}`, flags: MessageFlags.Ephemeral });
+			throw error;
 		}
-        
+
+		// Récupère le compte Discord (fonctionne même si la personne n'est pas sur le serveur)
+		let targetUser;
 		try {
-            // Ban the user by their ID
-            logger.debug(user_to_ban_id);
-			await interaction.guild.members.ban(user_to_ban_id, { reason: raison });
-		} catch (error) {
-            await interaction.editReply({ content: `Erreur lors du ban de l\'utilisateur ${error}`, flags: MessageFlags.Ephemeral });
-            return;
+			targetUser = await interaction.client.users.fetch(targetId);
+		} catch {
+			return interaction.editReply({ content: `❌ Aucun compte Discord trouvé pour l'ID \`${targetId}\`.` });
 		}
-        
-        try {
-            await interaction.editReply({ content: `L'utilisateur <@${user_to_ban_id}> a été banni pour la raison suivante : ${raison}` });
-        } catch (error) {
-            logger.error(error);
-            return;
-        }
+
+		const staffUser = interaction.user;
 
 		try {
-			// Send a log embed to the ban-log channel
-			const channel = interaction.guild.channels.cache.find(channel => channel.name === 'ban-log');
-			const embed = new EmbedBuilder()
-				.setColor('#FF0000')
-				.setTitle('Ban')
-				.setDescription('Un utilisateur a été banni')
-				.addFields(
-					{ name: 'Utilisateur', value: `<@${user_to_ban_id}>` },
-					{ name: 'Raison', value: raison },
-					{ name: 'Staff', value: `<@${staff.id}>` },
-				)
-				.setTimestamp()
-			channel.send({ embeds: [embed] });
+			// Enregistré avant le ban pour que l'event GuildBanAdd ne le compte pas une 2e fois
+			const user = await ensureUserExists(targetUser.id, targetUser.username);
+			const punisher = await ensureUserExists(staffUser.id, staffUser.username);
+			await Punishments.create({
+				fk_user: user.pk_user,
+				fk_punisher: punisher.pk_user,
+				reason,
+				type: 'ban',
+			});
+
+			await interaction.guild.members.ban(targetUser.id, { reason });
+			await logModerationAction(interaction, targetUser, staffUser, reason, 'Ban');
+			await anonymizeUser(user);
 		} catch (error) {
-			logger.error('Erreur lors de l\'envoie du log' + error);
+			logger.error('Erreur lors du hackban :', error);
+			return interaction.editReply({ content: `❌ Erreur lors du ban : ${error.message}` });
 		}
+
+		await interaction.editReply({ content: `L'utilisateur <@${targetUser.id}> a été banni pour la raison suivante : ${reason}` });
 	},
 };

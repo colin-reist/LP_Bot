@@ -203,7 +203,8 @@ class ErrorHandler {
 			userMessage = `❌ ${error.message}`;
 		} else if (error.code === 10062) {
 			// Discord: Unknown Interaction
-			return; // Ne pas répondre, l'interaction a expiré
+			// Ne pas répondre, l'interaction a expiré
+			return;
 		} else if (error.code === 50013) {
 			userMessage = '❌ Je n\'ai pas les permissions nécessaires pour effectuer cette action.';
 		}
@@ -214,12 +215,12 @@ class ErrorHandler {
 				await interaction.editReply({
 					content: userMessage,
 					flags: MessageFlags.Ephemeral,
-				}).catch(() => {});
+				}).catch(() => null);
 			} else {
 				await interaction.reply({
 					content: userMessage,
 					flags: MessageFlags.Ephemeral,
-				}).catch(() => {});
+				}).catch(() => null);
 			}
 		} catch (replyError) {
 			logger.error('Could not send error message to user:', replyError);
